@@ -1,8 +1,8 @@
-#define OUTPUT_PIN_1 4
-#define OUTPUT_PIN_2 5
-#define INPUT_PIN_1 8
-#define INPUT_PIN_2 9
-#define RELAY_DELAY 5
+#define OUTPUT_PIN_1 4 // 궁채
+#define OUTPUT_PIN_2 5 // 북재
+#define INPUT_PIN_1 8 // 채편
+#define INPUT_PIN_2 9 // 북편
+#define RELAY_DELAY 50
 int step;
 int pin1ConnectedTo, pin2ConnectedTo;
 unsigned int lastTimestamp;
@@ -35,7 +35,8 @@ void loop()
    	case 0:
     	digitalWrite(OUTPUT_PIN_1, LOW);
     	digitalWrite(OUTPUT_PIN_2, HIGH);
-    	delay(RELAY_DELAY);
+      delayMicroseconds(RELAY_DELAY);
+    	//delay(RELAY_DELAY);
         if(digitalRead(INPUT_PIN_1) == LOW) {
 			pin2ConnectedTo = INPUT_PIN_1;
         } else if (digitalRead(INPUT_PIN_2) == LOW) {
@@ -47,7 +48,8 @@ void loop()
     case 1:
     	digitalWrite(OUTPUT_PIN_2, LOW);
     	digitalWrite(OUTPUT_PIN_1, HIGH);
-    	delay(RELAY_DELAY);
+      delayMicroseconds(RELAY_DELAY);
+    	//delay(RELAY_DELAY);
         if(digitalRead(INPUT_PIN_1) == LOW) {
 			pin1ConnectedTo = INPUT_PIN_1;
         } else if (digitalRead(INPUT_PIN_2) == LOW) {
@@ -59,10 +61,23 @@ void loop()
     case 2:
     	digitalWrite(OUTPUT_PIN_1, LOW);
     	digitalWrite(OUTPUT_PIN_2, LOW);
+      delayMicroseconds(RELAY_DELAY);
       //delay(RELAY_DELAY);
-    	char message[40];
-    	sprintf(message, "%d to %d, %d to %d", OUTPUT_PIN_1, pin1ConnectedTo, OUTPUT_PIN_2, pin2ConnectedTo);
-    	Serial.println(message);
+      /* char message[40];
+      sprintf(message, "%d to %d, %d to %d", OUTPUT_PIN_1, pin1ConnectedTo, 
+      OUTPUT_PIN_2,
+       pin2ConnectedTo);
+      Serial.println(message);*/
+      uint8_t bits = 0;
+      if (pin1ConnectedTo == INPUT_PIN_1)
+        bits |= (uint8_t)1;
+      if (pin1ConnectedTo == INPUT_PIN_2)
+        bits |= (uint8_t)2;
+      if (pin2ConnectedTo == INPUT_PIN_1)
+        bits |= (uint8_t)4;
+      if (pin2ConnectedTo == INPUT_PIN_2)
+        bits |= (uint8_t)8;
+      Serial.write(bits);
     break;
   }
 }
