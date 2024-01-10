@@ -7,7 +7,7 @@ use sdl2::{event::Event, keyboard::Keycode};
 
 use crate::serial::ControllerState;
 
-pub(crate) fn init_game(controller_lock: Arc<RwLock<ControllerState>>) {
+pub(crate) fn init_game() {
     let sdl_context = sdl2::init().expect("sdl context initialization Fail");
     let video_subsystem = sdl_context
         .video()
@@ -41,12 +41,20 @@ pub(crate) fn init_game(controller_lock: Arc<RwLock<ControllerState>>) {
                     keycode: Some(Keycode::Escape),
                     ..
                 } => break 'running,
+                Event::KeyDown { keycode: Some(Keycode::U), repeat: false, .. } => {
+                    println!("u");
+                },
+                Event::KeyDown { keycode: Some(Keycode::I), repeat: false, .. } => {
+                    println!("i");
+                },
+                Event::KeyDown { keycode: Some(Keycode::O), repeat: false,  .. } => {
+                    println!("o");
+                },
+                Event::KeyDown { keycode: Some(Keycode::P), repeat: false, .. } => {
+                    println!("p");
+                },
                 _ => {}
             }
-        }
-
-        if let Ok(guard) = controller_lock.try_read() {
-            println!("{:?} {:?}", guard.궁채, guard.북채);
         }
 
         canvas.clear();
