@@ -1,11 +1,4 @@
-use std::{
-    sync::{mpsc, Arc, RwLock},
-    time::Duration,
-};
-
 use sdl2::{event::Event, keyboard::Keycode};
-
-use crate::serial::ControllerState;
 
 pub(crate) fn init_game() {
     let sdl_context = sdl2::init().expect("sdl context initialization Fail");
@@ -41,25 +34,40 @@ pub(crate) fn init_game() {
                     keycode: Some(Keycode::Escape),
                     ..
                 } => break 'running,
-                Event::KeyDown { keycode: Some(Keycode::U), repeat: false, .. } => {
+                Event::KeyDown {
+                    keycode: Some(Keycode::U),
+                    repeat: false,
+                    ..
+                } => {
                     println!("u");
-                },
-                Event::KeyDown { keycode: Some(Keycode::I), repeat: false, .. } => {
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::I),
+                    repeat: false,
+                    ..
+                } => {
                     println!("i");
-                },
-                Event::KeyDown { keycode: Some(Keycode::O), repeat: false,  .. } => {
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::O),
+                    repeat: false,
+                    ..
+                } => {
                     println!("o");
-                },
-                Event::KeyDown { keycode: Some(Keycode::P), repeat: false, .. } => {
+                }
+                Event::KeyDown {
+                    keycode: Some(Keycode::P),
+                    repeat: false,
+                    ..
+                } => {
                     println!("p");
-                },
+                }
                 _ => {}
             }
         }
 
         canvas.clear();
         canvas.present();
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 30));
         // The rest of the game loop goes here...
     }
 }

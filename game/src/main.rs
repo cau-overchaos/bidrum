@@ -1,17 +1,13 @@
 mod serial;
 
 use std::{
-    sync::{mpsc, Arc, Mutex, RwLock},
     thread::{self, sleep},
     time::Duration,
 };
 
 use clap::Parser;
 
-use crate::{
-    game::init_game,
-    serial::{read_serial_loop, ControllerState},
-};
+use crate::{game::init_game, serial::read_serial_loop};
 
 mod game;
 
@@ -26,7 +22,7 @@ struct Args {
 fn main() {
     let args = Args::parse();
     match args.controller_port {
-            Some(controller_port) => {
+        Some(controller_port) => {
             println!("Openning serial port {}", controller_port);
 
             let port = serialport::new(controller_port, 9600)
@@ -41,7 +37,7 @@ fn main() {
             thread::spawn(move || {
                 read_serial_loop(port);
             });
-        },
+        }
         _ => {}
     }
 

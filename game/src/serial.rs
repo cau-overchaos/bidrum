@@ -1,10 +1,6 @@
-use std::{
-    sync::{mpsc, Arc, RwLock},
-    thread::sleep,
-    time::Duration,
-};
+use std::{thread::sleep, time::Duration};
 
-use enigo::{Enigo, KeyboardControllable, Key};
+use enigo::{Enigo, Key, KeyboardControllable};
 use serialport::SerialPort;
 
 // Korean looks more intutitive than english...
@@ -20,7 +16,12 @@ pub(crate) struct ControllerState {
     pub 북채: Option<DrumPane>,
 }
 
-pub(crate) fn keys_to_state_struct(key1: bool, key2: bool, key3: bool, key4: bool) -> ControllerState {
+pub(crate) fn keys_to_state_struct(
+    key1: bool,
+    key2: bool,
+    key3: bool,
+    key4: bool,
+) -> ControllerState {
     ControllerState {
         궁채: if key1 {
             Some(DrumPane::채편)
@@ -43,27 +44,27 @@ fn state_struct_to_keys(state: ControllerState) -> (bool, bool, bool, bool) {
     return (
         match state.궁채 {
             Some(pane) => matches!(pane, DrumPane::채편),
-            None => false
+            None => false,
         },
         match state.궁채 {
             Some(pane) => matches!(pane, DrumPane::북편),
-            None => false
+            None => false,
         },
         match state.북채 {
             Some(pane) => matches!(pane, DrumPane::채편),
-            None => false
+            None => false,
         },
         match state.북채 {
             Some(pane) => matches!(pane, DrumPane::북편),
-            None => false
-        }
-    )
+            None => false,
+        },
+    );
 }
 
 pub(crate) fn read_serial_loop(mut port: Box<dyn SerialPort>) {
     let mut previous_state = ControllerState {
         궁채: None,
-        북채: None
+        북채: None,
     };
     let mut enigo = Enigo::new();
 
@@ -107,14 +108,14 @@ pub(crate) fn read_serial_loop(mut port: Box<dyn SerialPort>) {
                 1 => previous_keys.1,
                 2 => previous_keys.2,
                 3 => previous_keys.3,
-                _ => panic!("Unexpected loop index value")
+                _ => panic!("Unexpected loop index value"),
             };
             let current_key = match i {
                 0 => current_keys.0,
                 1 => current_keys.1,
                 2 => current_keys.2,
                 3 => current_keys.3,
-                _ => panic!("Unexpected loop index value")
+                _ => panic!("Unexpected loop index value"),
             };
 
             if previous_key != current_key {
