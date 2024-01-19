@@ -1,3 +1,4 @@
+mod game;
 mod serial;
 
 use std::{
@@ -6,10 +7,9 @@ use std::{
 };
 
 use clap::Parser;
+use game::init::init_game;
 
-use crate::{game::init_game, serial::read_serial_loop};
-
-mod game;
+use crate::serial::read_serial_loop;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
