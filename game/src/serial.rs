@@ -3,26 +3,15 @@ use std::{thread::sleep, time::Duration};
 use enigo::{Enigo, Key, KeyboardControllable};
 use serialport::SerialPort;
 
-// Korean looks more intutitive than english...
-#[derive(Debug, Clone, Copy)]
-pub enum DrumPane {
-    채편,
-    북편,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub(crate) struct ControllerState {
-    pub 궁채: Option<DrumPane>,
-    pub 북채: Option<DrumPane>,
-}
+use crate::janggu::{JangguState, DrumPane};
 
 pub(crate) fn keys_to_state_struct(
     key1: bool,
     key2: bool,
     key3: bool,
     key4: bool,
-) -> ControllerState {
-    ControllerState {
+) -> JangguState {
+    JangguState {
         궁채: if key1 {
             Some(DrumPane::채편)
         } else if key2 {
@@ -40,7 +29,7 @@ pub(crate) fn keys_to_state_struct(
     }
 }
 
-fn state_struct_to_keys(state: ControllerState) -> (bool, bool, bool, bool) {
+fn state_struct_to_keys(state: JangguState) -> (bool, bool, bool, bool) {
     return (
         match state.궁채 {
             Some(pane) => matches!(pane, DrumPane::채편),
@@ -62,7 +51,7 @@ fn state_struct_to_keys(state: ControllerState) -> (bool, bool, bool, bool) {
 }
 
 pub(crate) fn read_serial_loop(mut port: Box<dyn SerialPort>) {
-    let mut previous_state = ControllerState {
+    let mut previous_state = JangguState {
         궁채: None,
         북채: None,
     };
@@ -81,7 +70,7 @@ pub(crate) fn read_serial_loop(mut port: Box<dyn SerialPort>) {
         port.read_exact(message.as_mut_slice())
             .expect("Controller reading failure!");
 
-        let current_state = ControllerState {
+        let current_state = JangguState {
             궁채: if message[0] & 1 != 0 {
                 Some(DrumPane::채편)
             } else if message[0] & 2 != 0 {

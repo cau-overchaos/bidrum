@@ -3,7 +3,7 @@ use std::path::{Path, self};
 use kira::manager::{AudioManager, AudioManagerSettings, backend::DefaultBackend};
 use sdl2::{mixer, sys::mixer::MIX_InitFlags_MIX_INIT_OGG};
 
-use super::{game_common_context::GameCommonContext, title::render_title, game_player::{play_song, GameSong}};
+use super::{game_common_context::GameCommonContext, title::render_title, game_player::{play_song, songs::GameSong}};
 
 pub(crate) fn init_game() {
     let sdl_context = sdl2::init().expect("sdl context initialization Fail");
@@ -45,9 +45,9 @@ pub(crate) fn init_game() {
                 break 'running;
             }
             super::title::TitleResult::StartGame => {
+                let songs = GameSong::get_songs();
                 play_song(&mut context, 
-                    GameSong { audio_filename: Path::new("assets/music/blue_sky_sonnet/audio.ogg"),
-                video_filename: Path::new("assets/music/blue_sky_sonnet/bga.webm") }
+                    &songs[0]
                 )
             }
         }
