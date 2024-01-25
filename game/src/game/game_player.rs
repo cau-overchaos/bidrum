@@ -2,16 +2,16 @@ pub mod songs;
 mod render_video;
 mod draw_ui;
 
-use std::{path::Path, thread};
+use std::{path::{Path, Display}, thread};
 
 use ffmpeg_next::{codec::{Video, video}, device::input::video};
 use kira::{clock::ClockSpeed, sound::static_sound::{StaticSoundSettings, StaticSoundData}, tween::Tween};
 use num_rational::Rational64;
 use sdl2::{pixels::{Color, PixelFormatEnum}, image::LoadTexture};
 
-use crate::game::{game_common_context, common::{self, event_loop_common, render_common}};
+use crate::{game::{game_common_context, common::{self, event_loop_common, render_common}}, janggu::DrumPane};
 
-use self::{render_video::VideoFileRenderer, songs::GameSong};
+use self::{render_video::VideoFileRenderer, songs::GameSong, draw_ui::DisplayedSongNote};
 
 pub(crate) fn play_song(common_context: &mut game_common_context::GameCommonContext, song: &GameSong) {
     // Load cover image texture
@@ -61,6 +61,7 @@ pub(crate) fn play_song(common_context: &mut game_common_context::GameCommonCont
         .expect("Failed to create texture");
 
     'running: loop {
+        let tick_now = clock.time().ticks as i128 - start_tick.ticks as i128;
         for event in common_context.event_pump.poll_iter() {
             if event_loop_common(&event, &mut common_context.coins) {
                 handle.stop(Tween::default()).expect("Failed to stop song");
@@ -69,16 +70,35 @@ pub(crate) fn play_song(common_context: &mut game_common_context::GameCommonCont
         }
 
         common_context.canvas.clear();
-        if clock.time().ticks >= start_tick.ticks {
-            video_file_renderer.wanted_time_in_second = Rational64::new((clock.time().ticks - start_tick.ticks)as i64, 1000);
+        if tick_now >= 0 {
+            video_file_renderer.wanted_time_in_second = Rational64::new(tick_now as i64, 1000);
             video_file_renderer.render_frame(&mut texture);
             common_context.canvas.copy(&texture, None, None);
         } else {
             common_context.canvas.copy(&cover_img_texture, None, None);
         }
         render_common(common_context);
+        let mut display_notes = Vec::<DisplayedSongNote>::new();
+        if tick_now >= 0 {
+            for i in song.get_level(1).unwrap().tracks {
+                for j in i.notes {
+                    display_notes.push(
+                        DisplayedSongNote {
+                            궁채: j.궁채,
+                            열채: j.열채,
+                            distance: j.get_position(
+                                i.bpm as u64, 
+                                i.bpm as u64 * 2, 
+                                (tick_now) as u64
+                            )
+                        }
+                    );
+                }
+            }
+        }
+        draw_ui::draw_ui(&mut common_context.canvas, display_notes);
         common_context.canvas.present();
-        if clock.time().ticks > start_tick.ticks {
+        if tick_now > 0 {
             match handle.state() {
                 kira::sound::PlaybackState::Playing => {
                     // Do nothing

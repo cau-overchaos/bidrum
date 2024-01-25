@@ -1,6 +1,8 @@
+use serde::{Serialize, Deserialize};
+
 
 // Korean looks more intutitive than english...
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum DrumPane {
     채편,
     북편,
