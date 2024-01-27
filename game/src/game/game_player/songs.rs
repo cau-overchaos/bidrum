@@ -17,7 +17,7 @@ pub(crate) struct GameSong{
     pub(crate) levels: Vec<u32>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub(crate) struct GameNote {
     pub(crate) 궁채: Option<DrumPane>,
     pub(crate) 열채: Option<DrumPane>,
@@ -33,6 +33,7 @@ pub(crate) struct GameLevel {
 #[derive(Serialize, Deserialize, Debug)]
 pub(crate) struct GameNoteTrack {
     pub(crate) bpm: u32,
+    pub(crate) delay: u64,
     pub(crate) notes: Vec<GameNote>,
 }
 
@@ -44,16 +45,16 @@ impl GameNote {
             Rational64::new(self.tick_nomiator, self.tick_denomiator)
         }
     }
-    pub(crate) fn end_time_in_ms(&self, track_bpm: u64) -> u64 {
+    pub(crate) fn end_time_in_ms(&self, track_bpm: u64, track_delay: u64) -> u64 {
         let end_time = self.beat() * 
         Rational64::new(60000, track_bpm as i64);
         
-        let result = (end_time.numer() / end_time.denom()) as u64;
+        let result = (end_time.numer() / end_time.denom()) as u64 + track_delay;
         println!("beat={} => end_time{}", self.beat().to_integer(), result);
         result
     }
-    pub(crate) fn get_position(&self, track_bpm: u64, display_bpm: u64, current_time_in_ms: u64) -> f64 {
-        let end_time = self.end_time_in_ms(track_bpm);
+    pub(crate) fn get_position(&self, track_bpm: u64, track_delay: u64, display_bpm: u64, current_time_in_ms: u64) -> f64 {
+        let end_time = self.end_time_in_ms(track_bpm, track_delay);
         // beat_per_millisecond = (display_bpm / 60000)
         // millisecond_per_beat = 1/ beat_per_millisecond
         // speed = 1 / millisecond_per_beat
@@ -63,11 +64,7 @@ impl GameNote {
         );
 
         let speed = *speed_ratio.numer() as f64 / *speed_ratio.denom() as f64;
-        let result = if end_time <= current_time_in_ms {
-            0.0
-        } else {
-            (end_time - current_time_in_ms) as f64 * speed
-        };
+        let result = (end_time as f64 - current_time_in_ms as f64) * speed;
         println!("speed={} current={}, position={}", speed, current_time_in_ms, result);
         result
     }

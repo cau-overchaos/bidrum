@@ -47,7 +47,8 @@ pub(crate) fn init_game() {
             super::title::TitleResult::StartGame => {
                 let songs = GameSong::get_songs();
                 play_song(&mut context, 
-                    &songs[0]
+                    &songs[0],
+                    1
                 )
             }
         }
