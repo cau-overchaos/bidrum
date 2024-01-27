@@ -3,14 +3,9 @@ use std::{thread::sleep, time::Duration};
 use enigo::{Enigo, Key, KeyboardControllable};
 use serialport::SerialPort;
 
-use crate::janggu::{JangguState, DrumPane};
+use crate::janggu::{DrumPane, JangguState};
 
-pub(crate) fn keys_to_state_struct(
-    key1: bool,
-    key2: bool,
-    key3: bool,
-    key4: bool,
-) -> JangguState {
+pub(crate) fn keys_to_state_struct(key1: bool, key2: bool, key3: bool, key4: bool) -> JangguState {
     JangguState {
         궁채: if key1 {
             Some(DrumPane::채편)

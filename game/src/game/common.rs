@@ -1,4 +1,4 @@
-use sdl2::{event::Event, keyboard::Keycode, render::{Canvas, TextureQuery}, sys::ttf, video::Window, pixels::Color, rect::Rect};
+use sdl2::{event::Event, keyboard::Keycode, pixels::Color, rect::Rect, render::TextureQuery};
 
 use super::game_common_context::GameCommonContext;
 
@@ -28,14 +28,21 @@ pub(crate) fn render_common(context: &mut GameCommonContext) {
     let texture_creator = canvas.texture_creator();
 
     // Load a font
-    let mut font = ttf_context.load_font("assets/sans.ttf", 32).expect("Unable to load font");
+    let mut font = ttf_context
+        .load_font("assets/sans.ttf", 32)
+        .expect("Unable to load font");
     font.set_style(sdl2::ttf::FontStyle::BOLD);
 
     // render a surface, and convert it to a texture bound to the canvas
     let text = if context.price == 1 {
         format!("CREDIT: {}", context.coins)
     } else {
-        format!("CREDIT: {} ({}/{})", context.coins / context.price, context.coins % context.price, context.price)
+        format!(
+            "CREDIT: {} ({}/{})",
+            context.coins / context.price,
+            context.coins % context.price,
+            context.price
+        )
     };
 
     let surface = font
@@ -48,6 +55,11 @@ pub(crate) fn render_common(context: &mut GameCommonContext) {
 
     canvas.set_draw_color(Color::RGBA(195, 217, 255, 255));
     let TextureQuery { width, height, .. } = texture.query();
-    let target = Rect::new(((canvas.viewport().width() - width) / 2) as i32, (canvas.viewport().height() - height - 64) as i32, width as u32, height as u32);
+    let target = Rect::new(
+        ((canvas.viewport().width() - width) / 2) as i32,
+        (canvas.viewport().height() - height - 64) as i32,
+        width as u32,
+        height as u32,
+    );
     canvas.copy(&texture, None, Some(target)).expect("Failure");
 }

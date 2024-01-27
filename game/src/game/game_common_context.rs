@@ -1,5 +1,5 @@
 use kira::manager::AudioManager;
-use sdl2::{render::Canvas, EventPump, video::Window};
+use sdl2::{render::Canvas, video::Window, EventPump};
 
 pub(crate) struct GameCommonContext {
     pub(crate) coins: u32,

@@ -1,5 +1,4 @@
-use serde::{Serialize, Deserialize};
-
+use serde::{Deserialize, Serialize};
 
 // Korean looks more intutitive than english...
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]

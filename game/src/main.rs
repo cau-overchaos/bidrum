@@ -1,6 +1,6 @@
 mod game;
-mod serial;
 pub mod janggu;
+mod serial;
 
 use std::{
     thread::{self, sleep},

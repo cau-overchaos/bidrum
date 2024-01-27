@@ -1,40 +1,37 @@
-use std::os::unix::process;
-
 use crate::janggu::JangguState;
 
 use super::songs::{GameNote, GameNoteTrack};
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum NoteAccuracy {
-    overchaos,
-    perfect,
-    great,
-    good,
-    bad,
-    miss
+    Overchaos,
+    Perfect,
+    Great,
+    Good,
+    Bad,
+    Miss,
 }
 
 const OVERCHAOS_TIMING: i64 = 10;
 const PERFECT_TIMING: i64 = 40;
 const GREAT_TIMING: i64 = 60;
-const GOOD_TIMING :i64 = 80;
+const GOOD_TIMING: i64 = 80;
 const BAD_TIMING: i64 = 160;
 
 struct NoteForProcessing {
     note: GameNote,
-    accuracy: Option<NoteAccuracy>,
     bpm: u32,
     delay: u64,
 }
 
 pub(crate) struct NoteProcessor {
     notes: Vec<NoteForProcessing>,
-    overchaos_count : u64,
-    perfect_count : u64,
-    great_count : u64,
-    good_count : u64,
-    bad_count : u64,
-    miss_count : u64,
+    overchaos_count: u64,
+    perfect_count: u64,
+    great_count: u64,
+    good_count: u64,
+    bad_count: u64,
+    miss_count: u64,
     combo: u64,
 }
 
@@ -45,16 +42,13 @@ impl NoteProcessor {
             for j in &i.notes {
                 notes.push(NoteForProcessing {
                     note: j.clone(),
-                    accuracy: None,
                     bpm: i.bpm,
-                    delay: i.delay
+                    delay: i.delay,
                 });
             }
         }
 
-        notes.sort_by(|a, b| a.note.beat().cmp(
-            &b.note.beat()
-        ));
+        notes.sort_by(|a, b| a.note.beat().cmp(&b.note.beat()));
 
         return NoteProcessor {
             notes: notes,
@@ -64,12 +58,15 @@ impl NoteProcessor {
             great_count: 0,
             miss_count: 0,
             overchaos_count: 0,
-            perfect_count: 0
-        }
+            perfect_count: 0,
+        };
     }
 
-    pub fn process(&mut self, keydown: JangguState, tick_in_milliseconds: u64) -> Option<NoteAccuracy> {
-        
+    pub fn process(
+        &mut self,
+        keydown: JangguState,
+        tick_in_milliseconds: u64,
+    ) -> Option<NoteAccuracy> {
         let mut processed_index: Option<usize> = None;
         let mut result = None;
         for (idx, i) in (&self.notes).iter().enumerate() {
@@ -81,29 +78,29 @@ impl NoteProcessor {
             // MISS
             if difference > (BAD_TIMING) {
                 processed_index = Some(idx);
-                result = Some(NoteAccuracy::miss);
+                result = Some(NoteAccuracy::Miss);
                 break;
             }
 
             if i.note.궁채 != keydown.궁채 || i.note.열채 != keydown.북채 {
                 continue;
             }
-            
+
             let difference_abs = difference.abs();
             let note_accuracy = if difference_abs <= OVERCHAOS_TIMING {
-                Some(NoteAccuracy::overchaos)
+                Some(NoteAccuracy::Overchaos)
             } else if difference_abs <= PERFECT_TIMING {
-                Some(NoteAccuracy::perfect)
+                Some(NoteAccuracy::Perfect)
             } else if difference_abs <= GREAT_TIMING {
-                Some(NoteAccuracy::great)
+                Some(NoteAccuracy::Great)
             } else if difference_abs <= GOOD_TIMING {
-                Some(NoteAccuracy::good)
+                Some(NoteAccuracy::Good)
             } else if difference_abs <= BAD_TIMING {
-                Some(NoteAccuracy::bad)
+                Some(NoteAccuracy::Bad)
             } else {
                 None
             };
-            
+
             if let Some(accuracy_unwrapped) = note_accuracy {
                 processed_index = Some(idx);
                 result = Some(accuracy_unwrapped);
@@ -114,29 +111,30 @@ impl NoteProcessor {
         if let Some(processed_accuracy) = &result {
             self.notes.remove(processed_index.unwrap());
             match processed_accuracy {
-                NoteAccuracy::overchaos => {
+                NoteAccuracy::Overchaos => {
                     self.combo += 1;
                     self.overchaos_count += 1;
-                },
-                NoteAccuracy::perfect => {
+                }
+                NoteAccuracy::Perfect => {
                     self.combo += 1;
                     self.perfect_count += 1;
-                },
-                NoteAccuracy::great => {
+                }
+                NoteAccuracy::Great => {
                     self.combo += 1;
                     self.great_count += 1;
-                },
-                NoteAccuracy::good => {
+                }
+                NoteAccuracy::Good => {
                     self.combo += 1;
                     self.good_count += 1;
-                },
-                NoteAccuracy::bad => {
+                }
+                NoteAccuracy::Bad => {
                     self.combo += 1;
                     self.bad_count += 1;
-                },
-                NoteAccuracy::miss => {
+                }
+                NoteAccuracy::Miss => {
                     self.combo = 0;
-                },
+                    self.miss_count += 1;
+                }
             }
         }
 

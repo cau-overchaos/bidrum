@@ -2,15 +2,15 @@ use std::{path::Path, time::Duration};
 
 use sdl2::{
     event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect, render::Canvas,
-    sys::KeyCode, video::Window, EventPump,
+    video::Window,
 };
 
 use super::{
-    common::{self, event_loop_common, render_common},
+    common::{event_loop_common, render_common},
     game_common_context::GameCommonContext,
 };
 
-fn centerRect(rect: Rect, w: u32, h: u32) -> Rect {
+fn center_rect(rect: Rect, w: u32, h: u32) -> Rect {
     return Rect::new(
         rect.x + (rect.width() / 2 - w / 2) as i32,
         rect.y + (rect.height() / 2 - h / 2) as i32,
@@ -19,7 +19,7 @@ fn centerRect(rect: Rect, w: u32, h: u32) -> Rect {
     );
 }
 
-fn renderLogo(canvas: &mut Canvas<Window>) {
+fn render_logo(canvas: &mut Canvas<Window>) {
     let path = Path::new("assets/img/logo.png");
     let texture_creator = canvas.texture_creator();
     let texture = texture_creator
@@ -34,7 +34,7 @@ fn renderLogo(canvas: &mut Canvas<Window>) {
         .copy(
             &texture,
             None,
-            Some(centerRect(
+            Some(center_rect(
                 canvas.viewport(),
                 canvas.viewport().width() / 3,
                 (canvas.viewport().width() as f32 / 3.0 * (logo_height as f32 / logo_width as f32))
@@ -49,9 +49,7 @@ pub(crate) enum TitleResult {
     StartGame,
 }
 
-pub(crate) fn render_title(
-    mut common_context: &mut GameCommonContext,
-) -> TitleResult {
+pub(crate) fn render_title(common_context: &mut GameCommonContext) -> TitleResult {
     let mut delta: i32 = 0;
     loop {
         for event in common_context.event_pump.poll_iter() {
@@ -63,7 +61,7 @@ pub(crate) fn render_title(
                     keycode: Some(Keycode::Return),
                     ..
                 } => {
-                    if (common_context.coins >= common_context.price) {
+                    if common_context.coins >= common_context.price {
                         common_context.coins -= common_context.price;
                         return TitleResult::StartGame;
                     }
@@ -93,16 +91,11 @@ pub(crate) fn render_title(
                     _ => panic!("?"),
                 }
             }
-            color = match color {
-                Color::MAGENTA => Color::WHITE,
-                Color::WHITE => Color::MAGENTA,
-                _ => panic!("?"),
-            }
         }
 
         delta = (delta + 1) % 150;
 
-        renderLogo(canvas);
+        render_logo(canvas);
         render_common(common_context);
         common_context.canvas.present();
         std::thread::sleep(Duration::from_millis(3));
