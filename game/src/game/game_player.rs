@@ -1,4 +1,5 @@
 mod draw_gameplay_ui;
+mod janggu_state_with_tick;
 mod render_video;
 pub mod songs;
 mod timing_judge;
@@ -20,6 +21,7 @@ use crate::game::{
 
 use self::{
     draw_gameplay_ui::{DisplayedSongNote, UIContent},
+    janggu_state_with_tick::JangguStateWithTick,
     render_video::VideoFileRenderer,
     songs::GameSong,
     timing_judge::{NoteAccuracy, TimingJudge},
@@ -112,6 +114,8 @@ pub(crate) fn play_song(
     let mut accuracy: Option<NoteAccuracy> = None;
     let mut accuracy_tick: Option<i128> = None;
 
+    let mut janggu_state_with_tick = JangguStateWithTick::new();
+
     'running: loop {
         let tick_now = clock.time().ticks as i128 - start_tick.ticks as i128;
         for event in common_context.event_pump.poll_iter() {
@@ -153,7 +157,8 @@ pub(crate) fn play_song(
 
             // make judgement
             let input_now = common_context.read_janggu_state();
-            let new_accuracy = timing_judge.judge(input_now, tick_now as u64);
+            janggu_state_with_tick.update(input_now, tick_now);
+            let new_accuracy = timing_judge.judge(&janggu_state_with_tick, tick_now as u64);
 
             // if any judgement is made, display it
             if let Some(new_accuracy_unwrapped) = new_accuracy {

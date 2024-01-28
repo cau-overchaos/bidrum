@@ -1,8 +1,9 @@
-use crate::janggu::JangguState;
+use super::{
+    janggu_state_with_tick::JangguStateWithTick,
+    songs::{GameNote, GameNoteTrack},
+};
 
-use super::songs::{GameNote, GameNoteTrack};
-
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum NoteAccuracy {
     /// 1st (the highest accuracy)
     Overchaos,
@@ -31,6 +32,8 @@ struct NoteForProcessing {
     note: GameNote,
     bpm: u32,
     delay: u64,
+    궁채_timing: Option<u64>,
+    북채_timing: Option<u64>,
 }
 
 /// Judges timing accuracy
@@ -45,6 +48,23 @@ pub(crate) struct TimingJudge {
     combo: u64,
 }
 
+fn note_accuracy_from_time_difference(difference: i64) -> NoteAccuracy {
+    let difference_abs = difference.abs();
+    if difference_abs <= OVERCHAOS_TIMING {
+        NoteAccuracy::Overchaos
+    } else if difference_abs <= PERFECT_TIMING {
+        NoteAccuracy::Perfect
+    } else if difference_abs <= GREAT_TIMING {
+        NoteAccuracy::Great
+    } else if difference_abs <= GOOD_TIMING {
+        NoteAccuracy::Good
+    } else if difference_abs <= BAD_TIMING {
+        NoteAccuracy::Bad
+    } else {
+        NoteAccuracy::Miss
+    }
+}
+
 impl TimingJudge {
     /// Creates new TimingJudge with collection of notes
     pub fn new(tracks: &Vec<GameNoteTrack>) -> TimingJudge {
@@ -56,6 +76,8 @@ impl TimingJudge {
                     note: j.clone(),
                     bpm: i.bpm,
                     delay: i.delay,
+                    궁채_timing: None,
+                    북채_timing: None,
                 });
             }
         }
@@ -88,12 +110,12 @@ impl TimingJudge {
     ///   * `tick_in_milliseconds` : the current time position of the song
     pub fn judge(
         &mut self,
-        keydown: JangguState,
+        keydown: &JangguStateWithTick,
         tick_in_milliseconds: u64,
     ) -> Option<NoteAccuracy> {
         let mut processed_index: Option<usize> = None;
         let mut result = None;
-        for (idx, i) in (&self.notes).iter().enumerate() {
+        for (idx, i) in (&mut self.notes).iter_mut().enumerate() {
             let precise_timing = i.note.timing_in_ms(i.bpm.into(), i.delay);
             let difference = tick_in_milliseconds as i64 - precise_timing as i64;
 
@@ -104,33 +126,109 @@ impl TimingJudge {
                 break;
             }
 
-            // not a processable note
-            if i.note.궁채 != keydown.궁채 || i.note.북채 != keydown.북채 {
+            // skip not-yet notes
+            if difference < -BAD_TIMING {
                 continue;
             }
 
-            // if it's processable note, calculate accuracy
-            let difference_abs = difference.abs();
-            let note_accuracy = if difference_abs <= OVERCHAOS_TIMING {
-                Some(NoteAccuracy::Overchaos)
-            } else if difference_abs <= PERFECT_TIMING {
-                Some(NoteAccuracy::Perfect)
-            } else if difference_abs <= GREAT_TIMING {
-                Some(NoteAccuracy::Great)
-            } else if difference_abs <= GOOD_TIMING {
-                Some(NoteAccuracy::Good)
-            } else if difference_abs <= BAD_TIMING {
-                Some(NoteAccuracy::Bad)
+            // process the timings
+            let 궁채_new_timing = if keydown.is_keydown(crate::janggu::DrumStick::궁채) {
+                Some(keydown.궁채.0 as u64)
             } else {
-                // Miss is calculated before this if-elif-...-else logic.
-                None
+                i.궁채_timing
+            };
+            i.궁채_timing = if matches!(i.note.북채, Some(_)) {
+                // the note is 쿵 kind
+                if let Some(북채_timing_saved) = i.북채_timing {
+                    if 북채_timing_saved == keydown.북채.0 as u64 && i.note.북채 == keydown.북채.1
+                    {
+                        // if the another stick input was already processed
+                        // the another stick should be pressed
+                        궁채_new_timing
+                    } else {
+                        i.궁채_timing
+                    }
+                } else {
+                    궁채_new_timing
+                }
+            } else if i.note.궁채 == keydown.궁채.1 {
+                // the note is not 쿵 kind
+                궁채_new_timing
+            } else {
+                // no input or incorrect input
+                i.궁채_timing
             };
 
-            // if any judgement is done, break the loop
-            if let Some(accuracy_unwrapped) = note_accuracy {
-                processed_index = Some(idx);
-                result = Some(accuracy_unwrapped);
-                break;
+            let 북채_new_timing = if keydown.is_keydown(crate::janggu::DrumStick::북채) {
+                Some(keydown.북채.0 as u64)
+            } else {
+                i.북채_timing
+            };
+            i.북채_timing = if matches!(i.note.궁채, Some(_)) {
+                // the note is 쿵 kind
+                if let Some(궁채_timing_saved) = i.궁채_timing {
+                    if 궁채_timing_saved == keydown.궁채.0 as u64 && i.note.궁채 == keydown.궁채.1
+                    {
+                        // if the another stick input was already processed
+                        // the another stick should be pressed
+                        북채_new_timing
+                    } else {
+                        i.북채_timing
+                    }
+                } else {
+                    북채_new_timing
+                }
+            } else if i.note.북채 == keydown.북채.1 {
+                // the note is not 쿵 kind
+                북채_new_timing
+            } else {
+                // no input or incorrect input
+                i.북채_timing
+            };
+
+            // if it's processable note, calculate accuracy
+            if (matches!(i.note.궁채, None) || matches!(i.궁채_timing, Some(_)))
+                && (matches!(i.note.북채, None) || matches!(i.북채_timing, Some(_)))
+            {
+                let note_accuracy_궁채 = if let Some(input_timing) = i.궁채_timing {
+                    Some(note_accuracy_from_time_difference(
+                        input_timing as i64 - precise_timing as i64,
+                    ))
+                } else {
+                    None
+                };
+
+                let note_accuracy_북채 = if let Some(input_timing) = i.북채_timing {
+                    Some(note_accuracy_from_time_difference(
+                        input_timing as i64 - precise_timing as i64,
+                    ))
+                } else {
+                    None
+                };
+
+                let note_accuracy = if let Some(note_accuracy_궁채_unwrapped) = note_accuracy_궁채
+                {
+                    if let Some(note_accuracy_북채_unwrapped) = note_accuracy_북채 {
+                        Some(std::cmp::max(
+                            note_accuracy_궁채_unwrapped,
+                            note_accuracy_북채_unwrapped,
+                        ))
+                    } else {
+                        Some(note_accuracy_궁채_unwrapped)
+                    }
+                } else if let Some(note_accuracy_북채_unwrapped) = note_accuracy_북채 {
+                    Some(note_accuracy_북채_unwrapped)
+                } else {
+                    // unreachable code
+                    panic!()
+                };
+
+                // if any judgement is done, break the loop
+                if let Some(accuracy_unwrapped) = note_accuracy {
+                    processed_index = Some(idx);
+                    result = Some(accuracy_unwrapped);
+                    break;
+                }
             }
         }
 
