@@ -125,21 +125,19 @@ pub fn draw_gameplay_ui(
         // get texture for the note
         let note_texture_option = match i.궁채 {
             Some(DrumPane::북편) => match i.북채 {
-                Some(DrumPane::북편) => Some(&note_textures.덩_돌려덕),
-                Some(DrumPane::채편) => Some(&note_textures.덩),
+                // 돌려쿵
+                Some(DrumPane::북편) => Some(&note_textures.덩_돌려쿵),
+                Some(DrumPane::채편) => Some(&note_textures.덩_돌려쿵덕),
+                _ => Some(&note_textures.돌려쿵),
+            },
+            Some(DrumPane::채편) => match i.북채 {
+                Some(DrumPane::북편) => Some(&note_textures.덩),
+                Some(DrumPane::채편) => Some(&note_textures.덩_돌려덕),
                 _ => Some(&note_textures.쿵),
             },
-            Some(DrumPane::채편) => {
-                // 돌려쿵
-                match i.북채 {
-                    Some(DrumPane::북편) => Some(&note_textures.덩_돌려쿵덕),
-                    Some(DrumPane::채편) => Some(&note_textures.덩_돌려쿵),
-                    _ => Some(&note_textures.돌려쿵),
-                }
-            }
             _ => match i.북채 {
-                Some(DrumPane::북편) => Some(&note_textures.돌려덕),
-                Some(DrumPane::채편) => Some(&note_textures.덕),
+                Some(DrumPane::북편) => Some(&note_textures.덕),
+                Some(DrumPane::채편) => Some(&note_textures.돌려덕),
                 _ => None,
             },
         };
