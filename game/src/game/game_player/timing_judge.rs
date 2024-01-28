@@ -4,27 +4,37 @@ use super::songs::{GameNote, GameNoteTrack};
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum NoteAccuracy {
+    /// 1st (the highest accuracy)
     Overchaos,
+    /// 2nd
     Perfect,
+    /// 3rd
     Great,
+    /// 4th
     Good,
+    /// 5th (the lowest accuracy)
     Bad,
+    /// miss
     Miss,
 }
 
+// timings for accuracy judgement
+// e.g. 10 means -10ms ~ +10ms
 const OVERCHAOS_TIMING: i64 = 10;
 const PERFECT_TIMING: i64 = 40;
 const GREAT_TIMING: i64 = 60;
 const GOOD_TIMING: i64 = 80;
 const BAD_TIMING: i64 = 160;
 
+// Combination of GameNoteTrack and GameNote
 struct NoteForProcessing {
     note: GameNote,
     bpm: u32,
     delay: u64,
 }
 
-pub(crate) struct NoteProcessor {
+/// Judges timing accuracy
+pub(crate) struct TimingJudge {
     notes: Vec<NoteForProcessing>,
     overchaos_count: u64,
     perfect_count: u64,
@@ -35,8 +45,10 @@ pub(crate) struct NoteProcessor {
     combo: u64,
 }
 
-impl NoteProcessor {
-    pub fn new(tracks: &Vec<GameNoteTrack>) -> NoteProcessor {
+impl TimingJudge {
+    /// Creates new TimingJudge with collection of notes
+    pub fn new(tracks: &Vec<GameNoteTrack>) -> TimingJudge {
+        // flattens GameNote and GameNoteTrack into NoteForProcessing
         let mut notes = Vec::<NoteForProcessing>::new();
         for i in tracks {
             for j in &i.notes {
@@ -48,9 +60,14 @@ impl NoteProcessor {
             }
         }
 
-        notes.sort_by(|a, b| a.note.beat().cmp(&b.note.beat()));
+        // sort the notes by their precise timings
+        notes.sort_by(|a, b| {
+            a.note
+                .timing_in_ms(a.bpm, a.delay)
+                .cmp(&b.note.timing_in_ms(b.bpm, b.delay))
+        });
 
-        return NoteProcessor {
+        return TimingJudge {
             notes: notes,
             bad_count: 0,
             combo: 0,
@@ -62,7 +79,14 @@ impl NoteProcessor {
         };
     }
 
-    pub fn process(
+    /// Checks the notes for judgement
+    /// If there's judged note by the given janggu state and timing, return the judgement result
+    /// If there's no judged note, return None
+    ///
+    /// # Arguments
+    ///   * `keydown`: the current janggu sate
+    ///   * `tick_in_milliseconds` : the current time position of the song
+    pub fn judge(
         &mut self,
         keydown: JangguState,
         tick_in_milliseconds: u64,
@@ -70,22 +94,22 @@ impl NoteProcessor {
         let mut processed_index: Option<usize> = None;
         let mut result = None;
         for (idx, i) in (&self.notes).iter().enumerate() {
-            let end_time = i.note.end_time_in_ms(i.bpm.into(), i.delay);
-            let difference = tick_in_milliseconds as i64 - end_time as i64;
+            let precise_timing = i.note.timing_in_ms(i.bpm.into(), i.delay);
+            let difference = tick_in_milliseconds as i64 - precise_timing as i64;
 
-            println!("difference={}", difference);
-
-            // MISS
+            // judge the miss
             if difference > (BAD_TIMING) {
                 processed_index = Some(idx);
                 result = Some(NoteAccuracy::Miss);
                 break;
             }
 
+            // not a processable note
             if i.note.궁채 != keydown.궁채 || i.note.북채 != keydown.북채 {
                 continue;
             }
 
+            // if it's processable note, calculate accuracy
             let difference_abs = difference.abs();
             let note_accuracy = if difference_abs <= OVERCHAOS_TIMING {
                 Some(NoteAccuracy::Overchaos)
@@ -98,9 +122,11 @@ impl NoteProcessor {
             } else if difference_abs <= BAD_TIMING {
                 Some(NoteAccuracy::Bad)
             } else {
+                // Miss is calculated before this if-elif-...-else logic.
                 None
             };
 
+            // if any judgement is done, break the loop
             if let Some(accuracy_unwrapped) = note_accuracy {
                 processed_index = Some(idx);
                 result = Some(accuracy_unwrapped);
@@ -108,8 +134,10 @@ impl NoteProcessor {
             }
         }
 
+        // if there's any judged note
         if let Some(processed_accuracy) = &result {
             self.notes.remove(processed_index.unwrap());
+            // increase or set combo and count
             match processed_accuracy {
                 NoteAccuracy::Overchaos => {
                     self.combo += 1;
@@ -132,12 +160,14 @@ impl NoteProcessor {
                     self.bad_count += 1;
                 }
                 NoteAccuracy::Miss => {
+                    // miss breaks the combo
                     self.combo = 0;
                     self.miss_count += 1;
                 }
             }
         }
 
+        // return judgement result of the judged note
         return result;
     }
 }

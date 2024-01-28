@@ -9,7 +9,7 @@ use sdl2::{
 
 use crate::janggu::DrumPane;
 
-use super::process_notes::NoteAccuracy;
+use super::timing_judge::NoteAccuracy;
 
 struct NoteTextures<'a> {
     덩: Texture<'a>,
@@ -67,76 +67,92 @@ fn load_accuracy_textures(
     })
 }
 
+/// size of note
 fn get_note_size() -> (u32, u32) {
     (100, 100)
 }
-pub fn get_maximum_distance(viewport_width: u32) -> f64 {
-    let note_width = get_note_size().0;
-    return (viewport_width - note_width - 20) as f64 / note_width as f64;
-}
-pub fn draw_ui(canvas: &mut Canvas<Window>, notes: Vec<DisplayedSongNote>, other: UIContent) {
+
+/// renders game play ui with notes
+pub fn draw_gameplay_ui(
+    canvas: &mut Canvas<Window>,
+    notes: Vec<DisplayedSongNote>,
+    other: UIContent,
+) {
+    // loads texture of judgement line
     let texture_creator = canvas.texture_creator();
-    let guideline = texture_creator
+    let judgement_line_texture = texture_creator
         .load_texture("assets/img/note_guideline.png")
         .expect("Failed to load note guideline image");
+
+    // get note size
     let note_width = get_note_size().0;
     let note_height = get_note_size().1;
 
-    let bg_y = canvas.viewport().height() as i32 - 20 - (note_height as i32 + 20);
-    let guideline_x = canvas.viewport().width() as i32 - note_width as i32 - 20;
-    let guideline_y = bg_y + 10;
+    // draw background where the note moves
+    let background_y = canvas.viewport().height() as i32 - 20 - (note_height as i32 + 20);
     canvas.set_draw_color(Color::RGB(200, 200, 200));
     canvas
         .fill_rect(Rect::new(
             0,
-            bg_y,
+            background_y,
             canvas.viewport().width(),
             note_height + 20,
         ))
         .unwrap();
+
+    // draw judgement line
+    let judgement_line_xpos = canvas.viewport().width() as i32 - note_width as i32 - 20;
+    let judgeline_line_ypos = background_y + 10;
     canvas
         .copy(
-            &guideline,
+            &judgement_line_texture,
             None,
-            Rect::new(guideline_x, guideline_y, note_width, note_height),
+            Rect::new(
+                judgement_line_xpos,
+                judgeline_line_ypos,
+                note_width,
+                note_height,
+            ),
         )
         .unwrap();
 
+    // load textures for the notes and accuracy
     let note_textures = load_note_textures(&texture_creator).unwrap();
     let accuracy_textures = load_accuracy_textures(&texture_creator).unwrap();
+
+    // draw notes
     for i in notes {
+        // get texture for the note
         let note_texture_option = match i.궁채 {
-            Some(DrumPane::북편) => {
-                // 쿵
-                match i.북채 {
-                    Some(DrumPane::북편) => Some(&note_textures.덩_돌려덕), // 돌려덕
-                    Some(DrumPane::채편) => Some(&note_textures.덩),        // 덕
-                    _ => Some(&note_textures.쿵),
-                }
-            }
+            Some(DrumPane::북편) => match i.북채 {
+                Some(DrumPane::북편) => Some(&note_textures.덩_돌려덕),
+                Some(DrumPane::채편) => Some(&note_textures.덩),
+                _ => Some(&note_textures.쿵),
+            },
             Some(DrumPane::채편) => {
                 // 돌려쿵
                 match i.북채 {
-                    Some(DrumPane::북편) => Some(&note_textures.덩_돌려쿵덕), // 돌려덕
-                    Some(DrumPane::채편) => Some(&note_textures.덩_돌려쿵),   // 덕
+                    Some(DrumPane::북편) => Some(&note_textures.덩_돌려쿵덕),
+                    Some(DrumPane::채편) => Some(&note_textures.덩_돌려쿵),
                     _ => Some(&note_textures.돌려쿵),
                 }
             }
             _ => match i.북채 {
-                Some(DrumPane::북편) => Some(&note_textures.돌려덕), // 돌려덕
-                Some(DrumPane::채편) => Some(&note_textures.덕),     // 덕
+                Some(DrumPane::북편) => Some(&note_textures.돌려덕),
+                Some(DrumPane::채편) => Some(&note_textures.덕),
                 _ => None,
             },
         };
 
         if let Some(note_texture) = note_texture_option {
+            // draw note
             canvas
                 .copy(
                     note_texture,
                     None,
                     Rect::new(
-                        guideline_x - (i.distance * note_width as f64) as i32,
-                        guideline_y,
+                        judgement_line_xpos - (i.distance * note_width as f64) as i32,
+                        judgeline_line_ypos,
                         note_width,
                         note_height,
                     ),
@@ -145,6 +161,7 @@ pub fn draw_ui(canvas: &mut Canvas<Window>, notes: Vec<DisplayedSongNote>, other
         }
     }
 
+    // draw note accuracy
     if let Some(accuracy) = other.accuracy {
         let accuracy_texture = match accuracy {
             NoteAccuracy::Overchaos => accuracy_textures.overchaos,
@@ -161,8 +178,8 @@ pub fn draw_ui(canvas: &mut Canvas<Window>, notes: Vec<DisplayedSongNote>, other
             accuracy_texture.query().width as i32,
         ))
         .to_integer();
-        let x = guideline_x + (note_width as i32 / 2) - (width / 2);
-        let y = guideline_y + (note_height as i32 / 2) - (height / 2);
+        let x = judgement_line_xpos + (note_width as i32 / 2) - (width / 2);
+        let y = judgeline_line_ypos + (note_height as i32 / 2) - (height / 2);
 
         canvas
             .copy(
