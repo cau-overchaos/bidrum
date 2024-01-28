@@ -82,7 +82,7 @@ impl NoteProcessor {
                 break;
             }
 
-            if i.note.궁채 != keydown.궁채 || i.note.열채 != keydown.북채 {
+            if i.note.궁채 != keydown.궁채 || i.note.북채 != keydown.북채 {
                 continue;
             }
 

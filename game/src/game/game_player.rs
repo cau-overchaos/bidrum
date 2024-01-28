@@ -156,7 +156,7 @@ pub(crate) fn play_song(
                 for j in &i.notes {
                     display_notes.push(DisplayedSongNote {
                         궁채: j.궁채,
-                        열채: j.열채,
+                        북채: j.북채,
                         distance: j.get_position(
                             i.bpm as u64,
                             i.delay,

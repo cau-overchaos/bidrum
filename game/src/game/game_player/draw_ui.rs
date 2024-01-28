@@ -32,7 +32,7 @@ struct AccuracyTextures<'a> {
 pub struct DisplayedSongNote {
     pub(crate) distance: f64,
     pub(crate) 궁채: Option<DrumPane>,
-    pub(crate) 열채: Option<DrumPane>,
+    pub(crate) 북채: Option<DrumPane>,
 }
 
 pub struct UIContent {
@@ -108,7 +108,7 @@ pub fn draw_ui(canvas: &mut Canvas<Window>, notes: Vec<DisplayedSongNote>, other
         let note_texture_option = match i.궁채 {
             Some(DrumPane::북편) => {
                 // 쿵
-                match i.열채 {
+                match i.북채 {
                     Some(DrumPane::북편) => Some(&note_textures.덩_돌려덕), // 돌려덕
                     Some(DrumPane::채편) => Some(&note_textures.덩),        // 덕
                     _ => Some(&note_textures.쿵),
@@ -116,13 +116,13 @@ pub fn draw_ui(canvas: &mut Canvas<Window>, notes: Vec<DisplayedSongNote>, other
             }
             Some(DrumPane::채편) => {
                 // 돌려쿵
-                match i.열채 {
+                match i.북채 {
                     Some(DrumPane::북편) => Some(&note_textures.덩_돌려쿵덕), // 돌려덕
                     Some(DrumPane::채편) => Some(&note_textures.덩_돌려쿵),   // 덕
                     _ => Some(&note_textures.돌려쿵),
                 }
             }
-            _ => match i.열채 {
+            _ => match i.북채 {
                 Some(DrumPane::북편) => Some(&note_textures.돌려덕), // 돌려덕
                 Some(DrumPane::채편) => Some(&note_textures.덕),     // 덕
                 _ => None,

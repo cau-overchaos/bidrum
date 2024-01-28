@@ -23,7 +23,7 @@ pub(crate) struct GameSong {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub(crate) struct GameNote {
     pub(crate) 궁채: Option<DrumPane>,
-    pub(crate) 열채: Option<DrumPane>,
+    pub(crate) 북채: Option<DrumPane>,
     beat_index: u64,
     tick_nomiator: i64,
     tick_denomiator: i64,

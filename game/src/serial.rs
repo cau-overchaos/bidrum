@@ -5,6 +5,7 @@ use serialport::SerialPort;
 
 use crate::janggu::{DrumPane, JangguState};
 
+/// Convert key inputs to janggu state struct object
 pub(crate) fn keys_to_state_struct(key1: bool, key2: bool, key3: bool, key4: bool) -> JangguState {
     JangguState {
         궁채: if key1 {
@@ -24,6 +25,7 @@ pub(crate) fn keys_to_state_struct(key1: bool, key2: bool, key3: bool, key4: boo
     }
 }
 
+/// Convert janggu state struct object to whether keys are pressed
 fn state_struct_to_keys(state: JangguState) -> (bool, bool, bool, bool) {
     return (
         match state.궁채 {
@@ -45,6 +47,7 @@ fn state_struct_to_keys(state: JangguState) -> (bool, bool, bool, bool) {
     );
 }
 
+/// Read serial inputs from port and emulates key inputs
 pub(crate) fn read_serial_loop(mut port: Box<dyn SerialPort>) {
     let mut previous_state = JangguState {
         궁채: None,
@@ -65,6 +68,7 @@ pub(crate) fn read_serial_loop(mut port: Box<dyn SerialPort>) {
         port.read_exact(message.as_mut_slice())
             .expect("Controller reading failure!");
 
+        // Parse serial input with bitmask
         let current_state = JangguState {
             궁채: if message[0] & 1 != 0 {
                 Some(DrumPane::채편)
@@ -102,6 +106,7 @@ pub(crate) fn read_serial_loop(mut port: Box<dyn SerialPort>) {
                 _ => panic!("Unexpected loop index value"),
             };
 
+            // Emulate keyup, keypress, keydown correctly
             if previous_key != current_key {
                 if previous_key {
                     enigo.key_up(Key::Layout(keys[i]));

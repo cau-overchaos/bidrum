@@ -137,7 +137,6 @@ impl VideoFileRenderer {
         }
 
         if has_frame_data {
-            println!("rendered");
             let mut scaled_frame = ffmpeg_next::frame::Video::empty();
             scaler.run(&unscaled_frame, &mut scaled_frame).unwrap();
             texture
@@ -154,66 +153,3 @@ impl VideoFileRenderer {
         }
     }
 }
-
-/*
-pub(crate) fn render_video_frame(common_context: &mut GameCommonContext, path: &Path, timestamp_in_second: Rational64) -> Result<(), ffmpeg_next::Error> {
-    ffmpeg_next::init().unwrap();
-
-    if let Ok(mut ictx) = input(&path.to_str().expect("Failed to open file")) {
-        let in_stream = ictx
-            .streams()
-            .best(Type::Video)
-            .ok_or(ffmpeg_next::Error::StreamNotFound)?;
-
-        let stream_index = in_stream.index();
-
-        let context_decoder = ffmpeg_next::codec::context::Context::from_parameters(in_stream.parameters())?;
-        let mut video_decoder = context_decoder.decoder().video()?;
-
-        let mut scaler = Scaler::get(
-            video_decoder.format(),
-            video_decoder.width(),
-            video_decoder.height(),
-            Pixel::YUV420P,
-            video_decoder.width(),
-            video_decoder.height(),
-            Flags::BILINEAR,
-        )?;
-
-        let texture_creator = common_context.canvas.texture_creator();
-        let mut texture = texture_creator
-            .create_texture_streaming(
-                PixelFormatEnum::IYUV,
-                video_decoder.width(),
-                video_decoder.height(),
-            )
-            .unwrap();
-
-
-        let timebase=Rational64::new(
-            in_stream.time_base().numerator() as i64,
-            in_stream.time_base().denominator() as i64,
-        );
-
-        let ts = (timestamp_in_second / timebase).to_integer();
-        video_decoder.flush();
-        ictx.seek(ts, ts..ts).unwrap();
-        video_decoder.flush();
-
-        for (stream, packet) in ictx.packets() {
-            if stream.index() == stream_index {
-                video_decoder.send_packet(&packet)?;
-                if receive_and_process_decoded_frames(&mut video_decoder, timebase) {
-                    return Ok(());
-                }
-            }
-        }
-        video_decoder.send_eof()?;
-
-        if receive_and_process_decoded_frames(&mut video_decoder, timebase) {
-            return Ok(());
-        }
-    }
-    Ok(())
-}
- */

@@ -19,17 +19,20 @@ fn center_rect(rect: Rect, w: u32, h: u32) -> Rect {
     );
 }
 
+/// Renders logo at center of the given canvas
 fn render_logo(canvas: &mut Canvas<Window>) {
+    // Load logo
     let path = Path::new("assets/img/logo.png");
     let texture_creator = canvas.texture_creator();
     let texture = texture_creator
         .load_texture(path)
         .expect("Logo file not found");
 
+    // Query logo size
     let logo_width = texture.query().width;
     let logo_height = texture.query().height;
-    println!("logo: {}x{}", logo_width, logo_height);
 
+    // Render logo
     canvas
         .copy(
             &texture,
