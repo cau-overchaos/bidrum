@@ -3,6 +3,7 @@ pub mod janggu;
 mod serial;
 
 use std::{
+    sync::{atomic::AtomicU8, Arc},
     thread::{self, sleep},
     time::Duration,
 };
@@ -22,6 +23,8 @@ struct Args {
 
 fn main() {
     let args = Args::parse();
+    let bits = AtomicU8::new(0);
+    let bits_arc = Arc::new(bits);
     match args.controller_port {
         Some(controller_port) => {
             println!("Openning serial port {}", controller_port);
@@ -35,12 +38,14 @@ fn main() {
             sleep(Duration::from_millis(3000));
             println!("Waited 3 seconds!");
 
+            let ptr = bits_arc.clone();
             thread::spawn(move || {
-                read_serial_loop(port);
+                read_serial_loop(port, ptr);
             });
         }
         _ => {}
     }
 
-    init_game();
+    let ptr = bits_arc.clone();
+    init_game(ptr);
 }

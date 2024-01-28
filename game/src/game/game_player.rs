@@ -11,14 +11,11 @@ use kira::{
     tween::Tween,
 };
 use num_rational::Rational64;
-use sdl2::{image::LoadTexture, keyboard::Keycode, pixels::PixelFormatEnum};
+use sdl2::{image::LoadTexture, pixels::PixelFormatEnum};
 
-use crate::{
-    game::{
-        common::{event_loop_common, render_common},
-        game_common_context,
-    },
-    serial::keys_to_state_struct,
+use crate::game::{
+    common::{event_loop_common, render_common},
+    game_common_context,
 };
 
 use self::{
@@ -116,49 +113,11 @@ pub(crate) fn play_song(
     let mut accuracy_tick: Option<i128> = None;
 
     'running: loop {
-        let mut key1 = false;
-        let mut key2 = false;
-        let mut key3 = false;
-        let mut key4 = false;
         let tick_now = clock.time().ticks as i128 - start_tick.ticks as i128;
         for event in common_context.event_pump.poll_iter() {
             if event_loop_common(&event, &mut common_context.coins) {
                 handle.stop(Tween::default()).expect("Failed to stop song");
                 break 'running;
-            }
-
-            // saves current key input
-            // only handles keydown
-            match event {
-                sdl2::event::Event::KeyDown {
-                    keycode: Some(Keycode::U),
-                    repeat: false,
-                    ..
-                } => {
-                    key1 = true;
-                }
-                sdl2::event::Event::KeyDown {
-                    keycode: Some(Keycode::I),
-                    repeat: false,
-                    ..
-                } => {
-                    key2 = true;
-                }
-                sdl2::event::Event::KeyDown {
-                    keycode: Some(Keycode::O),
-                    repeat: false,
-                    ..
-                } => {
-                    key3 = true;
-                }
-                sdl2::event::Event::KeyDown {
-                    keycode: Some(Keycode::P),
-                    repeat: false,
-                    ..
-                } => {
-                    key4 = true;
-                }
-                _ => {}
             }
         }
 
@@ -193,7 +152,7 @@ pub(crate) fn play_song(
             }
 
             // make judgement
-            let input_now = keys_to_state_struct(key1, key2, key3, key4);
+            let input_now = common_context.read_janggu_state();
             let new_accuracy = timing_judge.judge(input_now, tick_now as u64);
 
             // if any judgement is made, display it

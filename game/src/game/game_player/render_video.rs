@@ -1,5 +1,3 @@
-use ffmpeg_next::Stream;
-
 use sdl2::rect::Rect;
 use sdl2::render::Texture;
 
@@ -38,7 +36,7 @@ impl VideoFileRenderer {
         let stream = input
             .stream(video_stream_index)
             .expect("illegal stream index");
-        
+
         // init decoder
         let context_decoder =
             ffmpeg_next::codec::context::Context::from_parameters(stream.parameters().clone())
@@ -48,7 +46,6 @@ impl VideoFileRenderer {
             .video()
             .expect("Failed to get video decoder");
 
-        
         // return struct
         return VideoFileRenderer {
             wanted_time_in_second: Rational64::new(0, 1),
@@ -77,7 +74,7 @@ impl VideoFileRenderer {
     }
 
     /// Renders frame around `wanted_time_in_second` property
-    /// 
+    ///
     /// # CAUTION
     ///  - `texture` parameter shoulde be IYUV format streaming texture
     pub(crate) fn render_frame(&mut self, texture: &mut Texture) {

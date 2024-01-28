@@ -1,3 +1,5 @@
+use std::sync::{atomic::AtomicU8, Arc};
+
 use kira::manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings};
 
 use super::{
@@ -6,7 +8,7 @@ use super::{
     title::render_title,
 };
 
-pub(crate) fn init_game() {
+pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>) {
     // init sdl
     let sdl_context = sdl2::init().expect("sdl context initialization Fail");
 
@@ -57,6 +59,7 @@ pub(crate) fn init_game() {
         event_pump: event_pump,
         audio_manager: AudioManager::<DefaultBackend>::new(AudioManagerSettings::default())
             .expect("AudioManager initialization failure"),
+        janggu_bits_ptr: janggu_bits,
     };
 
     // enter game loop
