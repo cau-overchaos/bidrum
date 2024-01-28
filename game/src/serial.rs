@@ -6,21 +6,21 @@ use std::{
 
 use serialport::SerialPort;
 
-use crate::janggu::{DrumPane, JangguState};
+use crate::janggu::{JangguFace, JangguState};
 
 pub(crate) fn parse_janggu_bits(bits: u8) -> JangguState {
     JangguState {
         궁채: if bits & 1 != 0 {
-            Some(DrumPane::채편)
+            Some(JangguFace::채편)
         } else if bits & 2 != 0 {
-            Some(DrumPane::북편)
+            Some(JangguFace::북편)
         } else {
             None
         },
         북채: if bits & 4 != 0 {
-            Some(DrumPane::채편)
+            Some(JangguFace::채편)
         } else if bits & 8 != 0 {
-            Some(DrumPane::북편)
+            Some(JangguFace::북편)
         } else {
             None
         },

@@ -132,7 +132,7 @@ impl TimingJudge {
             }
 
             // process the timings
-            let 궁채_new_timing = if keydown.is_keydown(crate::janggu::DrumStick::궁채) {
+            let 궁채_new_timing = if keydown.is_keydown(crate::janggu::JangguStick::궁채) {
                 Some(keydown.궁채.0 as u64)
             } else {
                 i.궁채_timing
@@ -159,7 +159,7 @@ impl TimingJudge {
                 i.궁채_timing
             };
 
-            let 북채_new_timing = if keydown.is_keydown(crate::janggu::DrumStick::북채) {
+            let 북채_new_timing = if keydown.is_keydown(crate::janggu::JangguStick::북채) {
                 Some(keydown.북채.0 as u64)
             } else {
                 i.북채_timing

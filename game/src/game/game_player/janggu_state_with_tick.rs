@@ -1,4 +1,4 @@
-use crate::janggu::{DrumPane, DrumStick, JangguState};
+use crate::janggu::{JangguFace, JangguState, JangguStick};
 
 /// Processes keyup, keypress, keydown of janggu
 ///
@@ -7,8 +7,8 @@ use crate::janggu::{DrumPane, DrumStick, JangguState};
 /// For example, if the player release the 궁채 at time 120, the value of 궁채 is (120, None)
 #[derive(Debug)]
 pub(crate) struct JangguStateWithTick {
-    pub 궁채: (i128, Option<DrumPane>),
-    pub 북채: (i128, Option<DrumPane>),
+    pub 궁채: (i128, Option<JangguFace>),
+    pub 북채: (i128, Option<JangguFace>),
     궁채_keydown: bool,
     북채_keydown: bool,
 }
@@ -23,10 +23,10 @@ impl JangguStateWithTick {
         }
     }
 
-    pub(crate) fn is_keydown(&self, stick: DrumStick) -> bool {
+    pub(crate) fn is_keydown(&self, stick: JangguStick) -> bool {
         match stick {
-            DrumStick::궁채 => self.궁채_keydown,
-            DrumStick::북채 => self.북채_keydown,
+            JangguStick::궁채 => self.궁채_keydown,
+            JangguStick::북채 => self.북채_keydown,
         }
     }
 

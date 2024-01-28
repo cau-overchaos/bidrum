@@ -6,7 +6,7 @@ use std::{
 use num_rational::Rational64;
 use serde::{Deserialize, Serialize};
 
-use crate::janggu::DrumPane;
+use crate::janggu::JangguFace;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub(crate) struct GameSong {
@@ -22,8 +22,8 @@ pub(crate) struct GameSong {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub(crate) struct GameNote {
-    pub(crate) 궁채: Option<DrumPane>,
-    pub(crate) 북채: Option<DrumPane>,
+    pub(crate) 궁채: Option<JangguFace>,
+    pub(crate) 북채: Option<JangguFace>,
     beat_index: u64,
     tick_nomiator: i64,
     tick_denomiator: i64,
