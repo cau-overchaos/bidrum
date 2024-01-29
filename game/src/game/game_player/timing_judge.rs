@@ -1,7 +1,7 @@
-use super::{
-    janggu_state_with_tick::JangguStateWithTick,
-    songs::{GameNote, GameNoteTrack},
-};
+use bidrum_data_struct_lib::janggu::JangguStick;
+
+use super::janggu_state_with_tick::JangguStateWithTick;
+use bidrum_data_struct_lib::song::{GameNote, GameNoteTrack};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum NoteAccuracy {
@@ -132,7 +132,7 @@ impl TimingJudge {
             }
 
             // process the timings
-            let 궁채_new_timing = if keydown.is_keydown(crate::janggu::JangguStick::궁채) {
+            let 궁채_new_timing = if keydown.is_keydown(JangguStick::궁채) {
                 Some(keydown.궁채.0 as u64)
             } else {
                 i.궁채_timing
@@ -159,7 +159,7 @@ impl TimingJudge {
                 i.궁채_timing
             };
 
-            let 북채_new_timing = if keydown.is_keydown(crate::janggu::JangguStick::북채) {
+            let 북채_new_timing = if keydown.is_keydown(JangguStick::북채) {
                 Some(keydown.북채.0 as u64)
             } else {
                 i.북채_timing

@@ -16,7 +16,7 @@ pub enum JangguFace {
 
 /// 장구의 상태
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct JangguState {
+pub struct JangguInputState {
     pub 궁채: Option<JangguFace>,
     pub 북채: Option<JangguFace>,
 }

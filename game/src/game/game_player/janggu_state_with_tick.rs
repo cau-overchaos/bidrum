@@ -1,4 +1,5 @@
-use crate::janggu::{JangguFace, JangguState, JangguStick};
+use bidrum_data_struct_lib::janggu::JangguInputState;
+use bidrum_data_struct_lib::janggu::{JangguFace, JangguStick};
 
 /// Processes keyup, keypress, keydown of janggu
 ///
@@ -30,7 +31,7 @@ impl JangguStateWithTick {
         }
     }
 
-    pub(crate) fn update(&mut self, state: JangguState, time: i128) {
+    pub(crate) fn update(&mut self, state: JangguInputState, time: i128) {
         self.궁채 = if state.궁채 == self.궁채.1 {
             self.궁채_keydown = false;
             self.궁채

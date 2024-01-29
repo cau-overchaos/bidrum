@@ -3,7 +3,8 @@ use std::sync::{atomic::AtomicU8, Arc};
 use kira::manager::AudioManager;
 use sdl2::{render::Canvas, video::Window, EventPump};
 
-use crate::{janggu::JangguState, serial::parse_janggu_bits};
+use crate::serial::parse_janggu_bits;
+use bidrum_data_struct_lib::janggu::JangguInputState;
 
 pub(crate) struct GameCommonContext {
     pub(crate) coins: u32,
@@ -16,7 +17,7 @@ pub(crate) struct GameCommonContext {
 }
 
 impl GameCommonContext {
-    pub(crate) fn read_janggu_state(&self) -> JangguState {
+    pub(crate) fn read_janggu_state(&self) -> JangguInputState {
         return parse_janggu_bits(
             self.janggu_bits_ptr
                 .load(std::sync::atomic::Ordering::Relaxed),

@@ -1,12 +1,9 @@
 use std::sync::{atomic::AtomicU8, Arc};
 
+use bidrum_data_struct_lib::song::GameSong;
 use kira::manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings};
 
-use super::{
-    game_common_context::GameCommonContext,
-    game_player::{play_song, songs::GameSong},
-    title::render_title,
-};
+use super::{game_common_context::GameCommonContext, game_player::play_song, title::render_title};
 
 pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>) {
     // init sdl

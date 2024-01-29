@@ -1,7 +1,6 @@
 mod draw_gameplay_ui;
 mod janggu_state_with_tick;
 mod render_video;
-pub mod songs;
 mod timing_judge;
 
 use std::{path::Path, thread};
@@ -23,9 +22,10 @@ use self::{
     draw_gameplay_ui::{DisplayedSongNote, UIContent},
     janggu_state_with_tick::JangguStateWithTick,
     render_video::VideoFileRenderer,
-    songs::GameSong,
     timing_judge::{NoteAccuracy, TimingJudge},
 };
+
+use bidrum_data_struct_lib::song::GameSong;
 
 pub(crate) fn play_song(
     common_context: &mut game_common_context::GameCommonContext,

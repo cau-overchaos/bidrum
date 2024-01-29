@@ -9,40 +9,40 @@ use serde::{Deserialize, Serialize};
 use crate::janggu::JangguFace;
 
 #[derive(Serialize, Deserialize, Debug)]
-pub(crate) struct GameSong {
+pub struct GameSong {
     #[serde(skip)]
     path: String,
-    pub(crate) title: String,
-    pub(crate) artist: String,
-    pub(crate) audio_filename: String,
-    pub(crate) video_filename: String,
-    pub(crate) cover_image_filename: String,
-    pub(crate) levels: Vec<u32>,
+    pub title: String,
+    pub artist: String,
+    pub audio_filename: String,
+    pub video_filename: String,
+    pub cover_image_filename: String,
+    pub levels: Vec<u32>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub(crate) struct GameNote {
-    pub(crate) 궁채: Option<JangguFace>,
-    pub(crate) 북채: Option<JangguFace>,
+pub struct GameNote {
+    pub 궁채: Option<JangguFace>,
+    pub 북채: Option<JangguFace>,
     beat_index: u64,
     tick_nomiator: i64,
     tick_denomiator: i64,
 }
 #[derive(Serialize, Deserialize, Debug)]
-pub(crate) struct GameChart {
-    pub(crate) artist: String,
-    pub(crate) tracks: Vec<GameNoteTrack>,
+pub struct GameChart {
+    pub artist: String,
+    pub tracks: Vec<GameNoteTrack>,
 }
 #[derive(Serialize, Deserialize, Debug)]
-pub(crate) struct GameNoteTrack {
-    pub(crate) bpm: u32,
-    pub(crate) delay: u64,
-    pub(crate) notes: Vec<GameNote>,
+pub struct GameNoteTrack {
+    pub bpm: u32,
+    pub delay: u64,
+    pub notes: Vec<GameNote>,
 }
 
 impl GameNote {
     /// get the position of the note in unit of beat
-    pub(crate) fn beat(&self) -> Rational64 {
+    pub fn beat(&self) -> Rational64 {
         return Rational64::new(self.beat_index as i64, 1)
             + if self.tick_denomiator == 0 {
                 Rational64::new(0, 1)
@@ -51,7 +51,7 @@ impl GameNote {
             };
     }
     /// calculate the timing of the note
-    pub(crate) fn timing_in_ms(&self, track_bpm: u32, track_delay: u64) -> u64 {
+    pub fn timing_in_ms(&self, track_bpm: u32, track_delay: u64) -> u64 {
         // bpm = beat / minute
         // minute-per-beat = 1 / bpm
         // timing-in-minute = beat * minute-per-beat
@@ -70,7 +70,7 @@ impl GameNote {
     ///    - `0.0` : at the judgement line
     ///    - `1.0` : before the judgement line the width of the note
     ///    - `2.0` : before the judgement line the width of the two notes
-    pub(crate) fn get_position(
+    pub fn get_position(
         &self,
         track_bpm: u32,
         track_delay: u64,
@@ -93,7 +93,7 @@ impl GameNote {
 
 impl GameSong {
     /// Get the chart of the given level
-    pub(crate) fn get_chart(&self, level: u32) -> Result<GameChart, serde_json::Error> {
+    pub fn get_chart(&self, level: u32) -> Result<GameChart, serde_json::Error> {
         let level_file_path = Path::join(Path::new(&self.path), format!("{}.json", level));
         let level_file = File::open(level_file_path).expect("Failed to open level file");
 
@@ -101,7 +101,7 @@ impl GameSong {
     }
 
     /// Get the songs in the directory
-    pub(crate) fn get_songs() -> Vec<GameSong> {
+    pub fn get_songs() -> Vec<GameSong> {
         let directories = fs::read_dir(Path::new("music")).expect("Failed to read music directory");
         let mut result = Vec::<GameSong>::new();
 

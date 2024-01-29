@@ -1,5 +1,4 @@
 mod game;
-pub mod janggu;
 mod serial;
 
 use std::{

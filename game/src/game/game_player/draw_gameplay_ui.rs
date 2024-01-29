@@ -7,7 +7,7 @@ use sdl2::{
     video::{Window, WindowContext},
 };
 
-use crate::janggu::JangguFace;
+use bidrum_data_struct_lib::janggu::JangguFace;
 
 use super::timing_judge::NoteAccuracy;
 
