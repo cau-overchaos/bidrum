@@ -27,6 +27,21 @@ use self::{
 
 use bidrum_data_struct_lib::song::GameSong;
 
+fn is_input_effect_needed(state: &JangguStateWithTick, tick: i128) -> bool {
+    const TIME_DELTA: i128 = 400;
+    if let Some(_) = state.궁채.1 {
+        if tick - state.궁채.0 < TIME_DELTA {
+            return true;
+        }
+    } else if let Some(_) = state.북채.1 {
+        if tick - state.북채.0 < TIME_DELTA {
+            return true;
+        }
+    }
+
+    false
+}
+
 pub(crate) fn play_song(
     common_context: &mut game_common_context::GameCommonContext,
     song: &GameSong,
@@ -188,6 +203,7 @@ pub(crate) fn play_song(
                 } else {
                     None
                 },
+                input_effect: is_input_effect_needed(&janggu_state_with_tick, tick_now),
             },
         );
 

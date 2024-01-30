@@ -37,6 +37,7 @@ pub struct DisplayedSongNote {
 
 pub struct UIContent {
     pub(crate) accuracy: Option<NoteAccuracy>,
+    pub(crate) input_effect: bool,
 }
 
 fn load_note_textures(
@@ -91,11 +92,12 @@ pub fn draw_gameplay_ui(
     // draw background where the note moves
     let background_padding = 15;
     let background_height = note_height + background_padding * 2;
+    let background_x = 0;
     let background_y = canvas.viewport().height() as i32 - 80 - (background_height as i32);
     canvas.set_draw_color(Color::RGB(200, 200, 200));
     canvas
         .fill_rect(Rect::new(
-            0,
+            background_x,
             background_y,
             canvas.viewport().width(),
             note_height + background_padding * 2,
@@ -107,7 +109,7 @@ pub fn draw_gameplay_ui(
     canvas.set_draw_color(Color::RGB(120, 120, 120));
     canvas
         .fill_rect(Rect::new(
-            0,
+            background_x,
             background_y - background_border_height as i32,
             canvas.viewport().width(),
             background_border_height,
@@ -115,12 +117,37 @@ pub fn draw_gameplay_ui(
         .unwrap();
     canvas
         .fill_rect(Rect::new(
-            0,
+            background_x,
             background_y + background_height as i32,
             canvas.viewport().width(),
             background_border_height,
         ))
         .unwrap();
+
+    // draw hit effect
+    if other.input_effect {
+        let input_effect_texture = texture_creator
+            .load_texture("assets/img/janggu_input_effect.png")
+            .expect("Failed to load janggu note background input effect image");
+
+        let input_effect_texture_size = input_effect_texture.query();
+        let input_effect_dst_width = (input_effect_texture_size.width as f32
+            * (background_height as f32 / input_effect_texture_size.height as f32))
+            as u32;
+
+        canvas
+            .copy(
+                &input_effect_texture,
+                None,
+                Rect::new(
+                    background_x + canvas.viewport().width() as i32 - input_effect_dst_width as i32,
+                    background_y,
+                    input_effect_dst_width,
+                    background_height,
+                ),
+            )
+            .unwrap();
+    }
 
     // draw judgement line
     let judgement_line_xpos = canvas.viewport().width() as i32 - note_width as i32 - 20;
