@@ -77,26 +77,29 @@ pub(crate) fn render_title(common_context: &mut GameCommonContext) -> TitleResul
         canvas.clear();
 
         let viewport = canvas.viewport();
-        for i in 0..(viewport.w / 50) + 5 {
+        let rect_size = 200;
+        for i in 0..(viewport.w / rect_size) + 5 {
             let mut color = if i % 2 == 0 {
-                Color::MAGENTA
+                Color::CYAN
             } else {
                 Color::WHITE
             };
-            for j in 0..(viewport.h / 50) + 5 {
-                let x: i32 = viewport.x + 50 * i - delta;
-                let y: i32 = viewport.y + 50 * j - delta;
+            for j in 0..(viewport.h / rect_size) + 5 {
+                let x: i32 = viewport.x + rect_size * i - delta;
+                let y: i32 = viewport.y + rect_size * j - delta;
                 canvas.set_draw_color(color);
-                canvas.fill_rect(Rect::new(x, y, 50, 50)).expect("???");
+                canvas
+                    .fill_rect(Rect::new(x, y, rect_size as u32, rect_size as u32))
+                    .expect("???");
                 color = match color {
-                    Color::MAGENTA => Color::WHITE,
-                    Color::WHITE => Color::MAGENTA,
+                    Color::CYAN => Color::WHITE,
+                    Color::WHITE => Color::CYAN,
                     _ => panic!("?"),
                 }
             }
         }
 
-        delta = (delta + 1) % 150;
+        delta = (delta + 1) % (rect_size * 3);
 
         render_logo(canvas);
         render_common(common_context);
