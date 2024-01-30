@@ -89,7 +89,8 @@ pub fn draw_gameplay_ui(
     let note_height = get_note_size().1;
 
     // draw background where the note moves
-    let background_y = canvas.viewport().height() as i32 - 20 - (note_height as i32 + 20);
+    let background_height = note_height + 20;
+    let background_y = canvas.viewport().height() as i32 - 80 - (background_height as i32);
     canvas.set_draw_color(Color::RGB(200, 200, 200));
     canvas
         .fill_rect(Rect::new(
@@ -97,6 +98,26 @@ pub fn draw_gameplay_ui(
             background_y,
             canvas.viewport().width(),
             note_height + 20,
+        ))
+        .unwrap();
+
+    // draw background border
+    let background_border_height = 5 as u32;
+    canvas.set_draw_color(Color::RGB(120, 120, 120));
+    canvas
+        .fill_rect(Rect::new(
+            0,
+            background_y - background_border_height as i32,
+            canvas.viewport().width(),
+            background_border_height,
+        ))
+        .unwrap();
+    canvas
+        .fill_rect(Rect::new(
+            0,
+            background_y + background_height as i32,
+            canvas.viewport().width(),
+            background_border_height,
         ))
         .unwrap();
 
