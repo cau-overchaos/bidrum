@@ -17,3 +17,4 @@ serde = { version = "1.0.195", features = ["derive"] }
 serde_json = "1.0.111"
 serialport = "4.3.0"
 bidrum-data-struct-lib = { path = "../data-struct-lib" }
+device_query = "1.1.3"

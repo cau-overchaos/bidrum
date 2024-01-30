@@ -1,4 +1,5 @@
 mod game;
+mod janggu_keyboard;
 mod serial;
 
 use std::{
@@ -9,6 +10,7 @@ use std::{
 
 use clap::Parser;
 use game::init::init_game;
+use janggu_keyboard::read_janggu_key_loop;
 
 use crate::serial::read_serial_loop;
 
@@ -42,7 +44,14 @@ fn main() {
                 read_serial_loop(port, ptr);
             });
         }
-        _ => {}
+        _ => {
+            println!("Controller port not provided! Reading keyboard....");
+
+            let ptr = bits_arc.clone();
+            thread::spawn(move || {
+                read_janggu_key_loop(ptr);
+            });
+        }
     }
 
     let ptr = bits_arc.clone();
