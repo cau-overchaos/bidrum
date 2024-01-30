@@ -115,6 +115,7 @@ pub(crate) fn play_song(
     let mut accuracy_tick: Option<i128> = None;
 
     let mut janggu_state_with_tick = JangguStateWithTick::new();
+    let mut processed_note_ids = Vec::<u64>::new();
 
     'running: loop {
         let tick_now = clock.time().ticks as i128 - start_tick.ticks as i128;
@@ -147,11 +148,13 @@ pub(crate) fn play_song(
             // get positions of the notes
             for i in &chart.tracks {
                 for j in &i.notes {
-                    display_notes.push(DisplayedSongNote {
-                        궁채: j.궁채,
-                        북채: j.북채,
-                        distance: j.get_position(i.bpm, i.delay, i.bpm * 2, (tick_now) as u64),
-                    });
+                    if !processed_note_ids.contains(&j.id) {
+                        display_notes.push(DisplayedSongNote {
+                            궁채: j.궁채,
+                            북채: j.북채,
+                            distance: j.get_position(i.bpm, i.delay, i.bpm * 2, (tick_now) as u64),
+                        });
+                    }
                 }
             }
 
@@ -163,7 +166,8 @@ pub(crate) fn play_song(
             // if any judgement is made, display it
             if let Some(new_accuracy_unwrapped) = new_accuracy {
                 accuracy_tick = Some(tick_now);
-                accuracy = Some(new_accuracy_unwrapped);
+                accuracy = Some(new_accuracy_unwrapped.accuracy);
+                processed_note_ids.push(new_accuracy_unwrapped.note_id);
             }
         }
 

@@ -27,6 +27,8 @@ pub struct GameNote {
     beat_index: u64,
     tick_nomiator: i64,
     tick_denomiator: i64,
+    #[serde(skip)]
+    pub id: u64
 }
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GameChart {
@@ -97,7 +99,54 @@ impl GameSong {
         let level_file_path = Path::join(Path::new(&self.path), format!("{}.json", level));
         let level_file = File::open(level_file_path).expect("Failed to open level file");
 
-        serde_json::from_reader(level_file)
+        let mut result: Result<GameChart, serde_json::Error> = serde_json::from_reader(level_file);
+
+        // Assign note indexes
+        if let Ok(result_unwrapped) = &mut result {
+            let mut note_index: u64 = 0;
+            for track in &mut result_unwrapped.tracks {
+                for note in &mut track.notes {
+                    note.id = note_index;
+                    note_index += 1;
+                }
+            }
+        }
+
+        return result;
+    }
+
+    pub fn get_song(path: &Path) -> Option<GameSong> {
+        let info_file_path = Path::join(path, Path::new("info.json"));
+        if info_file_path.exists() {
+            let info_file =
+                File::open(info_file_path).expect("Failed to open info json file");
+            let mut deserialized: GameSong =
+                serde_json::from_reader(info_file).expect("Failed to parse json file");
+
+            // Convert the paths into the absolute path
+            deserialized.audio_filename =
+                Path::join(path, deserialized.audio_filename)
+                    .to_str()
+                    .unwrap()
+                    .to_string();
+            deserialized.video_filename =
+                Path::join(path, deserialized.video_filename)
+                    .to_str()
+                    .unwrap()
+                    .to_string();
+            deserialized.cover_image_filename =
+                Path::join(path, deserialized.cover_image_filename)
+                    .to_str()
+                    .unwrap()
+                    .to_string();
+
+            // Set the song directory path
+            deserialized.path = path.to_str().unwrap().to_string();
+
+            Some(deserialized)
+        } else {
+            None
+        }
     }
 
     /// Get the songs in the directory
@@ -107,34 +156,8 @@ impl GameSong {
 
         for i in directories {
             if let Ok(entry) = i {
-                let info_file_path = Path::join(&entry.path(), Path::new("info.json"));
-                if info_file_path.exists() {
-                    let info_file =
-                        File::open(info_file_path).expect("Failed to open info json file");
-                    let mut deserialized: GameSong =
-                        serde_json::from_reader(info_file).expect("Failed to parse json file");
-
-                    // Convert the paths into the absolute path
-                    deserialized.audio_filename =
-                        Path::join(&entry.path(), deserialized.audio_filename)
-                            .to_str()
-                            .unwrap()
-                            .to_string();
-                    deserialized.video_filename =
-                        Path::join(&entry.path(), deserialized.video_filename)
-                            .to_str()
-                            .unwrap()
-                            .to_string();
-                    deserialized.cover_image_filename =
-                        Path::join(&entry.path(), deserialized.cover_image_filename)
-                            .to_str()
-                            .unwrap()
-                            .to_string();
-
-                    // Set the song directory path
-                    deserialized.path = entry.path().to_str().unwrap().to_string();
-
-                    result.push(deserialized);
+                if let Some(song) = GameSong::get_song(&entry.path()) {
+                    result.push(song);
                 }
             }
         }

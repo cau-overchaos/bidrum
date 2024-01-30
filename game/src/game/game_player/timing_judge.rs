@@ -32,6 +32,7 @@ struct NoteForProcessing {
     note: GameNote,
     bpm: u32,
     delay: u64,
+    id: u64,
     궁채_timing: Option<u64>,
     북채_timing: Option<u64>,
 }
@@ -46,6 +47,11 @@ pub(crate) struct TimingJudge {
     bad_count: u64,
     miss_count: u64,
     combo: u64,
+}
+
+pub(crate) struct JudgeResult {
+    pub accuracy: NoteAccuracy,
+    pub note_id: u64,
 }
 
 fn note_accuracy_from_time_difference(difference: i64) -> NoteAccuracy {
@@ -76,6 +82,7 @@ impl TimingJudge {
                     note: j.clone(),
                     bpm: i.bpm,
                     delay: i.delay,
+                    id: j.id,
                     궁채_timing: None,
                     북채_timing: None,
                 });
@@ -112,7 +119,7 @@ impl TimingJudge {
         &mut self,
         keydown: &JangguStateWithTick,
         tick_in_milliseconds: u64,
-    ) -> Option<NoteAccuracy> {
+    ) -> Option<JudgeResult> {
         let mut processed_index: Option<usize> = None;
         let mut result = None;
         for (idx, i) in (&mut self.notes).iter_mut().enumerate() {
@@ -234,6 +241,7 @@ impl TimingJudge {
 
         // if there's any judged note
         if let Some(processed_accuracy) = &result {
+            let processed_note_id = self.notes.get(processed_index.unwrap()).unwrap().id;
             self.notes.remove(processed_index.unwrap());
             // increase or set combo and count
             match processed_accuracy {
@@ -263,9 +271,14 @@ impl TimingJudge {
                     self.miss_count += 1;
                 }
             }
+
+            return Some(JudgeResult {
+                accuracy: processed_accuracy.clone(),
+                note_id: processed_note_id,
+            });
         }
 
         // return judgement result of the judged note
-        return result;
+        return None;
     }
 }
