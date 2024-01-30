@@ -28,13 +28,13 @@ use self::{
 use bidrum_data_struct_lib::song::GameSong;
 
 fn is_input_effect_needed(state: &JangguStateWithTick, tick: i128) -> bool {
-    const TIME_DELTA: i128 = 400;
+    const TIME_DELTA: i128 = 150;
     if let Some(_) = state.궁채.1 {
-        if tick - state.궁채.0 < TIME_DELTA {
+        if state.궁채.0 - tick < TIME_DELTA {
             return true;
         }
     } else if let Some(_) = state.북채.1 {
-        if tick - state.북채.0 < TIME_DELTA {
+        if state.궁채.0 - tick < TIME_DELTA {
             return true;
         }
     }

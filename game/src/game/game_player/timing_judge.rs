@@ -139,11 +139,12 @@ impl TimingJudge {
             }
 
             // process the timings
-            let 궁채_new_timing = if keydown.is_keydown(JangguStick::궁채) {
-                Some(keydown.궁채.0 as u64)
-            } else {
-                i.궁채_timing
-            };
+            let 궁채_new_timing =
+                if keydown.is_keydown(JangguStick::궁채) && i.note.궁채 == keydown.궁채.1 {
+                    Some(keydown.궁채.0 as u64)
+                } else {
+                    i.궁채_timing
+                };
             i.궁채_timing = if matches!(i.note.북채, Some(_)) {
                 // the note is 쿵 kind
                 if let Some(북채_timing_saved) = i.북채_timing {
@@ -158,19 +159,17 @@ impl TimingJudge {
                 } else {
                     궁채_new_timing
                 }
-            } else if i.note.궁채 == keydown.궁채.1 {
+            } else {
                 // the note is not 쿵 kind
                 궁채_new_timing
-            } else {
-                // no input or incorrect input
-                i.궁채_timing
             };
 
-            let 북채_new_timing = if keydown.is_keydown(JangguStick::북채) {
-                Some(keydown.북채.0 as u64)
-            } else {
-                i.북채_timing
-            };
+            let 북채_new_timing =
+                if keydown.is_keydown(JangguStick::북채) && i.note.북채 == keydown.북채.1 {
+                    Some(keydown.북채.0 as u64)
+                } else {
+                    i.북채_timing
+                };
             i.북채_timing = if matches!(i.note.궁채, Some(_)) {
                 // the note is 쿵 kind
                 if let Some(궁채_timing_saved) = i.궁채_timing {
@@ -185,12 +184,9 @@ impl TimingJudge {
                 } else {
                     북채_new_timing
                 }
-            } else if i.note.북채 == keydown.북채.1 {
+            } else {
                 // the note is not 쿵 kind
                 북채_new_timing
-            } else {
-                // no input or incorrect input
-                i.북채_timing
             };
 
             // if it's processable note, calculate accuracy
