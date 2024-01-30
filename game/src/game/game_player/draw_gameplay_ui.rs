@@ -69,7 +69,7 @@ fn load_accuracy_textures(
 
 /// size of note
 fn get_note_size() -> (u32, u32) {
-    (100, 100)
+    (80, 80)
 }
 
 /// renders game play ui with notes
@@ -89,7 +89,8 @@ pub fn draw_gameplay_ui(
     let note_height = get_note_size().1;
 
     // draw background where the note moves
-    let background_height = note_height + 20;
+    let background_padding = 15;
+    let background_height = note_height + background_padding * 2;
     let background_y = canvas.viewport().height() as i32 - 80 - (background_height as i32);
     canvas.set_draw_color(Color::RGB(200, 200, 200));
     canvas
@@ -97,7 +98,7 @@ pub fn draw_gameplay_ui(
             0,
             background_y,
             canvas.viewport().width(),
-            note_height + 20,
+            note_height + background_padding * 2,
         ))
         .unwrap();
 
@@ -123,7 +124,7 @@ pub fn draw_gameplay_ui(
 
     // draw judgement line
     let judgement_line_xpos = canvas.viewport().width() as i32 - note_width as i32 - 20;
-    let judgeline_line_ypos = background_y + 10;
+    let judgeline_line_ypos = background_y + background_padding as i32;
     canvas
         .copy(
             &judgement_line_texture,
