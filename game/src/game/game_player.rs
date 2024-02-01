@@ -187,8 +187,9 @@ pub(crate) fn play_song(
         }
 
         // judgement is visible for only 1200 ms
+        const ACCURACY_DISPLAY_DURATION: u32 = 800;
         if let Some(accuracy_tick_unwrapped) = accuracy_tick {
-            if tick_now - accuracy_tick_unwrapped > 1200 {
+            if tick_now - accuracy_tick_unwrapped > ACCURACY_DISPLAY_DURATION as i128 {
                 accuracy_tick = None;
             }
         }
@@ -200,6 +201,14 @@ pub(crate) fn play_song(
             UIContent {
                 accuracy: if let Some(_) = accuracy_tick {
                     accuracy
+                } else {
+                    None
+                },
+                accuracy_time_progress: if let Some(accuracy_time_unwrapped) = accuracy_tick {
+                    Some(
+                        (tick_now - accuracy_time_unwrapped) as f32
+                            / ACCURACY_DISPLAY_DURATION as f32,
+                    )
                 } else {
                     None
                 },

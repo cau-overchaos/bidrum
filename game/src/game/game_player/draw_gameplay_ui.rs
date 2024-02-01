@@ -1,3 +1,4 @@
+use ezing::expo_out;
 use num_rational::Rational32;
 use sdl2::{
     image::LoadTexture,
@@ -37,6 +38,7 @@ pub struct DisplayedSongNote {
 
 pub struct UIContent {
     pub(crate) accuracy: Option<NoteAccuracy>,
+    pub(crate) accuracy_time_progress: Option<f32>,
     pub(crate) input_effect: bool,
 }
 
@@ -167,7 +169,7 @@ pub fn draw_gameplay_ui(
 
     // load textures for the notes and accuracy
     let note_textures = load_note_textures(&texture_creator).unwrap();
-    let accuracy_textures = load_accuracy_textures(&texture_creator).unwrap();
+    let mut accuracy_textures = load_accuracy_textures(&texture_creator).unwrap();
 
     // draw notes
     for i in notes {
@@ -211,12 +213,12 @@ pub fn draw_gameplay_ui(
     // draw note accuracy
     if let Some(accuracy) = other.accuracy {
         let accuracy_texture = match accuracy {
-            NoteAccuracy::Overchaos => accuracy_textures.overchaos,
-            NoteAccuracy::Perfect => accuracy_textures.perfect,
-            NoteAccuracy::Great => accuracy_textures.great,
-            NoteAccuracy::Good => accuracy_textures.good,
-            NoteAccuracy::Bad => accuracy_textures.bad,
-            NoteAccuracy::Miss => accuracy_textures.miss,
+            NoteAccuracy::Overchaos => &mut accuracy_textures.overchaos,
+            NoteAccuracy::Perfect => &mut accuracy_textures.perfect,
+            NoteAccuracy::Great => &mut accuracy_textures.great,
+            NoteAccuracy::Good => &mut accuracy_textures.good,
+            NoteAccuracy::Bad => &mut accuracy_textures.bad,
+            NoteAccuracy::Miss => &mut accuracy_textures.miss,
         };
 
         let width = 120;
@@ -226,7 +228,13 @@ pub fn draw_gameplay_ui(
         ))
         .to_integer();
         let x = judgement_line_xpos + (note_width as i32 / 2) - (width / 2);
-        let y = judgeline_line_ypos + (note_height as i32 / 2) - (height / 2);
+        let y_min = judgeline_line_ypos + (note_height as i32 / 2) - (height / 2);
+        let y_max = background_y - background_border_height as i32 - height - 10;
+        let y = y_min
+            + ((y_max - y_min) as f32 * expo_out(other.accuracy_time_progress.unwrap())) as i32;
+
+        accuracy_texture
+            .set_alpha_mod((expo_out(other.accuracy_time_progress.unwrap()) * 255.0) as u8);
 
         canvas
             .copy(
