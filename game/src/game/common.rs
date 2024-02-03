@@ -32,7 +32,7 @@ pub(crate) fn render_common(context: &mut GameCommonContext) {
 
     // Load a font
     let mut font = ttf_context
-        .load_font("assets/coin.ttf", 24)
+        .load_font("assets/coin.ttf", (context.dpi.0 / 6.0) as u16)
         .expect("Unable to load font");
 
     // render a surface, and convert it to a texture bound to the canvas

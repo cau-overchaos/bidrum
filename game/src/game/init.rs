@@ -28,6 +28,11 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>) {
         .set_fullscreen(sdl2::video::FullscreenType::True)
         .expect("Failed to be fullscreen");
 
+    // get dpi
+    let dpi = video_subsystem
+        .display_dpi(window.display_index().expect("Failed to display index"))
+        .expect("Failed to get display dpi");
+
     // hide cursor
     sdl_context.mouse().show_cursor(false);
 
@@ -52,6 +57,7 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>) {
         coins: 0,
         price: 2,
         canvas: canvas,
+        dpi: dpi,
         sdl_context: sdl_context,
         event_pump: event_pump,
         audio_manager: AudioManager::<DefaultBackend>::new(AudioManagerSettings::default())

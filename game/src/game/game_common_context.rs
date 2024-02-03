@@ -14,6 +14,8 @@ pub(crate) struct GameCommonContext {
     pub(crate) canvas: Canvas<Window>,
     pub(crate) event_pump: EventPump,
     pub(crate) janggu_bits_ptr: Arc<AtomicU8>,
+    /// ddpi, hdpi, vdpi
+    pub(crate) dpi: (f32, f32, f32),
 }
 
 impl GameCommonContext {
