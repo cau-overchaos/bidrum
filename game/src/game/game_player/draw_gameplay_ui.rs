@@ -91,12 +91,16 @@ pub fn draw_gameplay_ui(
     let note_width = get_note_size().0;
     let note_height = get_note_size().1;
 
+    // enable alpha blending
+    canvas.set_blend_mode(sdl2::render::BlendMode::Blend);
+
     // draw background where the note moves
     let background_padding = 15;
     let background_height = note_height + background_padding * 2;
     let background_x = 0;
     let background_y = canvas.viewport().height() as i32 - 80 - (background_height as i32);
-    canvas.set_draw_color(Color::RGB(200, 200, 200));
+    let background_alpha = if other.input_effect { 200 } else { 150 };
+    canvas.set_draw_color(Color::RGBA(200, 200, 200, background_alpha));
     canvas
         .fill_rect(Rect::new(
             background_x,
@@ -108,7 +112,7 @@ pub fn draw_gameplay_ui(
 
     // draw background border
     let background_border_height = 5 as u32;
-    canvas.set_draw_color(Color::RGB(120, 120, 120));
+    canvas.set_draw_color(Color::RGBA(120, 120, 120, background_alpha));
     canvas
         .fill_rect(Rect::new(
             background_x,
