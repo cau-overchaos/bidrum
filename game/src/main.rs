@@ -9,7 +9,7 @@ use std::{
 };
 
 use clap::Parser;
-use game::init::init_game;
+use game::init::{init_game, InitGameOptions};
 use janggu_keyboard::read_janggu_key_loop;
 
 use crate::serial::read_serial_loop;
@@ -20,6 +20,15 @@ struct Args {
     /// Port of janggu controller
     #[arg(short, long)]
     controller_port: Option<String>,
+    /// Window width (default value: width of current display mode)
+    #[arg(long)]
+    window_width: Option<u32>,
+    /// Window height (default value: width of current display mode)
+    #[arg(long)]
+    window_height: Option<u32>,
+    /// Runs game in non-ullscreen
+    #[arg(short, long)]
+    windowed: bool,
 }
 
 fn main() {
@@ -55,5 +64,12 @@ fn main() {
     }
 
     let ptr = bits_arc.clone();
-    init_game(ptr);
+    init_game(
+        ptr,
+        InitGameOptions {
+            fullscreen: !args.windowed,
+            height: args.window_height,
+            width: args.window_width,
+        },
+    );
 }

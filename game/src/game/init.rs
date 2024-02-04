@@ -5,7 +5,13 @@ use kira::manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings}
 
 use super::{game_common_context::GameCommonContext, game_player::play_song, title::render_title};
 
-pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>) {
+pub struct InitGameOptions {
+    pub width: Option<u32>,
+    pub height: Option<u32>,
+    pub fullscreen: bool,
+}
+
+pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
     // init sdl
     let sdl_context = sdl2::init().expect("sdl context initialization Fail");
 
@@ -16,21 +22,43 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>) {
 
     // create window
     let mut window = video_subsystem
-        .window("rust-sdl2 demo: Video", 1920, 1080)
+        .window("rust-sdl2 demo: Video", 800, 600)
         .position_centered()
         .opengl()
         .build()
         .map_err(|e| e.to_string())
         .expect("window initialization fail");
 
-    // set window fullscreen
+    // fit window size into screen resolution
+    let display_index = window.display_index().expect("Failed to display index");
+    let display_mode = video_subsystem
+        .desktop_display_mode(display_index)
+        .expect("Failed to get desktop display mode");
     window
-        .set_fullscreen(sdl2::video::FullscreenType::True)
-        .expect("Failed to be fullscreen");
+        .set_size(
+            if let Some(width) = options.width {
+                width
+            } else {
+                display_mode.w as u32
+            },
+            if let Some(height) = options.height {
+                height
+            } else {
+                display_mode.h as u32
+            },
+        )
+        .expect("Failed to set window size into display resolution");
+
+    // set window fullscreen
+    if options.fullscreen {
+        window
+            .set_fullscreen(sdl2::video::FullscreenType::True)
+            .expect("Failed to be fullscreen");
+    }
 
     // get dpi
     let dpi = video_subsystem
-        .display_dpi(window.display_index().expect("Failed to display index"))
+        .display_dpi(display_index)
         .expect("Failed to get display dpi");
 
     // hide cursor
