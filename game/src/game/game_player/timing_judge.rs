@@ -34,7 +34,7 @@ struct NoteForProcessing {
     delay: u64,
     id: u64,
     궁채_timing: Option<u64>,
-    북채_timing: Option<u64>,
+    열채_timing: Option<u64>,
 }
 
 /// Judges timing accuracy
@@ -84,7 +84,7 @@ impl TimingJudge {
                     delay: i.delay,
                     id: j.id,
                     궁채_timing: None,
-                    북채_timing: None,
+                    열채_timing: None,
                 });
             }
         }
@@ -145,10 +145,10 @@ impl TimingJudge {
                 } else {
                     i.궁채_timing
                 };
-            i.궁채_timing = if matches!(i.note.북채, Some(_)) {
+            i.궁채_timing = if matches!(i.note.열채, Some(_)) {
                 // the note is 쿵 kind
-                if let Some(북채_timing_saved) = i.북채_timing {
-                    if 북채_timing_saved == keydown.북채.0 as u64 && i.note.북채 == keydown.북채.1
+                if let Some(열채_timing_saved) = i.열채_timing {
+                    if 열채_timing_saved == keydown.열채.0 as u64 && i.note.열채 == keydown.열채.1
                     {
                         // if the another stick input was already processed
                         // the another stick should be pressed
@@ -164,34 +164,34 @@ impl TimingJudge {
                 궁채_new_timing
             };
 
-            let 북채_new_timing =
-                if keydown.is_keydown(JangguStick::북채) && i.note.북채 == keydown.북채.1 {
-                    Some(keydown.북채.0 as u64)
+            let 열채_new_timing =
+                if keydown.is_keydown(JangguStick::열채) && i.note.열채 == keydown.열채.1 {
+                    Some(keydown.열채.0 as u64)
                 } else {
-                    i.북채_timing
+                    i.열채_timing
                 };
-            i.북채_timing = if matches!(i.note.궁채, Some(_)) {
+            i.열채_timing = if matches!(i.note.궁채, Some(_)) {
                 // the note is 쿵 kind
                 if let Some(궁채_timing_saved) = i.궁채_timing {
                     if 궁채_timing_saved == keydown.궁채.0 as u64 && i.note.궁채 == keydown.궁채.1
                     {
                         // if the another stick input was already processed
                         // the another stick should be pressed
-                        북채_new_timing
+                        열채_new_timing
                     } else {
-                        i.북채_timing
+                        i.열채_timing
                     }
                 } else {
-                    북채_new_timing
+                    열채_new_timing
                 }
             } else {
                 // the note is not 쿵 kind
-                북채_new_timing
+                열채_new_timing
             };
 
             // if it's processable note, calculate accuracy
             if (matches!(i.note.궁채, None) || matches!(i.궁채_timing, Some(_)))
-                && (matches!(i.note.북채, None) || matches!(i.북채_timing, Some(_)))
+                && (matches!(i.note.열채, None) || matches!(i.열채_timing, Some(_)))
             {
                 let note_accuracy_궁채 = if let Some(input_timing) = i.궁채_timing {
                     Some(note_accuracy_from_time_difference(
@@ -201,7 +201,7 @@ impl TimingJudge {
                     None
                 };
 
-                let note_accuracy_북채 = if let Some(input_timing) = i.북채_timing {
+                let note_accuracy_열채 = if let Some(input_timing) = i.열채_timing {
                     Some(note_accuracy_from_time_difference(
                         input_timing as i64 - precise_timing as i64,
                     ))
@@ -211,16 +211,16 @@ impl TimingJudge {
 
                 let note_accuracy = if let Some(note_accuracy_궁채_unwrapped) = note_accuracy_궁채
                 {
-                    if let Some(note_accuracy_북채_unwrapped) = note_accuracy_북채 {
+                    if let Some(note_accuracy_열채_unwrapped) = note_accuracy_열채 {
                         Some(std::cmp::max(
                             note_accuracy_궁채_unwrapped,
-                            note_accuracy_북채_unwrapped,
+                            note_accuracy_열채_unwrapped,
                         ))
                     } else {
                         Some(note_accuracy_궁채_unwrapped)
                     }
-                } else if let Some(note_accuracy_북채_unwrapped) = note_accuracy_북채 {
-                    Some(note_accuracy_북채_unwrapped)
+                } else if let Some(note_accuracy_열채_unwrapped) = note_accuracy_열채 {
+                    Some(note_accuracy_열채_unwrapped)
                 } else {
                     // unreachable code
                     panic!()

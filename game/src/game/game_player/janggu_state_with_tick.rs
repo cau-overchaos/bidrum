@@ -9,25 +9,25 @@ use bidrum_data_struct_lib::janggu::{JangguFace, JangguStick};
 #[derive(Debug)]
 pub(crate) struct JangguStateWithTick {
     pub 궁채: (i128, Option<JangguFace>),
-    pub 북채: (i128, Option<JangguFace>),
+    pub 열채: (i128, Option<JangguFace>),
     궁채_keydown: bool,
-    북채_keydown: bool,
+    열채_keydown: bool,
 }
 
 impl JangguStateWithTick {
     pub(crate) fn new() -> JangguStateWithTick {
         JangguStateWithTick {
             궁채: (0, None),
-            북채: (0, None),
+            열채: (0, None),
             궁채_keydown: false,
-            북채_keydown: false,
+            열채_keydown: false,
         }
     }
 
     pub(crate) fn is_keydown(&self, stick: JangguStick) -> bool {
         match stick {
             JangguStick::궁채 => self.궁채_keydown,
-            JangguStick::북채 => self.북채_keydown,
+            JangguStick::열채 => self.열채_keydown,
         }
     }
 
@@ -39,12 +39,12 @@ impl JangguStateWithTick {
             self.궁채_keydown = true;
             (time, state.궁채)
         };
-        self.북채 = if state.북채 == self.북채.1 {
-            self.북채_keydown = false;
-            self.북채
+        self.열채 = if state.열채 == self.열채.1 {
+            self.열채_keydown = false;
+            self.열채
         } else {
-            self.북채_keydown = true;
-            (time, state.북채)
+            self.열채_keydown = true;
+            (time, state.열채)
         };
     }
 }

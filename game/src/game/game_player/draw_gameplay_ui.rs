@@ -33,7 +33,7 @@ struct AccuracyTextures<'a> {
 pub struct DisplayedSongNote {
     pub(crate) distance: f64,
     pub(crate) 궁채: Option<JangguFace>,
-    pub(crate) 북채: Option<JangguFace>,
+    pub(crate) 열채: Option<JangguFace>,
 }
 
 pub struct UIContent {
@@ -179,20 +179,20 @@ pub fn draw_gameplay_ui(
     for i in notes {
         // get texture for the note
         let note_texture_option = match i.궁채 {
-            Some(JangguFace::북편) => match i.북채 {
+            Some(JangguFace::열편) => match i.열채 {
                 // 돌려쿵
-                Some(JangguFace::북편) => Some(&note_textures.덩_돌려쿵),
-                Some(JangguFace::채편) => Some(&note_textures.덩_돌려쿵덕),
+                Some(JangguFace::열편) => Some(&note_textures.덩_돌려쿵),
+                Some(JangguFace::궁편) => Some(&note_textures.덩_돌려쿵덕),
                 _ => Some(&note_textures.돌려쿵),
             },
-            Some(JangguFace::채편) => match i.북채 {
-                Some(JangguFace::북편) => Some(&note_textures.덩),
-                Some(JangguFace::채편) => Some(&note_textures.덩_돌려덕),
+            Some(JangguFace::궁편) => match i.열채 {
+                Some(JangguFace::열편) => Some(&note_textures.덩),
+                Some(JangguFace::궁편) => Some(&note_textures.덩_돌려덕),
                 _ => Some(&note_textures.쿵),
             },
-            _ => match i.북채 {
-                Some(JangguFace::북편) => Some(&note_textures.덕),
-                Some(JangguFace::채편) => Some(&note_textures.돌려덕),
+            _ => match i.열채 {
+                Some(JangguFace::열편) => Some(&note_textures.덕),
+                Some(JangguFace::궁편) => Some(&note_textures.돌려덕),
                 _ => None,
             },
         };

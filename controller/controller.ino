@@ -1,7 +1,7 @@
 #define OUTPUT_PIN_1 4 // 궁채
-#define OUTPUT_PIN_2 5 // 북재
-#define INPUT_PIN_1 8 // 채편
-#define INPUT_PIN_2 9 // 북편
+#define OUTPUT_PIN_2 5 // 열채
+#define INPUT_PIN_1 8 // 궁편
+#define INPUT_PIN_2 9 // 열편
 #define RELAY_DELAY 50
 int step;
 int pin1ConnectedTo, pin2ConnectedTo;

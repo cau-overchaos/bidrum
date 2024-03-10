@@ -33,7 +33,7 @@ fn is_input_effect_needed(state: &JangguStateWithTick, tick: i128) -> bool {
         if state.궁채.0 - tick < TIME_DELTA {
             return true;
         }
-    } else if let Some(_) = state.북채.1 {
+    } else if let Some(_) = state.열채.1 {
         if state.궁채.0 - tick < TIME_DELTA {
             return true;
         }
@@ -166,7 +166,7 @@ pub(crate) fn play_song(
                     if !processed_note_ids.contains(&j.id) {
                         display_notes.push(DisplayedSongNote {
                             궁채: j.궁채,
-                            북채: j.북채,
+                            열채: j.열채,
                             distance: j.get_position(i.bpm, i.delay, i.bpm * 2, (tick_now) as u64),
                         });
                     }

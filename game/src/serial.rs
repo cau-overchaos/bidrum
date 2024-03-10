@@ -12,16 +12,16 @@ use bidrum_data_struct_lib::janggu::JangguInputState;
 pub(crate) fn parse_janggu_bits(bits: u8) -> JangguInputState {
     JangguInputState {
         궁채: if bits & 1 != 0 {
-            Some(JangguFace::채편)
+            Some(JangguFace::궁편)
         } else if bits & 2 != 0 {
-            Some(JangguFace::북편)
+            Some(JangguFace::열편)
         } else {
             None
         },
-        북채: if bits & 4 != 0 {
-            Some(JangguFace::채편)
+        열채: if bits & 4 != 0 {
+            Some(JangguFace::궁편)
         } else if bits & 8 != 0 {
-            Some(JangguFace::북편)
+            Some(JangguFace::열편)
         } else {
             None
         },
