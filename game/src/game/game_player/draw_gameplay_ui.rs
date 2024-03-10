@@ -14,13 +14,13 @@ use super::timing_judge::NoteAccuracy;
 
 struct NoteTextures<'a> {
     덩: Texture<'a>,
-    덩_돌려덕: Texture<'a>,
-    덩_돌려쿵: Texture<'a>,
-    덩_돌려쿵덕: Texture<'a>,
+    덩_넘겨덕: Texture<'a>,
+    덩_넘겨쿵: Texture<'a>,
+    넘겨뎡: Texture<'a>,
     덕: Texture<'a>,
-    돌려덕: Texture<'a>,
+    넘겨덕: Texture<'a>,
     쿵: Texture<'a>,
-    돌려쿵: Texture<'a>,
+    넘겨쿵: Texture<'a>,
 }
 struct AccuracyTextures<'a> {
     overchaos: Texture<'a>,
@@ -33,7 +33,7 @@ struct AccuracyTextures<'a> {
 pub struct DisplayedSongNote {
     pub(crate) distance: f64,
     pub(crate) 궁채: Option<JangguFace>,
-    pub(crate) 북채: Option<JangguFace>,
+    pub(crate) 열채: Option<JangguFace>,
 }
 
 pub struct UIContent {
@@ -47,13 +47,13 @@ fn load_note_textures(
 ) -> Result<NoteTextures, String> {
     Ok(NoteTextures {
         덩: texture_creator.load_texture("assets/img/deong00.png")?,
-        덩_돌려덕: texture_creator.load_texture("assets/img/deong01.png")?,
-        덩_돌려쿵: texture_creator.load_texture("assets/img/deong10.png")?,
-        덩_돌려쿵덕: texture_creator.load_texture("assets/img/deong11.png")?,
+        덩_넘겨덕: texture_creator.load_texture("assets/img/deong01.png")?,
+        덩_넘겨쿵: texture_creator.load_texture("assets/img/deong10.png")?,
+        넘겨뎡: texture_creator.load_texture("assets/img/deong11.png")?,
         덕: texture_creator.load_texture("assets/img/duck.png")?,
-        돌려덕: texture_creator.load_texture("assets/img/duckr.png")?,
+        넘겨덕: texture_creator.load_texture("assets/img/duckr.png")?,
         쿵: texture_creator.load_texture("assets/img/kung.png")?,
-        돌려쿵: texture_creator.load_texture("assets/img/kungr.png")?,
+        넘겨쿵: texture_creator.load_texture("assets/img/kungr.png")?,
     })
 }
 
@@ -179,20 +179,20 @@ pub fn draw_gameplay_ui(
     for i in notes {
         // get texture for the note
         let note_texture_option = match i.궁채 {
-            Some(JangguFace::북편) => match i.북채 {
-                // 돌려쿵
-                Some(JangguFace::북편) => Some(&note_textures.덩_돌려쿵),
-                Some(JangguFace::채편) => Some(&note_textures.덩_돌려쿵덕),
-                _ => Some(&note_textures.돌려쿵),
+            Some(JangguFace::열편) => match i.열채 {
+                // 넘겨쿵
+                Some(JangguFace::열편) => Some(&note_textures.덩_넘겨쿵),
+                Some(JangguFace::궁편) => Some(&note_textures.넘겨뎡),
+                _ => Some(&note_textures.넘겨쿵),
             },
-            Some(JangguFace::채편) => match i.북채 {
-                Some(JangguFace::북편) => Some(&note_textures.덩),
-                Some(JangguFace::채편) => Some(&note_textures.덩_돌려덕),
+            Some(JangguFace::궁편) => match i.열채 {
+                Some(JangguFace::열편) => Some(&note_textures.덩),
+                Some(JangguFace::궁편) => Some(&note_textures.덩_넘겨덕),
                 _ => Some(&note_textures.쿵),
             },
-            _ => match i.북채 {
-                Some(JangguFace::북편) => Some(&note_textures.덕),
-                Some(JangguFace::채편) => Some(&note_textures.돌려덕),
+            _ => match i.열채 {
+                Some(JangguFace::열편) => Some(&note_textures.덕),
+                Some(JangguFace::궁편) => Some(&note_textures.넘겨덕),
                 _ => None,
             },
         };
