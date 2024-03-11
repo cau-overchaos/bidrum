@@ -1,6 +1,6 @@
 use bidrum_data_struct_lib::janggu::JangguStick;
 
-use super::janggu_state_with_tick::JangguStateWithTick;
+use super::{game_result::GameResult, janggu_state_with_tick::JangguStateWithTick};
 use bidrum_data_struct_lib::song::{GameNote, GameNoteTrack};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -276,5 +276,18 @@ impl TimingJudge {
 
         // return judgement result of the judged note
         return None;
+    }
+
+    /// Creates game result
+    pub fn get_game_result(&self) -> GameResult {
+        return GameResult {
+            bad_count: self.bad_count,
+            combo: self.combo,
+            good_count: self.good_count,
+            great_count: self.great_count,
+            miss_count: self.miss_count,
+            overchaos_count: self.overchaos_count,
+            perfect_count: self.perfect_count,
+        };
     }
 }
