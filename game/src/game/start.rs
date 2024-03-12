@@ -9,16 +9,22 @@ pub(crate) fn start_game(common_context: &mut GameCommonContext) {
     let songs = GameSong::get_songs();
     let mut total_stages = 0;
 
-    // TO-DO: call login here
+    // TO-DO: do authentication here
     // TO-DO: call tutorial here
 
+    // player can play 3 songs with a credit
     while total_stages < 3 {
+        // select song
         let selected = select_song(common_context, &songs);
+
+        // play selected song
         let result = play_song(
             common_context,
             &selected.selected_song,
             selected.selected_level,
         );
+
+        // display play result
         if let Some(result_unwrapped) = result {
             display_result(common_context, result_unwrapped);
         }
