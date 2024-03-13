@@ -4,11 +4,12 @@ use std::{
 };
 
 use num_rational::Rational64;
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use crate::janggu::JangguFace;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GameSong {
     #[serde(skip)]
     path: String,
@@ -113,6 +114,33 @@ impl GameSong {
         }
 
         return result;
+    }
+
+    pub fn get_chart_levels(&self) -> Result<Vec<u32>, std::io::Error> {
+        let entries = fs::read_dir(&self.path)?;
+        let pattern = Regex::new("^([0-9]+)\\.json$").unwrap();
+        let mut result = Vec::<u32>::new();
+
+        for i in entries {
+            if let Ok(entry) = i {
+                if let Ok(file_type) = entry.file_type() {
+                    let file_name = entry.file_name();
+                    let file_name_str = file_name.to_str().unwrap();
+                    if file_type.is_file() && pattern.is_match(file_name_str) {
+                        let level_str = pattern
+                            .captures(file_name_str)
+                            .unwrap()
+                            .get(1)
+                            .unwrap()
+                            .as_str();
+
+                        result.push(level_str.to_string().parse::<u32>().unwrap())
+                    }
+                }
+            }
+        }
+
+        Ok(result)
     }
 
     pub fn get_song(path: &Path) -> Option<GameSong> {

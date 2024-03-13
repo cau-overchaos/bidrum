@@ -1,4 +1,5 @@
 mod draw_gameplay_ui;
+pub mod game_result;
 mod janggu_state_with_tick;
 mod render_video;
 mod timing_judge;
@@ -20,6 +21,7 @@ use crate::game::{
 
 use self::{
     draw_gameplay_ui::{DisplayedSongNote, UIContent},
+    game_result::GameResult,
     janggu_state_with_tick::JangguStateWithTick,
     render_video::VideoFileRenderer,
     timing_judge::{NoteAccuracy, TimingJudge},
@@ -45,8 +47,8 @@ fn is_input_effect_needed(state: &JangguStateWithTick, tick: i128) -> bool {
 pub(crate) fn play_song(
     common_context: &mut game_common_context::GameCommonContext,
     song: &GameSong,
-    _level: u64,
-) {
+    level: u32,
+) -> Option<GameResult> {
     // Load cover image texture
     let cover_img_path = Path::new(&song.cover_image_filename);
     let texture_creator = common_context.canvas.texture_creator();
@@ -80,7 +82,7 @@ pub(crate) fn play_song(
         // process input events
         for event in common_context.event_pump.poll_iter() {
             if event_loop_common(&event, &mut common_context.coins) {
-                return;
+                return None;
             }
         }
 
@@ -111,7 +113,7 @@ pub(crate) fn play_song(
         .expect("Audio play failure");
 
     // get judge and create timing judge
-    let chart = song.get_chart(1).unwrap();
+    let chart = song.get_chart(level).unwrap();
     let mut timing_judge = TimingJudge::new(&chart.tracks);
 
     // start the clock.
@@ -224,8 +226,11 @@ pub(crate) fn play_song(
             match handle.state() {
                 kira::sound::PlaybackState::Playing => {}
                 // break the loop when the song ends
-                _ => break 'running,
+                _ => {
+                    break 'running;
+                }
             }
         }
     }
+    return Some(timing_judge.get_game_result());
 }

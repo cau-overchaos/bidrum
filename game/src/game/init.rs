@@ -3,7 +3,10 @@ use std::sync::{atomic::AtomicU8, Arc};
 use bidrum_data_struct_lib::song::GameSong;
 use kira::manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings};
 
-use super::{game_common_context::GameCommonContext, game_player::play_song, title::render_title};
+use super::{
+    game_common_context::GameCommonContext, game_player::play_song, start::start_game,
+    title::render_title,
+};
 
 pub struct InitGameOptions {
     pub width: Option<u32>,
@@ -101,8 +104,7 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
                 break 'running;
             }
             super::title::TitleResult::StartGame => {
-                let songs = GameSong::get_songs();
-                play_song(&mut context, &songs[0], 1)
+                start_game(&mut context);
             }
         }
     }
