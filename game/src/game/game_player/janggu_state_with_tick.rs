@@ -3,7 +3,7 @@ use bidrum_data_struct_lib::janggu::{JangguFace, JangguStick};
 
 /// Processes keyup, keypress, keydown of janggu
 ///
-/// First item of the tuple means the keydown time, second time means the pressed key
+/// First item of the tuple means the keydown time, second item means the pressed key
 /// Note that, for ease of implementation. "None" is also interpreted as keydown
 /// For example, if the player release the 궁채 at time 120, the value of 궁채 is (120, None)
 #[derive(Debug)]
