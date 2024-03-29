@@ -1,7 +1,6 @@
 mod draw_gameplay_ui;
 pub mod game_result;
 mod janggu_state_with_tick;
-mod render_video;
 mod timing_judge;
 
 use std::{path::Path, thread};
@@ -23,11 +22,12 @@ use self::{
     draw_gameplay_ui::{DisplayedSongNote, UIContent},
     game_result::GameResult,
     janggu_state_with_tick::JangguStateWithTick,
-    render_video::VideoFileRenderer,
     timing_judge::{NoteAccuracy, TimingJudge},
 };
 
 use bidrum_data_struct_lib::song::GameSong;
+
+use super::video_file_renderer::VideoFileRenderer;
 
 fn is_input_effect_needed(state: &JangguStateWithTick, tick: i128) -> bool {
     const TIME_DELTA: i128 = 150;

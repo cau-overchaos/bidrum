@@ -1,3 +1,4 @@
+use ffmpeg_next::ffi::{av_seek_frame, AVSEEK_FLAG_ANY, AVSEEK_FLAG_BACKWARD, AV_TIME_BASE};
 use sdl2::rect::Rect;
 use sdl2::render::Texture;
 
@@ -10,13 +11,20 @@ use ffmpeg_next::software::scaling::{context::Context as Scaler, flag::Flags};
 use num_rational::Rational64;
 
 /// Video file renderer with guarantee of rendering frame around `wanted_time_in_second`
-/// without using delay
+/// without using delay, and also with support of infinite loop play
 pub(crate) struct VideoFileRenderer {
+    /// Desired video position
+    ///
+    /// When infinite loop play is set, (wanted_time_in_second) % (video duration)
+    /// will be used automatically
     pub(crate) wanted_time_in_second: Rational64,
     last_decoded_timestamp: Option<i64>,
+    last_target_ts: Option<i64>,
     input: ffmpeg_next::format::context::Input,
     stream_index: usize,
     video_decoder: ffmpeg_next::codec::decoder::Video,
+    /// Infinite loop play
+    pub(crate) infinite: bool,
 }
 
 impl VideoFileRenderer {
@@ -53,6 +61,8 @@ impl VideoFileRenderer {
             stream_index: video_stream_index,
             video_decoder,
             last_decoded_timestamp: None,
+            last_target_ts: None,
+            infinite: false,
         };
     }
 
@@ -103,9 +113,47 @@ impl VideoFileRenderer {
             stream.time_base().denominator() as i64,
         );
 
+        // get video duration
+        let duration = Rational64::new(self.input.duration(), AV_TIME_BASE as i64);
+
         // calculate desired timestamp with the timebase and `wanted_time_in_second` property
         // ideally, frame at the desired timestamp is the best.
-        let target_ts = (self.wanted_time_in_second / timebase).to_integer() as i64;
+        let target_ts = (if self.infinite {
+            self.wanted_time_in_second % duration
+        } else {
+            self.wanted_time_in_second
+        } / timebase)
+            .to_integer() as i64;
+
+        if self.infinite {
+            // Do we need to seek the video to the beginning?
+            let rewind_required = if let Some(last_target_ts) = self.last_target_ts {
+                target_ts < last_target_ts
+            } else {
+                false
+            };
+
+            if rewind_required {
+                // Seek the video to the beginning
+                unsafe {
+                    av_seek_frame(
+                        self.input.as_mut_ptr(),
+                        -1,
+                        0,
+                        AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_ANY,
+                    );
+                }
+
+                // Flush the video decoder (if you don not, it will not render any frames anymore)
+                self.video_decoder.flush();
+
+                // Set last_decoded_timestamp to the initial value (because it will start from beginning again!)
+                self.last_decoded_timestamp = None;
+            }
+
+            self.last_target_ts = Some(target_ts);
+        }
+
         if let Some(last_decoded_timestamp) = self.last_decoded_timestamp {
             if last_decoded_timestamp > target_ts {
                 // too fast
@@ -116,6 +164,7 @@ impl VideoFileRenderer {
         let mut unscaled_frame = ffmpeg_next::frame::Video::empty();
         let mut has_frame_data = false;
         let mut reached_target_ts = false;
+
         // loop for the packets of the video file
         for (stream, packet) in self.input.packets() {
             if stream.index() == self.stream_index {

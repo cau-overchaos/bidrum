@@ -7,3 +7,4 @@ pub mod select_song;
 pub mod start;
 pub mod title;
 pub mod util;
+pub mod video_file_renderer;
