@@ -1,12 +1,8 @@
 use std::sync::{atomic::AtomicU8, Arc};
 
-use bidrum_data_struct_lib::song::GameSong;
 use kira::manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings};
 
-use super::{
-    game_common_context::GameCommonContext, game_player::play_song, start::start_game,
-    title::render_title,
-};
+use super::{game_common_context::GameCommonContext, start::start_game, title::render_title};
 
 pub struct InitGameOptions {
     pub width: Option<u32>,
@@ -54,6 +50,10 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
 
     // set window fullscreen
     if options.fullscreen {
+        window.set_position(
+            sdl2::video::WindowPos::Positioned(0),
+            sdl2::video::WindowPos::Positioned(0),
+        );
         window
             .set_fullscreen(sdl2::video::FullscreenType::True)
             .expect("Failed to be fullscreen");
