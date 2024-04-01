@@ -26,3 +26,4 @@ This program, including source code, cannot be used/copied/redistributed/modifie
 ### Assets (Image, Font, ...etc)
  - Noto Sans KR: Copyright (C) Google, licensed under SIL Open Font License
  - [Press Start](https://www.fontspace.com/press-start-2p-font-f11591): Copyright (c) 2011, Cody "CodeMan38" Boisclair (cody@zone38.net), licensed under SIL Open Font License (OFL)
+ - [Abstract White Background Video | motion graphics background loop | Royalty Free Footages](https://www.youtube.com/watch?v=_a4Rwvq2Jw8): Copyright (c) [Motion Stock](https://www.youtube.com/@Motionstock), licensed uner CC BY License
