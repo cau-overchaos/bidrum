@@ -27,7 +27,7 @@ use self::{
     timing_judge::{NoteAccuracy, TimingJudge},
 };
 
-use bidrum_data_struct_lib::song::GameSong;
+use bidrum_data_struct_lib::{janggu::JangguFace, song::GameSong};
 
 fn is_input_effect_needed(state: &JangguStateWithTick, tick: i128) -> bool {
     const TIME_DELTA: i128 = 150;
@@ -163,20 +163,35 @@ pub(crate) fn play_song(
         let mut display_notes = Vec::<DisplayedSongNote>::new();
         if tick_now >= 0 {
             // get positions of the notes
-            // TO-DO: Rewrite
-            /*
-            for i in &chart.tracks {
-                for j in &i.notes {
-                    if !processed_note_ids.contains(&j.id) {
-                        display_notes.push(DisplayedSongNote {
-                            궁채: j.궁채,
-                            열채: j.열채,
-                            distance: j.get_position(i.bpm, i.delay, i.bpm * 2, (tick_now) as u64),
-                        });
-                    }
+            for i in &chart.left_face {
+                if !processed_note_ids.contains(&i.id) {
+                    display_notes.push(DisplayedSongNote {
+                        face: JangguFace::궁편,
+                        stick: i.stick,
+                        distance: i.get_position(
+                            chart.bpm,
+                            chart.delay,
+                            chart.bpm * 2,
+                            (tick_now) as u64,
+                        ),
+                    });
                 }
             }
-            */
+
+            for i in &chart.right_face {
+                if !processed_note_ids.contains(&i.id) {
+                    display_notes.push(DisplayedSongNote {
+                        face: JangguFace::열편,
+                        stick: i.stick,
+                        distance: i.get_position(
+                            chart.bpm,
+                            chart.delay,
+                            chart.bpm * 2,
+                            (tick_now) as u64,
+                        ),
+                    });
+                }
+            }
 
             // make judgement
             let input_now = common_context.read_janggu_state();

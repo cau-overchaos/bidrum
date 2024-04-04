@@ -8,19 +8,13 @@ use sdl2::{
     video::{Window, WindowContext},
 };
 
-use bidrum_data_struct_lib::janggu::JangguFace;
+use bidrum_data_struct_lib::janggu::{JangguFace, JangguStick};
 
 use super::timing_judge::NoteAccuracy;
 
 struct NoteTextures<'a> {
-    덩: Texture<'a>,
-    덩_넘겨덕: Texture<'a>,
-    덩_넘겨쿵: Texture<'a>,
-    넘겨뎡: Texture<'a>,
-    덕: Texture<'a>,
-    넘겨덕: Texture<'a>,
-    쿵: Texture<'a>,
-    넘겨쿵: Texture<'a>,
+    left_stick: Texture<'a>,
+    right_stick: Texture<'a>,
 }
 struct AccuracyTextures<'a> {
     overchaos: Texture<'a>,
@@ -32,8 +26,8 @@ struct AccuracyTextures<'a> {
 }
 pub struct DisplayedSongNote {
     pub(crate) distance: f64,
-    pub(crate) 궁채: Option<JangguFace>,
-    pub(crate) 열채: Option<JangguFace>,
+    pub(crate) face: JangguFace,
+    pub(crate) stick: JangguStick,
 }
 
 pub struct UIContent {
@@ -46,14 +40,8 @@ fn load_note_textures(
     texture_creator: &TextureCreator<WindowContext>,
 ) -> Result<NoteTextures, String> {
     Ok(NoteTextures {
-        덩: texture_creator.load_texture("assets/img/deong00.png")?,
-        덩_넘겨덕: texture_creator.load_texture("assets/img/deong01.png")?,
-        덩_넘겨쿵: texture_creator.load_texture("assets/img/deong10.png")?,
-        넘겨뎡: texture_creator.load_texture("assets/img/deong11.png")?,
-        덕: texture_creator.load_texture("assets/img/duck.png")?,
-        넘겨덕: texture_creator.load_texture("assets/img/duckr.png")?,
-        쿵: texture_creator.load_texture("assets/img/kung.png")?,
-        넘겨쿵: texture_creator.load_texture("assets/img/kungr.png")?,
+        left_stick: texture_creator.load_texture("assets/img/note/left_stick.png")?,
+        right_stick: texture_creator.load_texture("assets/img/note/right_stick.png")?,
     })
 }
 
@@ -70,11 +58,6 @@ fn load_accuracy_textures(
     })
 }
 
-/// size of note
-fn get_note_size() -> (u32, u32) {
-    (80, 80)
-}
-
 /// renders game play ui with notes
 pub fn draw_gameplay_ui(
     canvas: &mut Canvas<Window>,
@@ -84,92 +67,120 @@ pub fn draw_gameplay_ui(
     // loads texture of judgement line
     let texture_creator = canvas.texture_creator();
     let judgement_line_texture = texture_creator
-        .load_texture("assets/img/note_guideline.png")
+        .load_texture("assets/img/play_ui/note_guideline.png")
         .expect("Failed to load note guideline image");
-
-    // get note size
-    let note_width = get_note_size().0;
-    let note_height = get_note_size().1;
 
     // enable alpha blending
     canvas.set_blend_mode(sdl2::render::BlendMode::Blend);
 
-    // draw background where the note moves
+    // load textures
+    let note_textures = load_note_textures(&texture_creator).unwrap();
+    let accuracy_textures = load_accuracy_textures(&texture_creator);
+    let janggu_texture = texture_creator
+        .load_texture("assets/img/play_ui/janggu.png")
+        .expect("Failed to load janggu image");
+
+    // get note size
+    let right_stick_note_height = 80;
+    let right_stick_note_width = (note_textures.right_stick.query().width as f32
+        / note_textures.right_stick.query().height as f32
+        * right_stick_note_height as f32) as u32;
+    let left_stick_note_height = (note_textures.left_stick.query().height as f32
+        * (right_stick_note_height as f32 / note_textures.right_stick.query().height as f32))
+        as u32;
+    let left_stick_note_width = (note_textures.left_stick.query().width as f32
+        / note_textures.left_stick.query().height as f32
+        * left_stick_note_height as f32) as u32;
+    let max_stick_note_height = std::cmp::max(left_stick_note_height, right_stick_note_height);
+
+    // calculate background height
     let background_padding = 15;
-    let background_height = note_height + background_padding * 2;
-    let background_x = 0;
-    let background_y = canvas.viewport().height() as i32 - 80 - (background_height as i32);
-    let background_alpha = if other.input_effect { 200 } else { 150 };
-    canvas.set_draw_color(Color::RGBA(200, 200, 200, background_alpha));
-    canvas
-        .fill_rect(Rect::new(
-            background_x,
-            background_y,
-            canvas.viewport().width(),
-            note_height + background_padding * 2,
-        ))
-        .unwrap();
-
-    // draw background border
     let background_border_height = 5 as u32;
-    canvas.set_draw_color(Color::RGBA(120, 120, 120, background_alpha));
-    canvas
-        .fill_rect(Rect::new(
-            background_x,
-            background_y - background_border_height as i32,
-            canvas.viewport().width(),
-            background_border_height,
-        ))
-        .unwrap();
-    canvas
-        .fill_rect(Rect::new(
-            background_x,
-            background_y + background_height as i32,
-            canvas.viewport().width(),
-            background_border_height,
-        ))
-        .unwrap();
+    let background_height_without_border = max_stick_note_height + background_padding * 2;
+    let background_height_with_border =
+        background_height_without_border + background_border_height * 2;
 
-    // draw hit effect
-    if other.input_effect {
-        let input_effect_texture = texture_creator
-            .load_texture("assets/img/janggu_input_effect.png")
-            .expect("Failed to load janggu note background input effect image");
+    // calculate janggu width
+    let janggu_width = ((janggu_texture.query().width as f32
+        / janggu_texture.query().height as f32)
+        * background_height_with_border as f32) as u32;
 
-        let input_effect_texture_size = input_effect_texture.query();
-        let input_effect_dst_width = (input_effect_texture_size.width as f32
-            * (background_height as f32 / input_effect_texture_size.height as f32))
-            as u32;
+    // draw janggu on center
+    let viewport = canvas.viewport();
+    canvas.copy(
+        &janggu_texture,
+        None,
+        Rect::new(
+            (viewport.width() - janggu_width) as i32 / 2,
+            (viewport.height() - background_height_with_border) as i32 / 2,
+            janggu_width,
+            background_height_with_border,
+        ),
+    );
 
+    // draw backgrounds
+    let background_width = (viewport.width() - janggu_width) / 2;
+    let background_alpha = if other.input_effect { 200 } else { 150 };
+    let background_y =
+        (canvas.viewport().height() as i32 - (background_height_without_border as i32)) / 2;
+    for background_x in ([0, background_width as i32 + janggu_width as i32]) {
+        canvas.set_draw_color(Color::RGBA(200, 200, 200, background_alpha));
+        canvas
+            .fill_rect(Rect::new(
+                background_x,
+                background_y,
+                background_width,
+                background_height_without_border,
+            ))
+            .unwrap();
+
+        // draw border, too
+        canvas.set_draw_color(Color::RGBA(120, 120, 120, background_alpha));
+        canvas
+            .fill_rect(Rect::new(
+                background_x,
+                background_y - background_border_height as i32,
+                background_width,
+                background_border_height,
+            ))
+            .unwrap();
+        canvas
+            .fill_rect(Rect::new(
+                background_x,
+                background_y + background_height_without_border as i32,
+                background_width,
+                background_border_height,
+            ))
+            .unwrap();
+    }
+
+    // TO-DO: impl draw hit effect
+
+    // draw judgement line
+    let judgement_line_height = max_stick_note_height;
+    let judgement_line_padding_px = 20;
+    let judgement_line_width = ((judgement_line_texture.query().width as f32
+        / judgement_line_texture.query().height as f32)
+        * max_stick_note_height as f32) as u32;
+    let judgeline_line_ypos = background_y + background_padding as i32;
+    let judgement_line_xposes = [
+        background_width as i32 - judgement_line_width as i32 - judgement_line_padding_px,
+        background_width as i32 + janggu_width as i32 + judgement_line_padding_px,
+    ];
+    for judgement_line_xpos in judgement_line_xposes {
         canvas
             .copy(
-                &input_effect_texture,
+                &judgement_line_texture,
                 None,
                 Rect::new(
-                    background_x + canvas.viewport().width() as i32 - input_effect_dst_width as i32,
-                    background_y,
-                    input_effect_dst_width,
-                    background_height,
+                    judgement_line_xpos,
+                    judgeline_line_ypos,
+                    judgement_line_width,
+                    judgement_line_height,
                 ),
             )
             .unwrap();
     }
-
-    // draw judgement line
-    let judgement_line_xpos = canvas.viewport().width() as i32 - note_width as i32 - 20;
-    let judgeline_line_ypos = background_y + background_padding as i32;
-    canvas
-        .copy(
-            &judgement_line_texture,
-            None,
-            Rect::new(
-                judgement_line_xpos,
-                judgeline_line_ypos,
-                note_width,
-                note_height,
-            ),
-        )
-        .unwrap();
 
     // load textures for the notes and accuracy
     let note_textures = load_note_textures(&texture_creator).unwrap();
@@ -178,40 +189,39 @@ pub fn draw_gameplay_ui(
     // draw notes
     for i in notes {
         // get texture for the note
-        let note_texture_option = match i.궁채 {
-            Some(JangguFace::열편) => match i.열채 {
-                // 넘겨쿵
-                Some(JangguFace::열편) => Some(&note_textures.덩_넘겨쿵),
-                Some(JangguFace::궁편) => Some(&note_textures.넘겨뎡),
-                _ => Some(&note_textures.넘겨쿵),
-            },
-            Some(JangguFace::궁편) => match i.열채 {
-                Some(JangguFace::열편) => Some(&note_textures.덩),
-                Some(JangguFace::궁편) => Some(&note_textures.덩_넘겨덕),
-                _ => Some(&note_textures.쿵),
-            },
-            _ => match i.열채 {
-                Some(JangguFace::열편) => Some(&note_textures.덕),
-                Some(JangguFace::궁편) => Some(&note_textures.넘겨덕),
-                _ => None,
-            },
+        let note_texture = match i.stick {
+            JangguStick::궁채 => &note_textures.left_stick,
+            JangguStick::열채 => &note_textures.right_stick,
         };
-
-        if let Some(note_texture) = note_texture_option {
-            // draw note
-            canvas
-                .copy(
-                    note_texture,
-                    None,
-                    Rect::new(
-                        judgement_line_xpos - (i.distance * note_width as f64) as i32,
-                        judgeline_line_ypos,
-                        note_width,
-                        note_height,
-                    ),
-                )
-                .unwrap();
+        let note_width = match i.stick {
+            JangguStick::궁채 => left_stick_note_width,
+            JangguStick::열채 => right_stick_note_width,
+        };
+        let note_height = match i.stick {
+            JangguStick::궁채 => left_stick_note_height,
+            JangguStick::열채 => right_stick_note_height,
+        };
+        let note_ypos = background_y
+            + (background_height_without_border as i32 - note_height as i32) as i32 / 2;
+        let note_xpos = match i.face {
+            JangguFace::궁편 => {
+                judgement_line_xposes[0] - (i.distance * note_width as f64) as i32
+            }
+            JangguFace::열편 => {
+                judgement_line_xposes[1] + (i.distance * note_width as f64) as i32
+            }
+        };
+        if i.distance < -(judgement_line_padding_px as f64 / note_width as f64) {
+            continue;
         }
+        // draw note
+        canvas
+            .copy(
+                note_texture,
+                None,
+                Rect::new(note_xpos, note_ypos, note_width, note_height),
+            )
+            .unwrap();
     }
 
     // draw note accuracy
@@ -231,11 +241,11 @@ pub fn draw_gameplay_ui(
             accuracy_texture.query().width as i32,
         ))
         .to_integer();
-        let x = judgement_line_xpos + (note_width as i32 / 2) - (width / 2);
-        let y_min = judgeline_line_ypos + (note_height as i32 / 2) - (height / 2);
-        let y_max = background_y - background_border_height as i32 - height - 10;
-        let y = y_min
-            + ((y_max - y_min) as f32 * expo_out(other.accuracy_time_progress.unwrap())) as i32;
+        let x = (viewport.width() - width) as i32 / 2;
+        let y_start = (viewport.height() - background_height_with_border) as i32 / 2 - (height / 2);
+        let y_end = y_start - height as i32 - 10;
+        let y = y_start
+            + ((y_end - y_start) as f32 * expo_out(other.accuracy_time_progress.unwrap())) as i32;
 
         accuracy_texture
             .set_alpha_mod((expo_out(other.accuracy_time_progress.unwrap()) * 255.0) as u8);
