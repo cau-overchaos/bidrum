@@ -36,7 +36,7 @@ fn is_input_effect_needed(state: &JangguStateWithTick, tick: i128) -> bool {
             return true;
         }
     } else if let Some(_) = state.열채.1 {
-        if state.궁채.0 - tick < TIME_DELTA {
+        if state.열채.0 - tick < TIME_DELTA {
             return true;
         }
     }
