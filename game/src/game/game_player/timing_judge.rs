@@ -1,7 +1,7 @@
-use bidrum_data_struct_lib::janggu::JangguStick;
+use bidrum_data_struct_lib::{janggu::JangguStick, song::GameChart};
 
 use super::{game_result::GameResult, janggu_state_with_tick::JangguStateWithTick};
-use bidrum_data_struct_lib::song::{GameNote, GameNoteTrack};
+use bidrum_data_struct_lib::song::GameNote;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum NoteAccuracy {
@@ -33,8 +33,7 @@ struct NoteForProcessing {
     bpm: u32,
     delay: u64,
     id: u64,
-    궁채_timing: Option<u64>,
-    열채_timing: Option<u64>,
+    hit_timing: Option<u64>,
 }
 
 /// Judges timing accuracy
@@ -73,20 +72,17 @@ fn note_accuracy_from_time_difference(difference: i64) -> NoteAccuracy {
 
 impl TimingJudge {
     /// Creates new TimingJudge with collection of notes
-    pub fn new(tracks: &Vec<GameNoteTrack>) -> TimingJudge {
+    pub fn new(chart: &GameChart) -> TimingJudge {
         // flattens GameNote and GameNoteTrack into NoteForProcessing
         let mut notes = Vec::<NoteForProcessing>::new();
-        for i in tracks {
-            for j in &i.notes {
-                notes.push(NoteForProcessing {
-                    note: j.clone(),
-                    bpm: i.bpm,
-                    delay: i.delay,
-                    id: j.id,
-                    궁채_timing: None,
-                    열채_timing: None,
-                });
-            }
+        for j in &chart.left_face {
+            notes.push(NoteForProcessing {
+                note: j.clone(),
+                bpm: chart.bpm,
+                delay: chart.delay,
+                id: j.id,
+                hit_timing: None,
+            });
         }
 
         // sort the notes by their precise timings
@@ -139,99 +135,26 @@ impl TimingJudge {
             }
 
             // process the timings
-            let 궁채_new_timing =
-                if keydown.is_keydown(JangguStick::궁채) && i.note.궁채 == keydown.궁채.1 {
-                    Some(keydown.궁채.0 as u64)
-                } else {
-                    i.궁채_timing
-                };
-            i.궁채_timing = if matches!(i.note.열채, Some(_)) {
-                // the note is 쿵 kind
-                if let Some(열채_timing_saved) = i.열채_timing {
-                    if 열채_timing_saved == keydown.열채.0 as u64 && i.note.열채 == keydown.열채.1
-                    {
-                        // if the another stick input was already processed
-                        // the another stick should be pressed
-                        궁채_new_timing
-                    } else {
-                        i.궁채_timing
-                    }
-                } else {
-                    궁채_new_timing
-                }
-            } else {
-                // the note is not 쿵 kind
-                궁채_new_timing
+            let keydown_data = match i.note.stick {
+                JangguStick::궁채 => keydown.궁채,
+                JangguStick::열채 => keydown.열채,
             };
-
-            let 열채_new_timing =
-                if keydown.is_keydown(JangguStick::열채) && i.note.열채 == keydown.열채.1 {
-                    Some(keydown.열채.0 as u64)
-                } else {
-                    i.열채_timing
-                };
-            i.열채_timing = if matches!(i.note.궁채, Some(_)) {
-                // the note is 쿵 kind
-                if let Some(궁채_timing_saved) = i.궁채_timing {
-                    if 궁채_timing_saved == keydown.궁채.0 as u64 && i.note.궁채 == keydown.궁채.1
-                    {
-                        // if the another stick input was already processed
-                        // the another stick should be pressed
-                        열채_new_timing
-                    } else {
-                        i.열채_timing
-                    }
-                } else {
-                    열채_new_timing
-                }
+            i.hit_timing = if keydown.is_keydown(i.note.stick)
+                && keydown_data.1.is_some_and(|x| x == i.note.face)
+            {
+                Some(keydown_data.0 as u64)
             } else {
-                // the note is not 쿵 kind
-                열채_new_timing
+                i.hit_timing
             };
 
             // if it's processable note, calculate accuracy
-            if (matches!(i.note.궁채, None) || matches!(i.궁채_timing, Some(_)))
-                && (matches!(i.note.열채, None) || matches!(i.열채_timing, Some(_)))
-            {
-                let note_accuracy_궁채 = if let Some(input_timing) = i.궁채_timing {
-                    Some(note_accuracy_from_time_difference(
-                        input_timing as i64 - precise_timing as i64,
-                    ))
-                } else {
-                    None
-                };
+            if let Some(hit_timing) = i.hit_timing {
+                let note_accuracy =
+                    note_accuracy_from_time_difference(hit_timing as i64 - precise_timing as i64);
 
-                let note_accuracy_열채 = if let Some(input_timing) = i.열채_timing {
-                    Some(note_accuracy_from_time_difference(
-                        input_timing as i64 - precise_timing as i64,
-                    ))
-                } else {
-                    None
-                };
-
-                let note_accuracy = if let Some(note_accuracy_궁채_unwrapped) = note_accuracy_궁채
-                {
-                    if let Some(note_accuracy_열채_unwrapped) = note_accuracy_열채 {
-                        Some(std::cmp::max(
-                            note_accuracy_궁채_unwrapped,
-                            note_accuracy_열채_unwrapped,
-                        ))
-                    } else {
-                        Some(note_accuracy_궁채_unwrapped)
-                    }
-                } else if let Some(note_accuracy_열채_unwrapped) = note_accuracy_열채 {
-                    Some(note_accuracy_열채_unwrapped)
-                } else {
-                    // unreachable code
-                    panic!()
-                };
-
-                // if any judgement is done, break the loop
-                if let Some(accuracy_unwrapped) = note_accuracy {
-                    processed_index = Some(idx);
-                    result = Some(accuracy_unwrapped);
-                    break;
-                }
+                processed_index = Some(idx);
+                result = Some(note_accuracy);
+                break;
             }
         }
 

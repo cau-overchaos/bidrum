@@ -114,7 +114,7 @@ pub(crate) fn play_song(
 
     // get judge and create timing judge
     let chart = song.get_chart(level).unwrap();
-    let mut timing_judge = TimingJudge::new(&chart.tracks);
+    let mut timing_judge = TimingJudge::new(&chart);
 
     // start the clock.
     clock.start().expect("Failed to start clock");
@@ -163,6 +163,8 @@ pub(crate) fn play_song(
         let mut display_notes = Vec::<DisplayedSongNote>::new();
         if tick_now >= 0 {
             // get positions of the notes
+            // TO-DO: Rewrite
+            /*
             for i in &chart.tracks {
                 for j in &i.notes {
                     if !processed_note_ids.contains(&j.id) {
@@ -174,6 +176,7 @@ pub(crate) fn play_song(
                     }
                 }
             }
+            */
 
             // make judgement
             let input_now = common_context.read_janggu_state();
