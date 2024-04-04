@@ -8,16 +8,16 @@ pub(crate) fn read_janggu_key_loop(bits_data: Arc<AtomicU8>) {
         let mut bits: u8 = 0;
         let device_states = DeviceState::new();
         let keys = device_states.get_keys();
-        if keys.contains(&Keycode::U) {
+        if keys.contains(&Keycode::D) {
             bits |= 1;
         }
-        if keys.contains(&Keycode::I) {
+        if keys.contains(&Keycode::F) {
             bits |= 2;
         }
-        if keys.contains(&Keycode::O) {
+        if keys.contains(&Keycode::J) {
             bits |= 4;
         }
-        if keys.contains(&Keycode::P) {
+        if keys.contains(&Keycode::K) {
             bits |= 8;
         }
 
