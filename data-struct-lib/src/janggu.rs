@@ -20,3 +20,10 @@ pub struct JangguInputState {
     pub 궁채: Option<JangguFace>,
     pub 열채: Option<JangguFace>,
 }
+
+// Need for serde default value
+impl JangguFace {
+    pub(crate) fn default() -> JangguFace {
+        JangguFace::궁편
+    }
+}
