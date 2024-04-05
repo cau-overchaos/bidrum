@@ -134,6 +134,8 @@ pub(crate) fn play_song(
     let mut janggu_state_with_tick = JangguStateWithTick::new();
     let mut processed_note_ids = Vec::<u64>::new();
 
+    let mut gameplay_ui_resources = draw_gameplay_ui::GamePlayUIResources::new(&texture_creator);
+
     'running: loop {
         let tick_now = clock.time().ticks as i128 - start_tick.ticks as i128;
         for event in common_context.event_pump.poll_iter() {
@@ -234,6 +236,7 @@ pub(crate) fn play_song(
                 },
                 input_effect: is_input_effect_needed(&janggu_state_with_tick, tick_now),
             },
+            &mut gameplay_ui_resources,
         );
 
         // display necessary data such as coin count

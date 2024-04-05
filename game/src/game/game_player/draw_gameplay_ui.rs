@@ -58,27 +58,50 @@ fn load_accuracy_textures(
     })
 }
 
+pub struct GamePlayUIResources<'a> {
+    judgement_line_texture: Texture<'a>,
+    note_textures: NoteTextures<'a>,
+    accuray_textures: AccuracyTextures<'a>,
+    janggu_texture: Texture<'a>,
+}
+
+impl GamePlayUIResources<'_> {
+    pub fn new(texture_creator: &TextureCreator<WindowContext>) -> GamePlayUIResources {
+        let judgement_line_texture = texture_creator
+            .load_texture("assets/img/play_ui/note_guideline.png")
+            .expect("Failed to load note guideline image");
+        let note_textures = load_note_textures(texture_creator).unwrap();
+        let janggu_texture = texture_creator
+            .load_texture("assets/img/play_ui/janggu.png")
+            .expect("Failed to load janggu image");
+        let accuray_textures = load_accuracy_textures(texture_creator).unwrap();
+
+        return GamePlayUIResources {
+            judgement_line_texture: judgement_line_texture,
+            note_textures: note_textures,
+            janggu_texture: janggu_texture,
+            accuray_textures: accuray_textures,
+        };
+    }
+}
+
 /// renders game play ui with notes
 pub fn draw_gameplay_ui(
     canvas: &mut Canvas<Window>,
     notes: Vec<DisplayedSongNote>,
     other: UIContent,
+    resources: &mut GamePlayUIResources,
 ) {
     // loads texture of judgement line
-    let texture_creator = canvas.texture_creator();
-    let judgement_line_texture = texture_creator
-        .load_texture("assets/img/play_ui/note_guideline.png")
-        .expect("Failed to load note guideline image");
+    let judgement_line_texture = &resources.judgement_line_texture;
 
     // enable alpha blending
     canvas.set_blend_mode(sdl2::render::BlendMode::Blend);
 
     // load textures
-    let note_textures = load_note_textures(&texture_creator).unwrap();
-    let mut accuracy_textures = load_accuracy_textures(&texture_creator).unwrap();
-    let janggu_texture = texture_creator
-        .load_texture("assets/img/play_ui/janggu.png")
-        .expect("Failed to load janggu image");
+    let note_textures = &resources.note_textures;
+    let accuracy_textures = &mut resources.accuray_textures;
+    let janggu_texture = &resources.janggu_texture;
 
     // get note size
     let right_stick_note_height = 80;
@@ -127,7 +150,7 @@ pub fn draw_gameplay_ui(
     };
     let background_y =
         (canvas.viewport().height() as i32 - (background_height_without_border as i32)) / 2;
-    for background_x in ([0, background_width as i32 + janggu_width as i32]) {
+    for background_x in [0, background_width as i32 + janggu_width as i32] {
         canvas.set_draw_color(Color::RGBA(200, 200, 200, background_alpha));
         canvas
             .fill_rect(Rect::new(
