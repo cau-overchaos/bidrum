@@ -143,14 +143,20 @@ pub fn draw_gameplay_ui(
 
     // draw backgrounds
     let background_width = (viewport.width() - janggu_width) / 2;
-    let background_alpha = if other.input_effect.is_some() {
-        200
-    } else {
-        150
-    };
     let background_y =
         (canvas.viewport().height() as i32 - (background_height_without_border as i32)) / 2;
     for background_x in [0, background_width as i32 + janggu_width as i32] {
+        let background_alpha = if other.input_effect.is_some_and(|x| {
+            if background_x == 0 {
+                x == JangguFace::궁편
+            } else {
+                x == JangguFace::열편
+            }
+        }) {
+            200
+        } else {
+            150
+        };
         canvas.set_draw_color(Color::RGBA(200, 200, 200, background_alpha));
         canvas
             .fill_rect(Rect::new(
