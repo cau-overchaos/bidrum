@@ -120,7 +120,11 @@ pub fn draw_gameplay_ui(
 
     // draw backgrounds
     let background_width = (viewport.width() - janggu_width) / 2;
-    let background_alpha = if other.input_effect.is_some() { 200 } else { 150 };
+    let background_alpha = if other.input_effect.is_some() {
+        200
+    } else {
+        150
+    };
     let background_y =
         (canvas.viewport().height() as i32 - (background_height_without_border as i32)) / 2;
     for background_x in ([0, background_width as i32 + janggu_width as i32]) {
@@ -183,10 +187,10 @@ pub fn draw_gameplay_ui(
     // load textures for the notes and accuracy
     let note_textures = load_note_textures(&texture_creator).unwrap();
     let mut accuracy_textures = load_accuracy_textures(&texture_creator).unwrap();
+    let note_width_max = std::cmp::max(left_stick_note_width, right_stick_note_width);
 
     // draw notes
     for i in notes {
-        // get texture for the note
         let note_texture = match i.stick {
             JangguStick::궁채 => &note_textures.left_stick,
             JangguStick::열채 => &note_textures.right_stick,
@@ -203,10 +207,16 @@ pub fn draw_gameplay_ui(
             + (background_height_without_border as i32 - note_height as i32) as i32 / 2;
         let note_xpos = match i.face {
             JangguFace::궁편 => {
-                judgement_line_xposes[0] - (i.distance * note_width as f64) as i32
+                judgement_line_xposes[0]
+                    - (i.distance * note_width_max as f64
+                        - (note_width_max as f64 - note_width as f64 / 2.0))
+                        as i32
             }
             JangguFace::열편 => {
-                judgement_line_xposes[1] + (i.distance * note_width as f64) as i32
+                judgement_line_xposes[1]
+                    + (i.distance * note_width_max as f64
+                        + (note_width_max as f64 - note_width as f64 / 2.0))
+                        as i32
             }
         };
         if i.distance < -(judgement_line_padding_px as f64 / note_width as f64) {
