@@ -33,7 +33,7 @@ pub struct DisplayedSongNote {
 pub struct UIContent {
     pub(crate) accuracy: Option<NoteAccuracy>,
     pub(crate) accuracy_time_progress: Option<f32>,
-    pub(crate) input_effect: bool,
+    pub(crate) input_effect: Option<JangguFace>,
 }
 
 fn load_note_textures(
@@ -120,7 +120,7 @@ pub fn draw_gameplay_ui(
 
     // draw backgrounds
     let background_width = (viewport.width() - janggu_width) / 2;
-    let background_alpha = if other.input_effect { 200 } else { 150 };
+    let background_alpha = if other.input_effect.is_some() { 200 } else { 150 };
     let background_y =
         (canvas.viewport().height() as i32 - (background_height_without_border as i32)) / 2;
     for background_x in ([0, background_width as i32 + janggu_width as i32]) {
@@ -153,8 +153,6 @@ pub fn draw_gameplay_ui(
             ))
             .unwrap();
     }
-
-    // TO-DO: impl draw hit effect
 
     // draw judgement line
     let judgement_line_height = max_stick_note_height;
