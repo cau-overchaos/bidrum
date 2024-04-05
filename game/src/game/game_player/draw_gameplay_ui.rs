@@ -219,7 +219,13 @@ pub fn draw_gameplay_ui(
                         as i32
             }
         };
-        if i.distance < -(judgement_line_padding_px as f64 / note_width as f64) {
+        if i.distance
+            < -(judgement_line_padding_px as f64 / note_width as f64)
+                + match i.face {
+                    JangguFace::궁편 => 1,
+                    JangguFace::열편 => 0,
+                } as f64
+        {
             return;
         }
         // draw note
