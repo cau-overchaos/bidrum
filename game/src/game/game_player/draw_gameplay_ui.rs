@@ -75,7 +75,7 @@ pub fn draw_gameplay_ui(
 
     // load textures
     let note_textures = load_note_textures(&texture_creator).unwrap();
-    let accuracy_textures = load_accuracy_textures(&texture_creator);
+    let mut accuracy_textures = load_accuracy_textures(&texture_creator).unwrap();
     let janggu_texture = texture_creator
         .load_texture("assets/img/play_ui/janggu.png")
         .expect("Failed to load janggu image");
@@ -185,8 +185,6 @@ pub fn draw_gameplay_ui(
     }
 
     // load textures for the notes and accuracy
-    let note_textures = load_note_textures(&texture_creator).unwrap();
-    let mut accuracy_textures = load_accuracy_textures(&texture_creator).unwrap();
     let note_width_max = std::cmp::max(left_stick_note_width, right_stick_note_width);
 
     // draw note
