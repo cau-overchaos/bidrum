@@ -189,8 +189,8 @@ pub fn draw_gameplay_ui(
     let mut accuracy_textures = load_accuracy_textures(&texture_creator).unwrap();
     let note_width_max = std::cmp::max(left_stick_note_width, right_stick_note_width);
 
-    // draw notes
-    for i in notes {
+    // draw note
+    let mut draw_note = |i: &DisplayedSongNote| {
         let note_texture = match i.stick {
             JangguStick::궁채 => &note_textures.left_stick,
             JangguStick::열채 => &note_textures.right_stick,
@@ -220,7 +220,7 @@ pub fn draw_gameplay_ui(
             }
         };
         if i.distance < -(judgement_line_padding_px as f64 / note_width as f64) {
-            continue;
+            return;
         }
         // draw note
         canvas
@@ -230,6 +230,18 @@ pub fn draw_gameplay_ui(
                 Rect::new(note_xpos, note_ypos, note_width, note_height),
             )
             .unwrap();
+    };
+
+    // draw right-stick first, and then draw left-stick.
+    for i in &notes {
+        if matches!(i.stick, JangguStick::열채) {
+            draw_note(i);
+        }
+    }
+    for i in &notes {
+        if matches!(i.stick, JangguStick::궁채) {
+            draw_note(i);
+        }
     }
 
     // draw note accuracy
