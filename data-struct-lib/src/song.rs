@@ -108,7 +108,7 @@ impl GameSong {
                 note.id = note_index;
                 note_index += 1;
             }
-            for note in &mut result_unwrapped.left_face {
+            for note in &mut result_unwrapped.right_face {
                 note.face = JangguFace::열편;
                 note.id = note_index;
                 note_index += 1;
