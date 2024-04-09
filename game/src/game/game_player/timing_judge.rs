@@ -84,6 +84,15 @@ impl TimingJudge {
                 hit_timing: None,
             });
         }
+        for j in &chart.right_face {
+            notes.push(NoteForProcessing {
+                note: j.clone(),
+                bpm: chart.bpm,
+                delay: chart.delay,
+                id: j.id,
+                hit_timing: None,
+            });
+        }
 
         // sort the notes by their precise timings
         notes.sort_by(|a, b| {
