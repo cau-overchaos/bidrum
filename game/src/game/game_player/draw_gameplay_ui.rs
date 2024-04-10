@@ -145,7 +145,10 @@ pub fn draw_gameplay_ui(
     let background_width = (viewport.width() - janggu_width) / 2;
     let background_y =
         (canvas.viewport().height() as i32 - (background_height_without_border as i32)) / 2;
-    for background_x in [0, background_width as i32 + janggu_width as i32] {
+    for background_x in [
+        0,                                             /* x coordinate of left background */
+        background_width as i32 + janggu_width as i32, /* x coordinate of right background */
+    ] {
         let background_alpha = if other.input_effect.is_some_and(|x| {
             if background_x == 0 {
                 x == JangguFace::궁편
@@ -195,8 +198,8 @@ pub fn draw_gameplay_ui(
         * max_stick_note_height as f32) as u32;
     let judgeline_line_ypos = background_y + background_padding as i32;
     let judgement_line_xposes = [
-        background_width as i32 - judgement_line_width as i32 - judgement_line_padding_px,
-        background_width as i32 + janggu_width as i32 + judgement_line_padding_px,
+        background_width as i32 - judgement_line_width as i32 - judgement_line_padding_px, /* left judgement line */
+        background_width as i32 + janggu_width as i32 + judgement_line_padding_px, /* right judgement line */
     ];
     for judgement_line_xpos in judgement_line_xposes {
         canvas
@@ -246,6 +249,8 @@ pub fn draw_gameplay_ui(
                         as i32
             }
         };
+
+        // Do not render note if the note is on janggu icon
         if i.distance
             < -(judgement_line_padding_px as f64 / note_width as f64)
                 + match i.face {
@@ -255,6 +260,7 @@ pub fn draw_gameplay_ui(
         {
             return;
         }
+
         // draw note
         canvas
             .copy(
