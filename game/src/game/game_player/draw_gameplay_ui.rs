@@ -10,7 +10,7 @@ use sdl2::{
 
 use bidrum_data_struct_lib::janggu::{JangguFace, JangguStick};
 
-use super::timing_judge::NoteAccuracy;
+use super::timing_judge::{JudgeResult, NoteAccuracy};
 
 struct NoteTextures<'a> {
     left_stick: Texture<'a>,
@@ -235,29 +235,30 @@ pub fn draw_gameplay_ui(
         };
         let note_ypos = background_y
             + (background_height_without_border as i32 - note_height as i32) as i32 / 2;
-        let note_xpos = match i.face {
-            JangguFace::궁편 => {
-                judgement_line_xposes[0]
-                    - (i.distance * note_width_max as f64
-                        - (note_width_max as f64 - note_width as f64 / 2.0))
-                        as i32
-            }
-            JangguFace::열편 => {
-                judgement_line_xposes[1]
-                    + (i.distance * note_width_max as f64
-                        + (note_width_max as f64 - note_width as f64 / 2.0))
-                        as i32
-            }
-        };
+        let distance_between_centers = i.distance * note_width_max as f64;
+
+        let note_xpos = (match i.face {
+            JangguFace::궁편 => judgement_line_xposes[0],
+            JangguFace::열편 => judgement_line_xposes[1],
+        } as f64
+            + (judgement_line_width / 2) as f64
+            + distance_between_centers
+                * match i.face {
+                    JangguFace::궁편 => -1.0,
+                    JangguFace::열편 => 1.0,
+                }
+            - (note_width / 2) as f64) as i32;
 
         // Do not render note if the note is on janggu icon
-        if i.distance
-            < -(judgement_line_padding_px as f64 / note_width as f64)
-                + match i.face {
-                    JangguFace::궁편 => 1,
-                    JangguFace::열편 => 0,
-                } as f64
-        {
+        let near_center_edge_x_pos = match i.face {
+            JangguFace::궁편 => note_xpos + note_width as i32,
+            JangguFace::열편 => note_xpos,
+        };
+        let distance_with_center = match i.face {
+            JangguFace::궁편 => (viewport.width() / 2) as i32 - near_center_edge_x_pos,
+            JangguFace::열편 => near_center_edge_x_pos - (viewport.width() / 2) as i32,
+        };
+        if distance_with_center >= (janggu_width / 2) as i32 {
             return;
         }
 
