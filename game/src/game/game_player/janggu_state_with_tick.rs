@@ -1,50 +1,85 @@
 use bidrum_data_struct_lib::janggu::JangguInputState;
 use bidrum_data_struct_lib::janggu::{JangguFace, JangguStick};
 
+/// Stick state of Janggu
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct JangguStickStateWithTick {
+    /// timing when the stick is started to touch the face
+    pub keydown_timing: i128,
+    /// face which the stick is touching
+    ///
+    /// If the stick is touching nothing, the value is None.
+    pub face: Option<JangguFace>,
+    /// Whether it's the EXACT time the stick is started to touch the face right now
+    pub is_keydown_now: bool,
+}
+
 /// Processes keyup, keypress, keydown of janggu
 ///
-/// First item of the tuple means the keydown time, second item means the pressed key
 /// Note that, for ease of implementation. "None" is also interpreted as keydown
-/// For example, if the player release the 궁채 at time 120, the value of 궁채 is (120, None)
 #[derive(Debug)]
 pub(crate) struct JangguStateWithTick {
-    pub 궁채: (i128, Option<JangguFace>),
-    pub 열채: (i128, Option<JangguFace>),
-    궁채_keydown: bool,
-    열채_keydown: bool,
+    pub 궁채: JangguStickStateWithTick,
+    pub 열채: JangguStickStateWithTick,
+}
+
+impl JangguStickStateWithTick {
+    fn empty() -> JangguStickStateWithTick {
+        JangguStickStateWithTick {
+            keydown_timing: 0,
+            face: None,
+            is_keydown_now: false,
+        }
+    }
+    fn toggle_keydown(self, keydown_value: bool) -> JangguStickStateWithTick {
+        JangguStickStateWithTick {
+            keydown_timing: self.keydown_timing,
+            face: self.face,
+            is_keydown_now: keydown_value,
+        }
+    }
+    fn change_keydown_timing_and_face(
+        self,
+        timing: i128,
+        face: Option<JangguFace>,
+    ) -> JangguStickStateWithTick {
+        JangguStickStateWithTick {
+            keydown_timing: timing,
+            face: face,
+            is_keydown_now: self.is_keydown_now,
+        }
+    }
 }
 
 impl JangguStateWithTick {
     pub(crate) fn new() -> JangguStateWithTick {
         JangguStateWithTick {
-            궁채: (0, None),
-            열채: (0, None),
-            궁채_keydown: false,
-            열채_keydown: false,
+            궁채: JangguStickStateWithTick::empty(),
+            열채: JangguStickStateWithTick::empty(),
         }
     }
 
-    pub(crate) fn is_keydown(&self, stick: JangguStick) -> bool {
+    pub(crate) fn get_by_stick(&self, stick: JangguStick) -> JangguStickStateWithTick {
         match stick {
-            JangguStick::궁채 => self.궁채_keydown,
-            JangguStick::열채 => self.열채_keydown,
+            JangguStick::궁채 => self.궁채,
+            JangguStick::열채 => self.열채,
         }
     }
 
     pub(crate) fn update(&mut self, state: JangguInputState, time: i128) {
-        self.궁채 = if state.궁채 == self.궁채.1 {
-            self.궁채_keydown = false;
+        self.궁채 = if state.궁채 == self.궁채.face {
+            self.궁채.toggle_keydown(false)
+        } else {
             self.궁채
-        } else {
-            self.궁채_keydown = true;
-            (time, state.궁채)
+                .toggle_keydown(true)
+                .change_keydown_timing_and_face(time, state.궁채)
         };
-        self.열채 = if state.열채 == self.열채.1 {
-            self.열채_keydown = false;
-            self.열채
+        self.열채 = if state.열채 == self.열채.face {
+            self.열채.toggle_keydown(false)
         } else {
-            self.열채_keydown = true;
-            (time, state.열채)
+            self.열채
+                .toggle_keydown(true)
+                .change_keydown_timing_and_face(time, state.열채)
         };
     }
 }
