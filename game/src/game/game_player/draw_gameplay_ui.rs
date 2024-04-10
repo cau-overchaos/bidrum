@@ -235,8 +235,16 @@ pub fn draw_gameplay_ui(
         };
         let note_ypos = background_y
             + (background_height_without_border as i32 - note_height as i32) as i32 / 2;
-        let distance_between_centers = i.distance * note_width_max as f64;
 
+        /*
+         *   note_xpos                                           judgement_line_xpos
+         *      +---------                                              +----
+         *      -        -          distance_between_centers            -   -
+         *      -    *----------------------------------------------------* -
+         *      -        -                                              -   -
+         *      ----------                                              -----
+         */
+        let distance_between_centers = i.distance * note_width_max as f64;
         let note_xpos = (match i.face {
             JangguFace::궁편 => judgement_line_xposes[0],
             JangguFace::열편 => judgement_line_xposes[1],
