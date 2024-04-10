@@ -27,21 +27,21 @@ use self::{
     timing_judge::{NoteAccuracy, TimingJudge},
 };
 
-use bidrum_data_struct_lib::song::GameSong;
+use bidrum_data_struct_lib::{janggu::JangguFace, song::GameSong};
 
-fn is_input_effect_needed(state: &JangguStateWithTick, tick: i128) -> bool {
+fn is_input_effect_needed(state: &JangguStateWithTick, tick: i128) -> Option<JangguFace> {
     const TIME_DELTA: i128 = 150;
     if let Some(_) = state.궁채.1 {
         if state.궁채.0 - tick < TIME_DELTA {
-            return true;
+            return state.궁채.1;
         }
     } else if let Some(_) = state.열채.1 {
         if state.열채.0 - tick < TIME_DELTA {
-            return true;
+            return state.열채.1;
         }
     }
 
-    false
+    None
 }
 
 pub(crate) fn play_song(
@@ -114,7 +114,7 @@ pub(crate) fn play_song(
 
     // get judge and create timing judge
     let chart = song.get_chart(level).unwrap();
-    let mut timing_judge = TimingJudge::new(&chart.tracks);
+    let mut timing_judge = TimingJudge::new(&chart);
 
     // start the clock.
     clock.start().expect("Failed to start clock");
@@ -133,6 +133,8 @@ pub(crate) fn play_song(
 
     let mut janggu_state_with_tick = JangguStateWithTick::new();
     let mut processed_note_ids = Vec::<u64>::new();
+
+    let mut gameplay_ui_resources = draw_gameplay_ui::GamePlayUIResources::new(&texture_creator);
 
     'running: loop {
         let tick_now = clock.time().ticks as i128 - start_tick.ticks as i128;
@@ -163,15 +165,33 @@ pub(crate) fn play_song(
         let mut display_notes = Vec::<DisplayedSongNote>::new();
         if tick_now >= 0 {
             // get positions of the notes
-            for i in &chart.tracks {
-                for j in &i.notes {
-                    if !processed_note_ids.contains(&j.id) {
-                        display_notes.push(DisplayedSongNote {
-                            궁채: j.궁채,
-                            열채: j.열채,
-                            distance: j.get_position(i.bpm, i.delay, i.bpm * 2, (tick_now) as u64),
-                        });
-                    }
+            for i in &chart.left_face {
+                if !processed_note_ids.contains(&i.id) {
+                    display_notes.push(DisplayedSongNote {
+                        face: JangguFace::궁편,
+                        stick: i.stick,
+                        distance: i.get_position(
+                            chart.bpm,
+                            chart.delay,
+                            chart.bpm * 2,
+                            (tick_now) as u64,
+                        ),
+                    });
+                }
+            }
+
+            for i in &chart.right_face {
+                if !processed_note_ids.contains(&i.id) {
+                    display_notes.push(DisplayedSongNote {
+                        face: JangguFace::열편,
+                        stick: i.stick,
+                        distance: i.get_position(
+                            chart.bpm,
+                            chart.delay,
+                            chart.bpm * 2,
+                            (tick_now) as u64,
+                        ),
+                    });
                 }
             }
 
@@ -216,6 +236,7 @@ pub(crate) fn play_song(
                 },
                 input_effect: is_input_effect_needed(&janggu_state_with_tick, tick_now),
             },
+            &mut gameplay_ui_resources,
         );
 
         // display necessary data such as coin count

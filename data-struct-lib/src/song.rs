@@ -7,7 +7,7 @@ use num_rational::Rational64;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
-use crate::janggu::JangguFace;
+use crate::janggu::{JangguFace, JangguStick};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GameSong {
@@ -23,24 +23,22 @@ pub struct GameSong {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GameNote {
-    pub 궁채: Option<JangguFace>,
-    pub 열채: Option<JangguFace>,
+    pub stick: JangguStick,
     beat_index: u64,
     tick_nomiator: i64,
     tick_denomiator: i64,
     #[serde(skip)]
     pub id: u64,
+    #[serde(skip, default = "JangguFace::default")]
+    pub face: JangguFace,
 }
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GameChart {
     pub artist: String,
-    pub tracks: Vec<GameNoteTrack>,
-}
-#[derive(Serialize, Deserialize, Debug)]
-pub struct GameNoteTrack {
-    pub bpm: u32,
     pub delay: u64,
-    pub notes: Vec<GameNote>,
+    pub bpm: u32,
+    pub left_face: Vec<GameNote>,
+    pub right_face: Vec<GameNote>,
 }
 
 impl GameNote {
@@ -105,11 +103,15 @@ impl GameSong {
         // Assign note indexes
         if let Ok(result_unwrapped) = &mut result {
             let mut note_index: u64 = 0;
-            for track in &mut result_unwrapped.tracks {
-                for note in &mut track.notes {
-                    note.id = note_index;
-                    note_index += 1;
-                }
+            for note in &mut result_unwrapped.left_face {
+                note.face = JangguFace::궁편;
+                note.id = note_index;
+                note_index += 1;
+            }
+            for note in &mut result_unwrapped.right_face {
+                note.face = JangguFace::열편;
+                note.id = note_index;
+                note_index += 1;
             }
         }
 
