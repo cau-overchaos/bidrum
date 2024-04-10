@@ -266,7 +266,7 @@ pub fn draw_gameplay_ui(
             JangguFace::궁편 => (viewport.width() / 2) as i32 - near_center_edge_x_pos,
             JangguFace::열편 => near_center_edge_x_pos - (viewport.width() / 2) as i32,
         };
-        if distance_with_center >= (janggu_width / 2) as i32 {
+        if distance_with_center <= (janggu_width / 2) as i32 {
             return;
         }
 
