@@ -148,10 +148,10 @@ impl TimingJudge {
                 JangguStick::궁채 => keydown.궁채,
                 JangguStick::열채 => keydown.열채,
             };
-            i.hit_timing = if keydown.is_keydown(i.note.stick)
-                && keydown_data.1.is_some_and(|x| x == i.note.face)
+            i.hit_timing = if keydown.get_by_stick(i.note.stick).is_keydown_now
+                && keydown_data.face.is_some_and(|x| x == i.note.face)
             {
-                Some(keydown_data.0 as u64)
+                Some(keydown_data.keydown_timing as u64)
             } else {
                 i.hit_timing
             };
