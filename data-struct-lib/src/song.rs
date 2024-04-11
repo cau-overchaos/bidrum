@@ -13,6 +13,8 @@ use crate::janggu::{JangguFace, JangguStick};
 pub enum GameSongCategory {
     Kpop,
     TraditionalKpop,
+    Jpop,
+    Varierty,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
