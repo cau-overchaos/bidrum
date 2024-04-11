@@ -28,13 +28,36 @@ fn render_cover_image(canvas: &mut Canvas<Window>, cover_image_path: &Path){
             &cover_img_texture,
             None,
             Some(Rect::new(
-                (canvas_size.width() as f32/ 10.0) as i32,
-                (canvas_size.height() as f32/ 4.0) as i32,
+                (canvas_size.width() as f32 / 10.0) as i32,
+                (canvas_size.height() as f32 / 4.0) as i32,
                 canvas_cover_image_ratio as u32,
                 canvas_cover_image_ratio as u32,
             )),
         )
         .expect("Cover image rendering failure");
+}
+
+fn render_difficulty_image(canvas: &mut Canvas<Window>, difficulty_image_path: &Path){
+    let texture_creator = canvas.texture_creator();
+    let difficulty_img_texture = texture_creator
+        .load_texture(difficulty_image_path)
+        .expect("Difficulty image file not found");
+
+    let canvas_size = canvas.viewport();
+    let canvas_difficulty_image_ratio = canvas_size.height() as f32 / 8.0;
+
+    canvas
+        .copy(
+            &difficulty_img_texture,
+            None,
+            Some(Rect::new(
+                (canvas_size.width() as f32 / 10.0 - canvas_difficulty_image_ratio / 2.0) as i32,
+                (canvas_size.height() as f32 / 4.0 - canvas_difficulty_image_ratio / 2.0) as i32,
+                canvas_difficulty_image_ratio as u32,
+                canvas_difficulty_image_ratio as u32,
+            )),
+        )
+        .expect("Difficulty image rendering failure");
 }
 
 fn render_game_result(canvas: &mut Canvas<Window>, result: &GameResult) {
@@ -83,7 +106,8 @@ fn render_game_result(canvas: &mut Canvas<Window>, result: &GameResult) {
 pub(crate) fn display_result(
     common_context: &mut GameCommonContext,
     result: GameResult,
-    song_data: &GameSong
+    song_data: &GameSong,
+    selected_level: u32,
 ) {
     loop {
         for event in common_context.event_pump.poll_iter() {
@@ -102,6 +126,7 @@ pub(crate) fn display_result(
         canvas.clear();
 
         render_cover_image(canvas, Path::new(&song_data.cover_image_filename));
+        render_difficulty_image(canvas, Path::new(&format!("assets/img/difficulty/{}.png", selected_level)));
         render_game_result(canvas, &result);
         render_common(common_context);
         common_context.canvas.present();

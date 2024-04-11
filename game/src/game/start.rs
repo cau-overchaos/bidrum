@@ -29,7 +29,8 @@ pub(crate) fn start_game(common_context: &mut GameCommonContext) {
             display_result(
                 common_context,
                 result_unwrapped,
-                &selected.selected_song
+                &selected.selected_song,
+                selected.selected_level,
             );
         }
 
