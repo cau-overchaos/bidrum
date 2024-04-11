@@ -26,7 +26,11 @@ pub(crate) fn start_game(common_context: &mut GameCommonContext) {
 
         // display play result
         if let Some(result_unwrapped) = result {
-            display_result(common_context, result_unwrapped);
+            display_result(
+                common_context,
+                result_unwrapped,
+                &selected.selected_song
+            );
         }
 
         total_stages += 1;
