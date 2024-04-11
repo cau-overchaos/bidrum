@@ -9,12 +9,21 @@ use serde::{Deserialize, Serialize};
 
 use crate::janggu::{JangguFace, JangguStick};
 
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
+pub enum GameSongCategory {
+    Kpop,
+    TraditionalKpop,
+    Jpop,
+    Varierty,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GameSong {
     #[serde(skip)]
     path: String,
     pub title: String,
     pub artist: String,
+    pub category: GameSongCategory,
     pub audio_filename: String,
     pub video_filename: String,
     pub cover_image_filename: String,
