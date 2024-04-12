@@ -6,10 +6,7 @@ use sdl2::{
 };
 
 use super::{
-    common::render_common,
-    game_common_context::GameCommonContext, 
-    game_player::game_result::GameResult,
-    util::create_outlined_font_texture::create_outlined_font_texture,
+    common::{event_loop_common, render_common}, game_common_context::GameCommonContext, game_player::game_result::GameResult, title::TitleResult, util::create_outlined_font_texture::create_outlined_font_texture
 };
 
 use bidrum_data_struct_lib::song::GameSong;
@@ -111,6 +108,9 @@ pub(crate) fn display_result(
 ) {
     loop {
         for event in common_context.event_pump.poll_iter() {
+            if event_loop_common(&event, &mut common_context.coins) {
+                return;
+            }
             match event {
                 Event::KeyDown {
                     keycode: Some(Keycode::Return),
