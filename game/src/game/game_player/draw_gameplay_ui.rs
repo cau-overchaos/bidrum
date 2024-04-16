@@ -104,7 +104,7 @@ pub fn draw_gameplay_ui(
     let janggu_texture = &resources.janggu_texture;
 
     // get note size
-    let right_stick_note_height = 80;
+    let right_stick_note_height = 90;
     let right_stick_note_width = (note_textures.right_stick.query().width as f32
         / note_textures.right_stick.query().height as f32
         * right_stick_note_height as f32) as u32;
