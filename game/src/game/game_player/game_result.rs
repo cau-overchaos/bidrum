@@ -7,4 +7,5 @@ pub(crate) struct GameResult {
     pub bad_count: u64,
     pub miss_count: u64,
     pub combo: u64,
+    pub score: u64,
 }

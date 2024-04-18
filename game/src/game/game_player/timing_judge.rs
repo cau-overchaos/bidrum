@@ -46,6 +46,7 @@ pub(crate) struct TimingJudge {
     bad_count: u64,
     miss_count: u64,
     combo: u64,
+    score: u64,
 }
 
 pub(crate) struct JudgeResult {
@@ -53,8 +54,7 @@ pub(crate) struct JudgeResult {
     pub note_id: u64,
 }
 
-fn note_accuracy_from_time_difference(difference: i64) -> NoteAccuracy {
-    let difference_abs = difference.abs();
+fn note_accuracy_from_time_difference(difference_abs: i64) -> NoteAccuracy {
     if difference_abs <= OVERCHAOS_TIMING {
         NoteAccuracy::Overchaos
     } else if difference_abs <= PERFECT_TIMING {
@@ -103,13 +103,14 @@ impl TimingJudge {
 
         return TimingJudge {
             notes: notes,
-            bad_count: 0,
-            combo: 0,
-            good_count: 0,
-            great_count: 0,
-            miss_count: 0,
             overchaos_count: 0,
             perfect_count: 0,
+            great_count: 0,
+            good_count: 0,
+            bad_count: 0,
+            miss_count: 0,
+            combo: 0,
+            score: 0,
         };
     }
 
@@ -158,8 +159,13 @@ impl TimingJudge {
 
             // if it's processable note, calculate accuracy
             if let Some(hit_timing) = i.hit_timing {
-                let note_accuracy =
-                    note_accuracy_from_time_difference(hit_timing as i64 - precise_timing as i64);
+                let difference_abs = (hit_timing as i64 - precise_timing as i64).abs();
+
+                // calculte score by the accuracy
+                self.score += ((f64::abs(160.0 - difference_abs.clamp(10, 160) as f64) / 160.0)
+                    * 1000.0) as u64;
+
+                let note_accuracy = note_accuracy_from_time_difference(difference_abs);
 
                 processed_index = Some(idx);
                 result = Some(note_accuracy);
@@ -190,7 +196,7 @@ impl TimingJudge {
                     self.good_count += 1;
                 }
                 NoteAccuracy::Bad => {
-                    self.combo += 1;
+                    self.combo = 0;
                     self.bad_count += 1;
                 }
                 NoteAccuracy::Miss => {
@@ -213,13 +219,14 @@ impl TimingJudge {
     /// Creates game result
     pub fn get_game_result(&self) -> GameResult {
         return GameResult {
-            bad_count: self.bad_count,
-            combo: self.combo,
-            good_count: self.good_count,
-            great_count: self.great_count,
-            miss_count: self.miss_count,
             overchaos_count: self.overchaos_count,
             perfect_count: self.perfect_count,
+            great_count: self.great_count,
+            good_count: self.good_count,
+            bad_count: self.bad_count,
+            miss_count: self.miss_count,
+            combo: self.combo,
+            score: self.score,
         };
     }
 }
