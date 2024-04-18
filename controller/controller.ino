@@ -1,14 +1,26 @@
+#include <Keyboard.h>
 #define OUTPUT_PIN_1 4 // 궁채
 #define OUTPUT_PIN_2 5 // 열채
 #define INPUT_PIN_1 8 // 궁편
 #define INPUT_PIN_2 9 // 열편
 #define RELAY_DELAY 50
+#define PROCESS_KEYBOARD_INPUT(shifts, key) \
+        if (prevKeyState & (1 << (shifts)) != newKeyState & (1 << (shifts))) { \
+            if (newKeyState & (1 << (shifts)) != 0) { \
+              Keyboard.press(key); \
+            } else { \
+              Keyboard.release(key); \
+            } \
+        } 1+1
+
 int step;
 int pin1ConnectedTo, pin2ConnectedTo;
 unsigned int lastTimestamp;
+uint8_t prevKeyState;
 void setup()
 {
   step = 0;
+  prevKeyState = 0;
   pinMode(OUTPUT_PIN_1, OUTPUT);
   pinMode(OUTPUT_PIN_2, OUTPUT);
   pinMode(INPUT_PIN_1, INPUT_PULLUP);
@@ -17,10 +29,7 @@ void setup()
   digitalWrite(OUTPUT_PIN_1, LOW);
   digitalWrite(OUTPUT_PIN_2, LOW);
   
-  Serial.begin(9600);
-  while (!Serial) {
-    ; // wait for serial port to connect. Needed for native USB
-  }
+  Keyboard.begin();
 }
 
 void loop()
@@ -62,22 +71,22 @@ void loop()
     	digitalWrite(OUTPUT_PIN_1, LOW);
     	digitalWrite(OUTPUT_PIN_2, LOW);
       delayMicroseconds(RELAY_DELAY);
-      //delay(RELAY_DELAY);
-      /* char message[40];
-      sprintf(message, "%d to %d, %d to %d", OUTPUT_PIN_1, pin1ConnectedTo, 
-      OUTPUT_PIN_2,
-       pin2ConnectedTo);
-      Serial.println(message);*/
-      uint8_t bits = 0;
+      uint8_t newKeyState = 0;
       if (pin1ConnectedTo == INPUT_PIN_1)
-        bits |= (uint8_t)1;
+        newKeyState |= (uint8_t)1;
       if (pin1ConnectedTo == INPUT_PIN_2)
-        bits |= (uint8_t)2;
+        newKeyState |= (uint8_t)2;
       if (pin2ConnectedTo == INPUT_PIN_1)
-        bits |= (uint8_t)4;
+        newKeyState |= (uint8_t)4;
       if (pin2ConnectedTo == INPUT_PIN_2)
-        bits |= (uint8_t)8;
-      Serial.write(bits);
+        newKeyState |= (uint8_t)8;
+
+      PROCESS_KEYBOARD_INPUT(0, 'd');
+      PROCESS_KEYBOARD_INPUT(1, 'f');
+      PROCESS_KEYBOARD_INPUT(2, 'j');
+      PROCESS_KEYBOARD_INPUT(3, 'k');
+
+      prevKeyState = newKeyState;
     break;
   }
 }
