@@ -30,7 +30,7 @@ fn render_game_result(canvas: &mut Canvas<Window>, result: &GameResult) {
 
     let texts =
         format!(
-        "{:<9} {:>4}\n{:<9} {:>4}\n{:<9} {:>4}\n{:<9} {:>4}\n{:<9} {:>4}\n{:<9} {:>4}\n{:<9} {:>4}\n{:<9} {:>4}",
+        "{:<9} {:>4}\n{:<9} {:>4}\n{:<9} {:>4}\n{:<9} {:>4}\n{:<9} {:>4}\n{:<9} {:>4}\n{:<9} {:>4}\n{:<9} {:>4}\n{}/{}",
         "Overchaos", result.overchaos_count,
         "Perfect", result.perfect_count,
         "Great", result.great_count,
@@ -39,6 +39,7 @@ fn render_game_result(canvas: &mut Canvas<Window>, result: &GameResult) {
         "Miss", result.miss_count,
         "Combo", result.combo,
         "Score", result.score,
+        result.health, result.max_health
     );
 
     for (idx, text) in texts.split("\n").enumerate() {

@@ -47,6 +47,8 @@ pub(crate) struct TimingJudge {
     miss_count: u64,
     combo: u64,
     score: u64,
+    health: i64,
+    max_health: u64,
 }
 
 pub(crate) struct JudgeResult {
@@ -101,6 +103,9 @@ impl TimingJudge {
                 .cmp(&b.note.timing_in_ms(b.bpm, b.delay))
         });
 
+        let all_note_count = chart.left_face.len() + chart.right_face.len();
+        let max_health = all_note_count as u64 * 100;
+
         return TimingJudge {
             notes: notes,
             overchaos_count: 0,
@@ -111,6 +116,8 @@ impl TimingJudge {
             miss_count: 0,
             combo: 0,
             score: 0,
+            health: max_health as i64,
+            max_health: max_health,
         };
     }
 
@@ -182,14 +189,17 @@ impl TimingJudge {
                 NoteAccuracy::Overchaos => {
                     self.combo += 1;
                     self.overchaos_count += 1;
+                    self.health += 400;
                 }
                 NoteAccuracy::Perfect => {
                     self.combo += 1;
                     self.perfect_count += 1;
+                    self.health += 200;
                 }
                 NoteAccuracy::Great => {
                     self.combo += 1;
                     self.great_count += 1;
+                    self.health += 100;
                 }
                 NoteAccuracy::Good => {
                     self.combo += 1;
@@ -198,13 +208,18 @@ impl TimingJudge {
                 NoteAccuracy::Bad => {
                     self.combo = 0;
                     self.bad_count += 1;
+                    self.health -= 100;
                 }
                 NoteAccuracy::Miss => {
                     // miss breaks the combo
                     self.combo = 0;
                     self.miss_count += 1;
+                    self.health -= 200;
                 }
             }
+
+            // clamp the health between 0 and max_health
+            self.health = self.health.clamp(0, self.max_health as i64);
 
             return Some(JudgeResult {
                 accuracy: processed_accuracy.clone(),
@@ -227,6 +242,8 @@ impl TimingJudge {
             miss_count: self.miss_count,
             combo: self.combo,
             score: self.score,
+            health: self.health,
+            max_health: self.max_health,
         };
     }
 }

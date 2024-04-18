@@ -8,4 +8,6 @@ pub(crate) struct GameResult {
     pub miss_count: u64,
     pub combo: u64,
     pub score: u64,
+    pub health: i64,
+    pub max_health: u64,
 }
