@@ -114,8 +114,8 @@ impl TimingJudge {
     }
 
     /// Checks the notes for judgement
-    /// If there's judged note by the given janggu state and timing, return the judgement result
-    /// If there's no judged note, return None
+    /// If there's judged note by the given janggu state and timing, return the judged elements
+    /// If there's no judged note, return empty vector
     ///
     /// # Arguments
     ///   * `keydown`: the current janggu sate
@@ -124,18 +124,28 @@ impl TimingJudge {
         &mut self,
         keydown: &JangguStateWithTick,
         tick_in_milliseconds: u64,
-    ) -> Option<JudgeResult> {
-        let mut processed_index: Option<usize> = None;
-        let mut result = None;
-        for (idx, i) in (&mut self.notes).iter_mut().enumerate() {
+    ) -> Vec<JudgeResult> {
+        let mut judged_notes = vec![];
+
+        // if sticks are not keydown, there's no need to process the stick
+        let mut proceseed_left_stick = false;
+        let mut proceseed_right_stick = false;
+        for i in &mut self.notes {
+            // continue if two sticks are processed
+            if proceseed_left_stick && proceseed_right_stick {
+                break;
+            }
+
             let precise_timing = i.note.timing_in_ms(i.bpm.into(), i.delay);
             let difference = tick_in_milliseconds as i64 - precise_timing as i64;
 
             // judge the miss
             if difference > (BAD_TIMING) {
-                processed_index = Some(idx);
-                result = Some(NoteAccuracy::Miss);
-                break;
+                judged_notes.push(JudgeResult {
+                    note_id: i.id,
+                    accuracy: NoteAccuracy::Miss,
+                });
+                continue;
             }
 
             // skip not-yet notes
@@ -150,7 +160,18 @@ impl TimingJudge {
             };
             i.hit_timing = if keydown.get_by_stick(i.note.stick).is_keydown_now
                 && keydown_data.face.is_some_and(|x| x == i.note.face)
-            {
+                && !(match i.note.stick {
+                    JangguStick::궁채 => proceseed_left_stick,
+                    JangguStick::열채 => proceseed_right_stick,
+                }) {
+                match i.note.stick {
+                    JangguStick::궁채 => {
+                        proceseed_left_stick = true;
+                    }
+                    JangguStick::열채 => {
+                        proceseed_right_stick = true;
+                    }
+                }
                 Some(keydown_data.keydown_timing as u64)
             } else {
                 i.hit_timing
@@ -161,18 +182,21 @@ impl TimingJudge {
                 let note_accuracy =
                     note_accuracy_from_time_difference(hit_timing as i64 - precise_timing as i64);
 
-                processed_index = Some(idx);
-                result = Some(note_accuracy);
-                break;
+                judged_notes.push(JudgeResult {
+                    note_id: i.id,
+                    accuracy: note_accuracy,
+                });
             }
         }
 
-        // if there's any judged note
-        if let Some(processed_accuracy) = &result {
-            let processed_note_id = self.notes.get(processed_index.unwrap()).unwrap().id;
-            self.notes.remove(processed_index.unwrap());
+        // process combo and delete judged notes
+        for i in &judged_notes {
+            // delete judged note
+            self.notes
+                .remove(self.notes.iter().position(|x| x.id == i.note_id).unwrap());
+
             // increase or set combo and count
-            match processed_accuracy {
+            match i.accuracy {
                 NoteAccuracy::Overchaos => {
                     self.combo += 1;
                     self.overchaos_count += 1;
@@ -199,15 +223,10 @@ impl TimingJudge {
                     self.miss_count += 1;
                 }
             }
-
-            return Some(JudgeResult {
-                accuracy: processed_accuracy.clone(),
-                note_id: processed_note_id,
-            });
         }
 
         // return judgement result of the judged note
-        return None;
+        judged_notes
     }
 
     /// Creates game result

@@ -200,13 +200,15 @@ pub(crate) fn play_song(
             // make judgement
             let input_now = common_context.read_janggu_state();
             janggu_state_with_tick.update(input_now, tick_now);
-            let new_accuracy = timing_judge.judge(&janggu_state_with_tick, tick_now as u64);
+            let new_accuracies = timing_judge.judge(&janggu_state_with_tick, tick_now as u64);
 
             // if any judgement is made, display it
-            if let Some(new_accuracy_unwrapped) = new_accuracy {
+            if !new_accuracies.is_empty() {
                 accuracy_tick = Some(tick_now);
-                accuracy = Some(new_accuracy_unwrapped.accuracy);
-                processed_note_ids.push(new_accuracy_unwrapped.note_id);
+                accuracy = new_accuracies.iter().map(|x| x.accuracy).max();
+                for i in new_accuracies {
+                    processed_note_ids.push(i.note_id);
+                }
             }
         }
 
