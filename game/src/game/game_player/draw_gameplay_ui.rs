@@ -33,7 +33,7 @@ pub struct DisplayedSongNote {
 pub struct UIContent {
     pub(crate) accuracy: Option<NoteAccuracy>,
     pub(crate) accuracy_time_progress: Option<f32>,
-    pub(crate) input_effect: Option<JangguFace>,
+    pub(crate) input_effect: [Option<JangguFace>; 2],
 }
 
 fn load_note_textures(
@@ -149,12 +149,14 @@ pub fn draw_gameplay_ui(
         0,                                             /* x coordinate of left background */
         background_width as i32 + janggu_width as i32, /* x coordinate of right background */
     ] {
-        let background_alpha = if other.input_effect.is_some_and(|x| {
-            if background_x == 0 {
-                x == JangguFace::궁편
-            } else {
-                x == JangguFace::열편
-            }
+        let background_alpha = if other.input_effect.iter().any(|i| {
+            i.is_some_and(|x| {
+                if background_x == 0 {
+                    x == JangguFace::궁편
+                } else {
+                    x == JangguFace::열편
+                }
+            })
         }) {
             200
         } else {

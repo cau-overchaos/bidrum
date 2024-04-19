@@ -29,19 +29,21 @@ use self::{
 
 use bidrum_data_struct_lib::{janggu::JangguFace, song::GameSong};
 
-fn is_input_effect_needed(state: &JangguStateWithTick, tick: i128) -> Option<JangguFace> {
+fn is_input_effect_needed(state: &JangguStateWithTick, tick: i128) -> [Option<JangguFace>; 2] {
     const TIME_DELTA: i128 = 150;
+    let mut faces = [None, None];
     if let Some(_) = state.궁채.face {
         if state.궁채.keydown_timing - tick < TIME_DELTA {
-            return state.궁채.face;
+            faces[0] = state.궁채.face;
         }
-    } else if let Some(_) = state.열채.face {
+    }
+    if let Some(_) = state.열채.face {
         if state.열채.keydown_timing - tick < TIME_DELTA {
-            return state.열채.face;
+            faces[1] = state.열채.face;
         }
     }
 
-    None
+    faces
 }
 
 pub(crate) fn play_song(
