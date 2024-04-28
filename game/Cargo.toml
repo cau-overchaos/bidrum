@@ -9,7 +9,7 @@ description = "Rhythm game with korean traditional drum(janggu)-like controller"
 
 [dependencies]
 clap = { version = "4.4.13", features = ["derive"] }
-ffmpeg-next = "6.1.1"
+ffmpeg-next = "7.0.0"
 kira = "0.8.6"
 num-rational = "0.4.1"
 sdl2 = { version = "0.36.0", features = ["image", "ttf", "mixer"] }
@@ -17,5 +17,5 @@ serde = { version = "1.0.195", features = ["derive"] }
 serde_json = "1.0.111"
 serialport = "4.3.0"
 bidrum-data-struct-lib = { path = "../data-struct-lib" }
-device_query = "1.1.3"
+device_query = "2.0.0"
 ezing = "0.2.1"
