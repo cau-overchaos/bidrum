@@ -169,7 +169,9 @@ impl TimingJudge {
                 let difference_abs = (hit_timing as i64 - precise_timing as i64).abs();
 
                 // calculte score by the accuracy
-                self.score += ((f64::abs(160.0 - difference_abs.clamp(10, 160) as f64) / 150.0)
+                self.score += ((f64::abs(
+                    BAD_TIMING as f64 - difference_abs.clamp(OVERCHAOS_TIMING, BAD_TIMING) as f64,
+                ) / (BAD_TIMING - OVERCHAOS_TIMING) as f64)
                     * 1000.0) as u64;
 
                 let note_accuracy = note_accuracy_from_time_difference(difference_abs);
@@ -184,6 +186,8 @@ impl TimingJudge {
         if let Some(processed_accuracy) = &result {
             let processed_note_id = self.notes.get(processed_index.unwrap()).unwrap().id;
             self.notes.remove(processed_index.unwrap());
+            // check if the health is zero -> already died
+            let is_health_zero = self.health == 0;
             // increase or set combo and count
             match processed_accuracy {
                 NoteAccuracy::Overchaos => {
@@ -218,9 +222,13 @@ impl TimingJudge {
                 }
             }
 
-            // clamp the health between 0 and max_health
-            self.health = self.health.clamp(0, self.max_health as i64);
-
+            // check if the health is zero -> already died
+            if is_health_zero {
+                self.health = 0;
+            } else {
+                // clamp the health between 0 and max_health
+                self.health = self.health.clamp(0, self.max_health as i64);
+            }
             return Some(JudgeResult {
                 accuracy: processed_accuracy.clone(),
                 note_id: processed_note_id,
