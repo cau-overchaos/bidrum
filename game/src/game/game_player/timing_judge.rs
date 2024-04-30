@@ -46,6 +46,9 @@ pub(crate) struct TimingJudge {
     bad_count: u64,
     miss_count: u64,
     combo: u64,
+    score: u64,
+    health: i64,
+    max_health: u64,
 }
 
 pub(crate) struct JudgeResult {
@@ -53,8 +56,7 @@ pub(crate) struct JudgeResult {
     pub note_id: u64,
 }
 
-fn note_accuracy_from_time_difference(difference: i64) -> NoteAccuracy {
-    let difference_abs = difference.abs();
+fn note_accuracy_from_time_difference(difference_abs: i64) -> NoteAccuracy {
     if difference_abs <= OVERCHAOS_TIMING {
         NoteAccuracy::Overchaos
     } else if difference_abs <= PERFECT_TIMING {
@@ -101,15 +103,21 @@ impl TimingJudge {
                 .cmp(&b.note.timing_in_ms(b.bpm, b.delay))
         });
 
+        let all_note_count = chart.left_face.len() + chart.right_face.len();
+        let max_health = all_note_count as u64 * 100;
+
         return TimingJudge {
             notes: notes,
-            bad_count: 0,
-            combo: 0,
-            good_count: 0,
-            great_count: 0,
-            miss_count: 0,
             overchaos_count: 0,
             perfect_count: 0,
+            great_count: 0,
+            good_count: 0,
+            bad_count: 0,
+            miss_count: 0,
+            combo: 0,
+            score: 0,
+            health: max_health as i64,
+            max_health: max_health,
         };
     }
 
@@ -179,8 +187,15 @@ impl TimingJudge {
 
             // if it's processable note, calculate accuracy
             if let Some(hit_timing) = i.hit_timing {
-                let note_accuracy =
-                    note_accuracy_from_time_difference(hit_timing as i64 - precise_timing as i64);
+                let difference_abs = (hit_timing as i64 - precise_timing as i64).abs();
+
+                // calculte score by the accuracy
+                self.score += ((f64::abs(
+                    BAD_TIMING as f64 - difference_abs.clamp(OVERCHAOS_TIMING, BAD_TIMING) as f64,
+                ) / (BAD_TIMING - OVERCHAOS_TIMING) as f64)
+                    * 1000.0) as u64;
+
+                let note_accuracy = note_accuracy_from_time_difference(difference_abs);
 
                 judged_notes.push(JudgeResult {
                     note_id: i.id,
@@ -195,33 +210,47 @@ impl TimingJudge {
             self.notes
                 .remove(self.notes.iter().position(|x| x.id == i.note_id).unwrap());
 
+            let is_health_zero = self.health == 0;
             // increase or set combo and count
             match i.accuracy {
                 NoteAccuracy::Overchaos => {
                     self.combo += 1;
                     self.overchaos_count += 1;
+                    self.health += 400;
                 }
                 NoteAccuracy::Perfect => {
                     self.combo += 1;
                     self.perfect_count += 1;
+                    self.health += 200;
                 }
                 NoteAccuracy::Great => {
                     self.combo += 1;
                     self.great_count += 1;
+                    self.health += 100;
                 }
                 NoteAccuracy::Good => {
                     self.combo += 1;
                     self.good_count += 1;
                 }
                 NoteAccuracy::Bad => {
-                    self.combo += 1;
+                    self.combo = 0;
                     self.bad_count += 1;
+                    self.health -= 100;
                 }
                 NoteAccuracy::Miss => {
                     // miss breaks the combo
                     self.combo = 0;
                     self.miss_count += 1;
+                    self.health -= 200;
                 }
+            }
+
+            // check if the health is zero -> already died
+            if is_health_zero {
+                self.health = 0;
+            } else {
+                // clamp the health between 0 and max_health
+                self.health = self.health.clamp(0, self.max_health as i64);
             }
         }
 
@@ -232,13 +261,16 @@ impl TimingJudge {
     /// Creates game result
     pub fn get_game_result(&self) -> GameResult {
         return GameResult {
-            bad_count: self.bad_count,
-            combo: self.combo,
-            good_count: self.good_count,
-            great_count: self.great_count,
-            miss_count: self.miss_count,
             overchaos_count: self.overchaos_count,
             perfect_count: self.perfect_count,
+            great_count: self.great_count,
+            good_count: self.good_count,
+            bad_count: self.bad_count,
+            miss_count: self.miss_count,
+            combo: self.combo,
+            score: self.score,
+            health: self.health,
+            max_health: self.max_health,
         };
     }
 }
