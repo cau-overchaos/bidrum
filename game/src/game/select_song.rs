@@ -37,7 +37,7 @@ pub(crate) fn select_song(
     let song_display_stand_width = viewport.width();
     let song_display_stand_height = viewport.height() / 2;
     let song_display_stand_x = 0;
-    let song_display_stand_y = viewport.height() / 3;
+    let song_display_stand_y = (viewport.height() / 3) as i32;
     let song_display_stand_background_alpha :u8 = 100;
     
     // variables for song selection menu moving
@@ -45,9 +45,10 @@ pub(crate) fn select_song(
     let mut moving_start_x_pos = 0; // start moving position of song selection item when user press left or right key
     let moving_distance = 100; // maximum moving distance of song selection item 
     let moving_speed = 1; // moving speed of song selection item
-    let mut song_selection_item_rect = Rect::new(0, 0, 300, 300); // rectangle object of song selection item
     let mut moving_direction : MovingDirection= MovingDirection::Stop; // moving direction of song selection item
+    let mut song_selection_item_rect = Rect::new(0, 0, 300, 300); // rectangle object of song selection item
 
+    song_selection_item_rect.set_y((song_display_stand_y + (song_display_stand_y + song_display_stand_height as i32)) / 3);
 
     'running: loop {
         // waiting user input
@@ -89,7 +90,7 @@ pub(crate) fn select_song(
             let elapsed_time = last_key_press_time.elapsed().as_millis() as f32;
             let current_moved_distance = elapsed_time * moving_speed as f32;
             if current_moved_distance <= moving_distance as f32 { // until 
-                rect.set_x((moving_start_x_pos as f32 - current_moved_distance) as i32);
+                song_selection_item_rect.set_x((moving_start_x_pos as f32 - current_moved_distance) as i32);
             } else {
                 moving_direction = MovingDirection::Stop;
             }
@@ -97,7 +98,7 @@ pub(crate) fn select_song(
             let elapsed_time = last_key_press_time.elapsed().as_millis() as f32;
             let current_moved_distance = elapsed_time * moving_speed as f32;
             if current_moved_distance <= moving_distance as f32 {
-                rect.set_x((moving_start_x_pos as f32 + current_moved_distance) as i32);
+                song_selection_item_rect.set_x((moving_start_x_pos as f32 + current_moved_distance) as i32);
             } else {
                 moving_direction = MovingDirection::Stop;
             }
@@ -111,10 +112,11 @@ pub(crate) fn select_song(
 
         // drawing song selection standing menu
         common_context.canvas.set_draw_color(Color::RGBA(200, 200, 200, song_display_stand_background_alpha));
-        common_context.canvas.fill_rect(Rect::new(song_display_stand_x, song_display_stand_y as i32, song_display_stand_width, song_display_stand_height))
+        common_context.canvas.fill_rect(Rect::new(song_display_stand_x, song_display_stand_y, song_display_stand_width, song_display_stand_height))
         .unwrap();
 
         // drawing song select item
+        common_context.canvas.set_draw_color(Color::RGBA(255, 255, 255, 255));
         common_context.canvas.fill_rect(song_selection_item_rect)
         .unwrap();
 
