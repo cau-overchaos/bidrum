@@ -169,7 +169,7 @@ impl TimingJudge {
                 let difference_abs = (hit_timing as i64 - precise_timing as i64).abs();
 
                 // calculte score by the accuracy
-                self.score += ((f64::abs(160.0 - difference_abs.clamp(10, 160) as f64) / 160.0)
+                self.score += ((f64::abs(160.0 - difference_abs.clamp(10, 160) as f64) / 150.0)
                     * 1000.0) as u64;
 
                 let note_accuracy = note_accuracy_from_time_difference(difference_abs);
