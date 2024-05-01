@@ -91,7 +91,7 @@ pub(crate) fn select_song(
     // song_selection_item_rect.set_y((song_display_stand_y + (song_display_stand_y + song_display_stand_height as i32)) / 3);
     // set_center_x_of_rect(&mut song_selection_item_rect, (viewport.width()/2) as i32);
 
-
+    let mut selected_item_moving_x = selected_item_x;
     'running: loop {
         // waiting user input
         for event in common_context.event_pump.poll_iter() {
@@ -107,7 +107,7 @@ pub(crate) fn select_song(
                 } => {
                     if moving_direction == MovingDirection::Stop {
                         moving_direction = MovingDirection::Right;
-                        // last_key_press_time = Instant::now();
+                        last_key_press_time = Instant::now();
                         // moving_start_x_pos = first_song_selection_item_x;
                     }
                 },
@@ -118,7 +118,7 @@ pub(crate) fn select_song(
                 } => {
                     if moving_direction == MovingDirection::Stop {
                         moving_direction = MovingDirection::Left;
-                        // last_key_press_time = Instant::now();
+                        last_key_press_time = Instant::now();
                         // moving_start_x_pos = first_song_selection_item_x;
                     }
                 },
@@ -128,37 +128,41 @@ pub(crate) fn select_song(
             }
         }
 
+        let mut leftmost_item_idx : i32 = selecetd_song_item_idx -(displayed_selected_song_cnt as i32 / 2);
+        let mut right_most_item_idx : i32 = selecetd_song_item_idx + (displayed_selected_song_cnt as i32 / 2);
         if moving_direction == MovingDirection::Left { // if user press right key, then song menu moves to right for specific distance
             let elapsed_time = last_key_press_time.elapsed().as_millis() as f32;
             let current_moved_distance = elapsed_time * moving_speed as f32;
+            // right_most_item_idx += 1;
             if current_moved_distance <= moving_distance as f32 { // until 
-    //             first_song_selection_item_x = (moving_start_x_pos as f32 - current_moved_distance) as u32;
+                selected_item_moving_x = (selected_item_x as f32 - current_moved_distance) as i32;
             } else { // after the song selection item moved, the seleceted song is changed
                 moving_direction = MovingDirection::Stop;
                 selecetd_song_item_idx +=1;
                 if selecetd_song_item_idx >= song_selection_items.len() as i32 { // for circular array
                     selecetd_song_item_idx = 0;
                 }
-                println!("{}", selecetd_song_item_idx);
+                selected_item_moving_x = selected_item_x; // TODO not chainging
             }
        } else if moving_direction == MovingDirection::Right { // if user press left key, then song menu moves to left for specific distance
             let elapsed_time = last_key_press_time.elapsed().as_millis() as f32;
             let current_moved_distance = elapsed_time * moving_speed as f32;
+            // leftmost_item_idx -= 1;
             if current_moved_distance <= moving_distance as f32 {
-    //             first_song_selection_item_x = (moving_start_x_pos as f32 + current_moved_distance) as u32;
+                selected_item_moving_x = (selected_item_x as f32 + current_moved_distance) as i32;
             } else { // after the song selection item moved, the seleceted song is changed
                 moving_direction = MovingDirection::Stop;
                 selecetd_song_item_idx -=1;
                 if selecetd_song_item_idx < 0 { // for circular array
                     selecetd_song_item_idx = song_selection_items.len() as i32 - 1;
                 }
-                println!("{}", selecetd_song_item_idx);
+                selected_item_moving_x = selected_item_x; // TODO not chainging
             }
-       }
+        }
 
         common_context.canvas.clear();
 
-    //     // drawing background image
+        // drawing background image
         common_context.canvas.copy(&select_song_background_img_texture, None, None)
         .expect("Failed to render background image");
 
@@ -168,17 +172,10 @@ pub(crate) fn select_song(
         .unwrap();
 
         common_context.canvas.set_draw_color(Color::RGBA(200, 200, 200, 240));
-        
-    if moving_direction == MovingDirection::Left {
-
-    } else if moving_direction == MovingDirection::Right {
-
-    } else {
-        let mut item_x = selected_item_x as i32;
-        for i in selecetd_song_item_idx -(displayed_selected_song_cnt as i32 / 2) .. selecetd_song_item_idx + (displayed_selected_song_cnt as i32 / 2) + 1 {
-            let item_x = selected_item_x + (i - selecetd_song_item_idx)* song_selection_item_interval;
+        for i in leftmost_item_idx .. right_most_item_idx + 1 {
+            let item_x = selected_item_moving_x + (i - selecetd_song_item_idx)* song_selection_item_interval;
             common_context.canvas.fill_rect(Rect::new(item_x , song_selection_item_upper_y, song_selection_item_rect_width, song_selection_item_rect_height)).unwrap();
-            
+                
             let real_song_selection_idx = {
                 let mut idx : usize = 0;
                 if i < 0 {
@@ -194,7 +191,6 @@ pub(crate) fn select_song(
             let cover_img_rect = Rect::new(cover_img_x, cover_img_y, cover_img_width, cover_img_height);
             common_context.canvas.copy(&song_selection_items[real_song_selection_idx].cover_img_texture, None, cover_img_rect);
         }
-    }
 
         // drawing common
         render_common(common_context);
