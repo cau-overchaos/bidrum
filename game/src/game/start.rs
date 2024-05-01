@@ -10,7 +10,7 @@ pub(crate) fn start_game(common_context: &mut GameCommonContext) {
     let mut total_stages = 0;
 
     // TO-DO: do authentication here
-    tutorial::do_tutorial(common_context);
+    tutorial::do_tutorial_if_user_wants(common_context);
 
     // player can play 3 songs with a credit
     while total_stages < 3 {

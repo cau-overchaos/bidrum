@@ -1,8 +1,8 @@
-mod draw_gameplay_ui;
+pub mod draw_gameplay_ui;
 pub mod game_result;
-mod janggu_state_with_tick;
+pub mod janggu_state_with_tick;
 mod render_video;
-mod timing_judge;
+pub mod timing_judge;
 
 use std::{path::Path, thread};
 
@@ -30,7 +30,7 @@ use self::{
 
 use bidrum_data_struct_lib::{janggu::JangguFace, song::GameSong};
 
-fn is_input_effect_needed(state: &JangguStateWithTick, tick: i128) -> [Option<JangguFace>; 2] {
+pub fn is_input_effect_needed(state: &JangguStateWithTick, tick: i128) -> [Option<JangguFace>; 2] {
     const TIME_DELTA: i128 = 150;
     let mut faces = [None, None];
     if let Some(_) = state.궁채.face {
