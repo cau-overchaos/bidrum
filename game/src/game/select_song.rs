@@ -211,12 +211,12 @@ pub(crate) fn select_song(
             }
 
 
-            // let cover_img_center_x = (item_center_x + (item_center_x + song_selection_item_rect_width as i32)) / 2;
-            // let cover_img_center_y: i32 = (song_selection_item_upper_y + (song_selection_item_upper_y + song_selection_item_rect_height as i32)) / 2;
-            // let mut cover_img_rect = Rect::new(-1, -1, cover_img_width, cover_img_height);
-            // set_center_x_of_rect(&mut cover_img_rect, cover_img_center_x);
-            // set_center_y_of_rect(&mut cover_img_rect, cover_img_center_y);
-            // common_context.canvas.copy(&song_selection_items[real_song_selection_idx as usize].cover_img_texture, None, cover_img_rect).expect("Failed to render cover image");
+            let cover_img_center_x = item_center_x;
+            let cover_img_center_y: i32 = song_selection_item_center_y;
+            let mut cover_img_rect = Rect::new(-1, -1, cover_img_width, cover_img_height);
+            set_center_x_of_rect(&mut cover_img_rect, cover_img_center_x);
+            set_center_y_of_rect(&mut cover_img_rect, cover_img_center_y);
+            common_context.canvas.copy(&song_selection_items[real_song_selection_idx as usize].cover_img_texture, None, cover_img_rect).expect("Failed to render cover image");
         }
 
 
