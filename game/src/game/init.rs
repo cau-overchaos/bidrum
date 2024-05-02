@@ -70,6 +70,7 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
     // create canvas
     let mut canvas = window
         .into_canvas()
+        .present_vsync()
         .build()
         .map_err(|e| e.to_string())
         .expect("canvas initialization fail");
