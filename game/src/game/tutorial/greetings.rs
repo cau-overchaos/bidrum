@@ -1,13 +1,15 @@
 use std::{path, time::Instant};
 
 use kira::sound::static_sound::{StaticSoundData, StaticSoundSettings};
-use sdl2::{image::LoadTexture, rect::Rect, render::Texture};
+use sdl2::{image::LoadTexture, render::Texture};
 
 use crate::game::{
-    common::{self, event_loop_common, render_common},
+    common::{event_loop_common, render_common},
     game_common_context::GameCommonContext,
-    game_player::draw_gameplay_ui::{self, GamePlayUIResources, UIContent},
-    start,
+    game_player::{
+        draw_gameplay_ui::{self, GamePlayUIResources, UIContent},
+        is_input_effect_needed, janggu_state_with_tick,
+    },
 };
 
 use super::get_message_image_asset_dst_rect;
@@ -15,6 +17,10 @@ use super::get_message_image_asset_dst_rect;
 pub(crate) fn do_tutorial_greetings(
     common_context: &mut GameCommonContext,
     game_ui_resources: &mut GamePlayUIResources,
+    janggu_state_and_tutorial_start_time: (
+        &mut janggu_state_with_tick::JangguStateWithTick,
+        Instant,
+    ),
 ) {
     // Load sounds
     let sounds = [1, 2, 3, 4].map(|idx| -> StaticSoundData {
@@ -40,9 +46,14 @@ pub(crate) fn do_tutorial_greetings(
     let message_gap = std::time::Duration::from_secs(1);
     let message_start_delay = std::time::Duration::from_secs(1);
     loop {
+        let tick = janggu_state_and_tutorial_start_time.1.elapsed().as_millis() as i128;
         for event in common_context.event_pump.poll_iter() {
             event_loop_common(&event, &mut common_context.coins);
         }
+
+        janggu_state_and_tutorial_start_time
+            .0
+            .update(common_context.read_janggu_state(), tick);
 
         common_context.canvas.clear();
         draw_gameplay_ui::draw_gameplay_ui(
@@ -51,7 +62,7 @@ pub(crate) fn do_tutorial_greetings(
             UIContent {
                 accuracy: None,
                 accuracy_time_progress: None,
-                input_effect: [None, None],
+                input_effect: is_input_effect_needed(janggu_state_and_tutorial_start_time.0, tick),
             },
             game_ui_resources,
         );

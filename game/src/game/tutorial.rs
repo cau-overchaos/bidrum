@@ -5,11 +5,10 @@ use sdl2::rect::Rect;
 use self::greetings::do_tutorial_greetings;
 
 use super::{
-    common::{self, event_loop_common, render_common},
     game_common_context::GameCommonContext,
     game_player::{
-        self, draw_gameplay_ui::UIContent, game_result::GameResult, is_input_effect_needed,
-        janggu_state_with_tick::JangguStateWithTick,
+        self,
+        janggu_state_with_tick::{self},
     },
 };
 
@@ -21,6 +20,8 @@ fn do_tutorial(common_context: &mut GameCommonContext) {
     let texture_creator = common_context.canvas.texture_creator();
     let mut gameplay_ui_resources =
         game_player::draw_gameplay_ui::GamePlayUIResources::new(&texture_creator);
+    let mut janggu_state = janggu_state_with_tick::JangguStateWithTick::new();
+    let started = std::time::Instant::now();
 
     // Tutorial order
     //
@@ -30,7 +31,11 @@ fn do_tutorial(common_context: &mut GameCommonContext) {
     // 4. right stick-right pane
     // 5. mixed
 
-    do_tutorial_greetings(common_context, &mut gameplay_ui_resources);
+    do_tutorial_greetings(
+        common_context,
+        &mut gameplay_ui_resources,
+        (&mut janggu_state, started),
+    );
 }
 
 pub(self) fn get_message_image_asset_dst_rect(
