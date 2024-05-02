@@ -72,8 +72,13 @@ pub(crate) fn select_song(
     let displayed_selected_song_cnt = 5; // it should be odd number for existence of center song item
     let song_selection_item_rect_width = song_display_stand_height / 2 ;
     let song_selection_item_rect_height = song_selection_item_rect_width;
-    let mut selected_item_x = viewport.width() as i32 / 2 - song_selection_item_rect_width as i32 / 2; // '- song_selection_item_rect_width / 2' is for positioing at center
-    let song_selection_item_upper_y = (song_display_stand_y + (song_display_stand_y + song_display_stand_height as i32)) / 3;
+
+    let selected_song_selection_item_rect_width = song_display_stand_height * 2 / 3;
+    let selected_song_selection_item_rect_height = selected_song_selection_item_rect_width;
+
+    // let selected_item_x = viewport.width() as i32 / 2 - song_selection_item_rect_width as i32 / 2; // '- song_selection_item_rect_width / 2' is for positioing at center
+    let selected_item_center_x = viewport.width() as i32 / 2;
+    let song_selection_item_center_y = (song_display_stand_y + (song_display_stand_y + song_display_stand_height as i32)) / 2;
     let mut selecetd_song_item_idx : i32 = 0; // the center item of displayed song item is selected song item
 
     // cover image variables
@@ -89,7 +94,7 @@ pub(crate) fn select_song(
     let mut moving_direction : MovingDirection= MovingDirection::Stop; // moving direction of song selection item
 
 
-    let mut selected_item_moving_x = selected_item_x;
+    let mut selected_item_moving_center_x = selected_item_center_x;
     'running: loop {
         // waiting user input
         for event in common_context.event_pump.poll_iter() {
@@ -130,27 +135,27 @@ pub(crate) fn select_song(
             let elapsed_time = last_key_press_time.elapsed().as_millis() as f32;
             let current_moved_distance = elapsed_time * moving_speed as f32;
             if current_moved_distance <= moving_distance as f32 { // until 
-                selected_item_moving_x = (selected_item_x as f32 - current_moved_distance) as i32;
+                selected_item_moving_center_x = (selected_item_center_x as f32 - current_moved_distance) as i32;
             } else { // after the song selection item moved, the seleceted song is changed
                 moving_direction = MovingDirection::Stop;
                 selecetd_song_item_idx +=1;
                 if selecetd_song_item_idx >= song_selection_items.len() as i32 { // for circular array
                     selecetd_song_item_idx = 0;
                 }
-                selected_item_moving_x = selected_item_x; // TODO not chainging
+                selected_item_moving_center_x = selected_item_center_x; // TODO not chainging
             }
        } else if moving_direction == MovingDirection::Right { // if user press left key, then song menu moves to left for specific distance
             let elapsed_time = last_key_press_time.elapsed().as_millis() as f32;
             let current_moved_distance = elapsed_time * moving_speed as f32;
             if current_moved_distance <= moving_distance as f32 {
-                selected_item_moving_x = (selected_item_x as f32 + current_moved_distance) as i32;
+                selected_item_moving_center_x = (selected_item_center_x as f32 + current_moved_distance) as i32;
             } else { // after the song selection item moved, the seleceted song is changed
                 moving_direction = MovingDirection::Stop;
                 selecetd_song_item_idx -=1;
                 if selecetd_song_item_idx < 0 { // for circular array
                     selecetd_song_item_idx = song_selection_items.len() as i32 - 1;
                 }
-                selected_item_moving_x = selected_item_x; // TODO not chainging
+                selected_item_moving_center_x = selected_item_center_x; // TODO not chainging
             }
         }
 
@@ -167,20 +172,34 @@ pub(crate) fn select_song(
 
         common_context.canvas.set_draw_color(Color::RGBA(200, 200, 200, 240));
         for i in leftmost_item_idx .. right_most_item_idx + 1 {
-            let item_x = selected_item_moving_x + (i - selecetd_song_item_idx)* song_selection_item_interval;
-            common_context.canvas.fill_rect(Rect::new(item_x , song_selection_item_upper_y, song_selection_item_rect_width, song_selection_item_rect_height)).unwrap();
+            let item_center_x = selected_item_moving_center_x + (i - selecetd_song_item_idx)* song_selection_item_interval;
+            let mut item_rect = Rect::new(-1 , -1, song_selection_item_rect_width, song_selection_item_rect_height);
+            
+            if moving_direction == MovingDirection::Stop {
+                if i == (leftmost_item_idx + right_most_item_idx) / 2 {
+                    item_rect.set_width(selected_song_selection_item_rect_width);
+                    item_rect.set_height(selected_song_selection_item_rect_height);
+                }
+            }
+            
+            set_center_x_of_rect(&mut item_rect, item_center_x);
+            set_center_y_of_rect(&mut item_rect, song_selection_item_center_y);
+            
+            common_context.canvas.fill_rect(item_rect).unwrap();
             
             // convert the position index to index for song_selection_item vectors
             let mut real_song_selection_idx = i % song_selection_items.len() as i32;
             if real_song_selection_idx < 0 {
                 real_song_selection_idx += song_selection_items.len() as i32;
             }
-            println!("{}", real_song_selection_idx);
 
-            let cover_img_x = (item_x + (item_x + song_selection_item_rect_width as i32)) / 2 - cover_img_width as i32/2;
-            let cover_img_y: i32 = (song_selection_item_upper_y + (song_selection_item_upper_y + song_selection_item_rect_height as i32)) / 2 - cover_img_height as i32 / 2;
-            let cover_img_rect = Rect::new(cover_img_x, cover_img_y, cover_img_width, cover_img_height);
-            common_context.canvas.copy(&song_selection_items[real_song_selection_idx as usize].cover_img_texture, None, cover_img_rect).expect("Failed to render cover image");
+
+            // let cover_img_center_x = (item_center_x + (item_center_x + song_selection_item_rect_width as i32)) / 2;
+            // let cover_img_center_y: i32 = (song_selection_item_upper_y + (song_selection_item_upper_y + song_selection_item_rect_height as i32)) / 2;
+            // let mut cover_img_rect = Rect::new(-1, -1, cover_img_width, cover_img_height);
+            // set_center_x_of_rect(&mut cover_img_rect, cover_img_center_x);
+            // set_center_y_of_rect(&mut cover_img_rect, cover_img_center_y);
+            // common_context.canvas.copy(&song_selection_items[real_song_selection_idx as usize].cover_img_texture, None, cover_img_rect).expect("Failed to render cover image");
         }
 
 
@@ -198,4 +217,8 @@ pub(crate) fn select_song(
 
 pub(crate) fn set_center_x_of_rect(rect: &mut Rect, x : i32) {
     rect.set_x(x - rect.w/2);
+}
+
+pub(crate) fn set_center_y_of_rect(rect: &mut Rect, y : i32) {
+    rect.set_y(y - rect.h/2);
 }
