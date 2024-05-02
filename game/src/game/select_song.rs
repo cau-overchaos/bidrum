@@ -92,6 +92,8 @@ pub(crate) fn select_song(
     let song_selection_item_interval = (song_display_stand_width / displayed_selected_song_cnt) as i32; // interval between song selection item, adjusting the interval to display displayed_selected_song_cnt number of items on display
     let moving_distance = song_selection_item_interval; // maximum moving distance of song selection item 
     let mut moving_direction : MovingDirection= MovingDirection::Stop; // moving direction of song selection item
+    
+    let song_selection_item_size_changing_speed = (selected_song_selection_item_rect_width - song_selection_item_rect_width) as f32 / (moving_distance / moving_speed) as f32;
 
 
     let mut selected_item_moving_center_x = selected_item_center_x;
@@ -129,10 +131,10 @@ pub(crate) fn select_song(
             }
         }
 
+        let elapsed_time = last_key_press_time.elapsed().as_millis() as f32;
         let mut leftmost_item_idx : i32 = selecetd_song_item_idx -(displayed_selected_song_cnt as i32 / 2) - 1;
         let mut right_most_item_idx : i32 = selecetd_song_item_idx + (displayed_selected_song_cnt as i32 / 2) + 1;
         if moving_direction == MovingDirection::Left { // if user press right key, then song menu moves to right for specific distance
-            let elapsed_time = last_key_press_time.elapsed().as_millis() as f32;
             let current_moved_distance = elapsed_time * moving_speed as f32;
             if current_moved_distance <= moving_distance as f32 { // until 
                 selected_item_moving_center_x = (selected_item_center_x as f32 - current_moved_distance) as i32;
@@ -145,7 +147,6 @@ pub(crate) fn select_song(
                 selected_item_moving_center_x = selected_item_center_x; // TODO not chainging
             }
        } else if moving_direction == MovingDirection::Right { // if user press left key, then song menu moves to left for specific distance
-            let elapsed_time = last_key_press_time.elapsed().as_millis() as f32;
             let current_moved_distance = elapsed_time * moving_speed as f32;
             if current_moved_distance <= moving_distance as f32 {
                 selected_item_moving_center_x = (selected_item_center_x as f32 + current_moved_distance) as i32;
@@ -179,6 +180,22 @@ pub(crate) fn select_song(
                 if i == (leftmost_item_idx + right_most_item_idx) / 2 {
                     item_rect.set_width(selected_song_selection_item_rect_width);
                     item_rect.set_height(selected_song_selection_item_rect_height);
+                }
+            } else if moving_direction == MovingDirection::Left {
+                if i == (leftmost_item_idx + right_most_item_idx) / 2 {
+                    item_rect.w -= (elapsed_time * song_selection_item_size_changing_speed) as i32;
+                    item_rect.set_height(item_rect.w as u32);
+                } else if i == (leftmost_item_idx + right_most_item_idx) / 2 + 1 {
+                    item_rect.w += (elapsed_time * song_selection_item_size_changing_speed) as i32;
+                    item_rect.set_height(item_rect.w as u32);
+                }
+            } else if moving_direction == MovingDirection::Right {
+                if i == (leftmost_item_idx + right_most_item_idx) / 2 {
+                    item_rect.w -= (elapsed_time * song_selection_item_size_changing_speed) as i32;
+                    item_rect.set_height(item_rect.w as u32);
+                } else if i == (leftmost_item_idx + right_most_item_idx) / 2 - 1 {
+                    item_rect.w += (elapsed_time * song_selection_item_size_changing_speed) as i32;
+                    item_rect.set_height(item_rect.w as u32);
                 }
             }
             
