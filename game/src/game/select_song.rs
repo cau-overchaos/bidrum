@@ -183,18 +183,18 @@ pub(crate) fn select_song(
                 }
             } else if moving_direction == MovingDirection::Left {
                 if i == (leftmost_item_idx + right_most_item_idx) / 2 {
-                    item_rect.w -= (elapsed_time * song_selection_item_size_changing_speed) as i32;
+                    item_rect.w = selected_song_selection_item_rect_width as i32 - (elapsed_time * song_selection_item_size_changing_speed) as i32;
                     item_rect.set_height(item_rect.w as u32);
                 } else if i == (leftmost_item_idx + right_most_item_idx) / 2 + 1 {
-                    item_rect.w += (elapsed_time * song_selection_item_size_changing_speed) as i32;
+                    item_rect.w = song_selection_item_rect_width as i32 + (elapsed_time * song_selection_item_size_changing_speed) as i32;
                     item_rect.set_height(item_rect.w as u32);
                 }
             } else if moving_direction == MovingDirection::Right {
                 if i == (leftmost_item_idx + right_most_item_idx) / 2 {
-                    item_rect.w -= (elapsed_time * song_selection_item_size_changing_speed) as i32;
+                    item_rect.w = selected_song_selection_item_rect_width as i32 - (elapsed_time * song_selection_item_size_changing_speed) as i32;
                     item_rect.set_height(item_rect.w as u32);
                 } else if i == (leftmost_item_idx + right_most_item_idx) / 2 - 1 {
-                    item_rect.w += (elapsed_time * song_selection_item_size_changing_speed) as i32;
+                    item_rect.w = song_selection_item_rect_width as i32 + (elapsed_time * song_selection_item_size_changing_speed) as i32;
                     item_rect.set_height(item_rect.w as u32);
                 }
             }
