@@ -30,8 +30,11 @@ pub(crate) fn select_song(
     songs: &Vec<GameSong>,
 ) -> SongSelectionResult {
 
-
     let texture_creator =  common_context.canvas.texture_creator();
+    let ttf_context = sdl2::ttf::init().expect("ttf context initialization failure");
+    let font_path = "assets/sans.ttf";
+    let font_size = 40;
+    let font = ttf_context.load_font(font_path, font_size).expect("loading font failed");
 
     // convert GameSong vector to SongSelectionItem vector
     let song_selection_items = {
@@ -218,20 +221,39 @@ pub(crate) fn select_song(
                 real_song_selection_idx += song_selection_items.len() as i32;
             }
 
-
             let cover_img_center_x = item_center_x;
             let cover_img_center_y: i32 = song_selection_item_center_y;
             let cover_img_width = item_rect.w as u32 * 2 / 3;
             let cover_img_height = cover_img_width;
-            let mut cover_img_rect = Rect::new(-1, -1, cover_img_width, cover_img_height);
+            let mut cover_img_rect: Rect = Rect::new(-1, -1, cover_img_width, cover_img_height);
             set_center_x_of_rect(&mut cover_img_rect, cover_img_center_x);
             set_center_y_of_rect(&mut cover_img_rect, cover_img_center_y);
             common_context.canvas.copy(&song_selection_items[real_song_selection_idx as usize].cover_img_texture, None, cover_img_rect).expect("Failed to render cover image");
+        
+            let title_str_center_x = item_center_x;
+            let title_str_center_y = song_selection_item_center_y + song_selection_item_center_y / 3;
+            let surface = font.render(&song_selection_items[real_song_selection_idx as usize].title).blended(Color::BLACK).unwrap();
+            let texture = texture_creator.create_texture_from_surface(&surface).unwrap();
+            let texture_query = texture.query();
+            let mut title_str_rect: Rect = Rect::new(-1, -1, texture_query.width, texture_query.height);
+            set_center_x_of_rect(&mut title_str_rect,title_str_center_x);
+            set_center_y_of_rect(&mut title_str_rect,title_str_center_y);
+            common_context.canvas.copy(&texture, None, title_str_rect).expect("Failed to render title texture");
+        
+            let artist_str_center_x = item_center_x;
+            let artist_str_center_y = title_str_center_y + title_str_center_y / 25;
+            let surface = font.render(&song_selection_items[real_song_selection_idx as usize].artist).blended(Color::BLACK).unwrap();
+            let texture = texture_creator.create_texture_from_surface(&surface).unwrap();
+            let texture_query = texture.query();
+            let mut artist_str_rect: Rect = Rect::new(-1, -1, texture_query.width, texture_query.height);
+            set_center_x_of_rect(&mut artist_str_rect,artist_str_center_x);
+            set_center_y_of_rect(&mut artist_str_rect,artist_str_center_y);
+            common_context.canvas.copy(&texture, None, artist_str_rect).expect("Failed to render title texture");
+        
         }
 
-
         // drawing common
-        render_common(common_context);
+        // render_common(common_context);
 
         common_context.canvas.present();
     }
