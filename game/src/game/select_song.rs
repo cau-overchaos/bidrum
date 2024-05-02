@@ -82,8 +82,8 @@ pub(crate) fn select_song(
     let mut selecetd_song_item_idx : i32 = 0; // the center item of displayed song item is selected song item
 
     // cover image variables
-    let cover_img_width = song_selection_item_rect_width * 2 / 3;
-    let cover_img_height = cover_img_width;
+    // let cover_img_width = song_selection_item_rect_width * 2 / 3;
+    // let cover_img_height = cover_img_width;
 
     // variables for song selection menu moving
     let mut last_key_press_time = Instant::now(); // most recent time when the user press left or right key
@@ -123,6 +123,14 @@ pub(crate) fn select_song(
                     if moving_direction == MovingDirection::Stop {
                         moving_direction = MovingDirection::Left;
                         last_key_press_time = Instant::now();
+                    }
+                },
+                Event::KeyDown { // if user press right key, then song menu moves to left for specific distance
+                    keycode: Some(Keycode::Return),
+                    ..
+                } => {
+                    if moving_direction == MovingDirection::Stop {
+                       break 'running;
                     }
                 },
                 _ => {
@@ -213,6 +221,8 @@ pub(crate) fn select_song(
 
             let cover_img_center_x = item_center_x;
             let cover_img_center_y: i32 = song_selection_item_center_y;
+            let cover_img_width = item_rect.w as u32 * 2 / 3;
+            let cover_img_height = cover_img_width;
             let mut cover_img_rect = Rect::new(-1, -1, cover_img_width, cover_img_height);
             set_center_x_of_rect(&mut cover_img_rect, cover_img_center_x);
             set_center_y_of_rect(&mut cover_img_rect, cover_img_center_y);
@@ -227,8 +237,8 @@ pub(crate) fn select_song(
     }
 
     return SongSelectionResult {
-        selected_level: songs[0].get_chart_levels().unwrap()[0],
-        selected_song: songs[0].clone(),
+        selected_level: songs[selecetd_song_item_idx as usize].get_chart_levels().unwrap()[0],
+        selected_song: songs[selecetd_song_item_idx as usize].clone(),
     };
 }
 
