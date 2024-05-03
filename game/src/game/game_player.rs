@@ -7,9 +7,7 @@ mod timing_judge;
 use std::{path::Path, thread};
 
 use kira::{
-    clock::ClockSpeed,
-    sound::static_sound::{StaticSoundData, StaticSoundSettings},
-    tween::Tween,
+    clock::ClockSpeed, manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings}, sound::static_sound::{StaticSoundData, StaticSoundSettings}, tween::Tween
 };
 use num_rational::Rational64;
 use sdl2::{image::LoadTexture, pixels::PixelFormatEnum};
@@ -66,6 +64,15 @@ pub(crate) fn play_song(
         .expect("clock initialization failure");
     let start_tick = clock.time() + 500; // the song will start at 500ms after clock starting
     let song_path_string = song.audio_filename.clone();
+
+    // hit sould path
+    let kung_hit_sound_path = "assets/sound/janggu_hit/kung.wav";
+    let deok_hit_sound_path = "assets/sound/janggu_hit/deok.wav";
+
+    // hit sound load
+    let mut audio_manager = AudioManager::<DefaultBackend>::new(AudioManagerSettings::default()).expect("Failed to create audio manager");
+    let kung_sound_data = StaticSoundData::from_file(kung_hit_sound_path, StaticSoundSettings::default()).expect("Failed to load kung sound");
+    let deok_sound_data = StaticSoundData::from_file(deok_hit_sound_path, StaticSoundSettings::default()).expect("Failed to load deok sound");
 
     // to receive coin input while loading the audio file,
     // loading should be done in separated thread.
@@ -201,6 +208,14 @@ pub(crate) fn play_song(
             let input_now = common_context.read_janggu_state();
             janggu_state_with_tick.update(input_now, tick_now);
             let new_accuracies = timing_judge.judge(&janggu_state_with_tick, tick_now as u64);
+
+            // play hit sound when use git janggu
+            if janggu_state_with_tick.궁채.is_keydown_now {
+                audio_manager.play(kung_sound_data.clone()).expect("Failed to play kung sound");
+            }
+            if janggu_state_with_tick.열채.is_keydown_now {
+                audio_manager.play(deok_sound_data.clone()).expect("Failed to play deok sound");
+            }
 
             // if any judgement is made, display it
             if !new_accuracies.is_empty() {
