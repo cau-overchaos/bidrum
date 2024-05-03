@@ -70,16 +70,32 @@ impl JangguStateWithTick {
         self.궁채 = if state.궁채 == self.궁채.face {
             self.궁채.toggle_keydown(false)
         } else {
-            self.궁채
-                .toggle_keydown(true)
-                .change_keydown_timing_and_face(time, state.궁채)
+            // When user hit and take stick off the janggu, state.궁채 is None, and self.궁채.face is not None.
+            // So that state is not hit event. So make toggle_keydown false
+            if state.궁채 == None {
+                self.궁채
+                    .toggle_keydown(false)
+                    .change_keydown_timing_and_face(time, None)
+            } else {
+                self.궁채
+                    .toggle_keydown(true)
+                    .change_keydown_timing_and_face(time, state.궁채)
+            }
         };
         self.열채 = if state.열채 == self.열채.face {
             self.열채.toggle_keydown(false)
         } else {
-            self.열채
-                .toggle_keydown(true)
-                .change_keydown_timing_and_face(time, state.열채)
+            // When user hit and take stick off the janggu, state.궁채 is None, and self.궁채.face is not None.
+            // So that state is not hit event. So make toggle_keydown false
+            if state.열채 == None {
+                self.열채
+                    .toggle_keydown(false)
+                    .change_keydown_timing_and_face(time, None)
+            } else {
+                self.열채
+                    .toggle_keydown(true)
+                    .change_keydown_timing_and_face(time, state.열채)
+            }
         };
     }
 }
