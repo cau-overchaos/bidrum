@@ -211,10 +211,10 @@ pub(crate) fn play_song(
 
             // play hit sound when use git janggu
             if janggu_state_with_tick.궁채.is_keydown_now {
-                audio_manager.play(kung_sound_data.clone()).unwrap();
+                audio_manager.play(kung_sound_data.clone()).expect("Failed to play kung sound");
             }
             if janggu_state_with_tick.열채.is_keydown_now {
-                audio_manager.play(deok_sound_data.clone()).unwrap();
+                audio_manager.play(deok_sound_data.clone()).expect("Failed to play deok sound");
             }
 
             // if any judgement is made, display it
