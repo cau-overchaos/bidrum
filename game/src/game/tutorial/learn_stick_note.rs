@@ -216,6 +216,30 @@ fn display_tryitout_notes(
     let mut janggu_state = JangguStateWithTick::new();
     janggu_state.update(common_context.read_janggu_state(), 0);
 
+    let kung_sound_data = StaticSoundData::from_file(
+        "assets/sound/janggu_hit/kung.wav",
+        StaticSoundSettings::default(),
+    )
+    .expect("Failed to load kung sound");
+    let deok_sound_data = StaticSoundData::from_file(
+        "assets/sound/janggu_hit/deok.wav",
+        StaticSoundSettings::default(),
+    )
+    .expect("Failed to load deok sound");
+
+    if janggu_state.궁채.is_keydown_now {
+        common_context
+            .audio_manager
+            .play(kung_sound_data.clone())
+            .expect("Failed to play kung sound");
+    }
+    if janggu_state.열채.is_keydown_now {
+        common_context
+            .audio_manager
+            .play(deok_sound_data.clone())
+            .expect("Failed to play deok sound");
+    }
+
     loop {
         for event in common_context.event_pump.poll_iter() {
             event_loop_common(&event, &mut common_context.coins);
