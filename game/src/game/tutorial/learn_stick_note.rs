@@ -1,10 +1,11 @@
 use std::{
+    ops::Sub,
     path::{self, Path},
     time::{Duration, Instant},
 };
 
 use bidrum_data_struct_lib::{
-    janggu::{JangguFace, JangguStick},
+    janggu::{self, JangguFace, JangguStick},
     song::{GameChart, GameNote},
 };
 use ffmpeg_next::subtitle::Text;
@@ -18,6 +19,8 @@ use crate::game::{
         draw_gameplay_ui::{self, DisplayedSongNote, GamePlayUIResources, UIContent},
         is_input_effect_needed,
         janggu_state_with_tick::JangguStateWithTick,
+        judge_and_display_notes::display_notes_and_judge,
+        load_hit_sounds::load_hit_sounds,
         timing_judge,
     },
     start,
@@ -164,6 +167,9 @@ fn display_tryitout_notes(
 ) {
     let texture_creator = common_context.canvas.texture_creator();
 
+    // Load hit sounds
+    let hit_sounds = load_hit_sounds();
+
     // Load janggu-hitting instruction animation frames
     let animation_frames = [1, 2, 3, 4, 5, 6].map(|idx| -> Texture {
         return texture_creator
@@ -199,46 +205,23 @@ fn display_tryitout_notes(
         animation_frame_height,
     );
 
-    // Prepare tutorial chart
+    // Generate tutorial chart
     let note_count = 5;
     let note_gap = 10;
     let chart_bpm = 120;
     let chart =
         GameChart::create_example_chart_for_tutorial(stick, pane, note_count, note_gap, chart_bpm);
-    let mut unprocessed_notes =
-        Vec::from_iter([chart.left_face.clone(), chart.right_face.clone()].concat());
-    let mut judge = timing_judge::TimingJudge::new(&chart);
 
+    // Prepare tutorial play
+    let mut processed_notes = vec![];
+    let mut judge = timing_judge::TimingJudge::new(&chart);
     let mut judged_all_at = None;
     let tryitout_tutorial_started_at = Instant::now();
     let mut accuracy = None;
+    let mut accuracy_tick = None;
 
     let mut janggu_state = JangguStateWithTick::new();
     janggu_state.update(common_context.read_janggu_state(), 0);
-
-    let kung_sound_data = StaticSoundData::from_file(
-        "assets/sound/janggu_hit/kung.wav",
-        StaticSoundSettings::default(),
-    )
-    .expect("Failed to load kung sound");
-    let deok_sound_data = StaticSoundData::from_file(
-        "assets/sound/janggu_hit/deok.wav",
-        StaticSoundSettings::default(),
-    )
-    .expect("Failed to load deok sound");
-
-    if janggu_state.궁채.is_keydown_now {
-        common_context
-            .audio_manager
-            .play(kung_sound_data.clone())
-            .expect("Failed to play kung sound");
-    }
-    if janggu_state.열채.is_keydown_now {
-        common_context
-            .audio_manager
-            .play(deok_sound_data.clone())
-            .expect("Failed to play deok sound");
-    }
 
     loop {
         for event in common_context.event_pump.poll_iter() {
@@ -258,50 +241,31 @@ fn display_tryitout_notes(
         let tick = tryitout_tutorial_started_at.elapsed().as_millis() as u64;
         janggu_state.update(common_context.read_janggu_state(), tick as i128);
 
-        // Judge note
-        let result = judge.judge(&janggu_state, tick);
-        if !result.is_empty() {
-            for i in &result {
-                unprocessed_notes.remove(
-                    unprocessed_notes
-                        .iter()
-                        .position(|j| j.id == i.note_id)
-                        .unwrap(),
-                );
-            }
-            accuracy = Some((result.iter().map(|x| x.accuracy).min().unwrap(), tick))
-        }
-
         // Clear canvas
         common_context.canvas.clear();
 
         // Display UI
-        draw_gameplay_ui::draw_gameplay_ui(
-            &mut common_context.canvas,
-            unprocessed_notes
-                .clone()
-                .iter()
-                .map(|note| -> DisplayedSongNote {
-                    return DisplayedSongNote {
-                        distance: note.get_position(chart.bpm, chart.delay, 120, tick),
-                        face: pane,
-                        stick: stick,
-                    };
-                })
-                .collect(),
-            UIContent {
-                accuracy: accuracy.map(|x| x.0),
-                accuracy_time_progress: accuracy.map(|x| ((tick - x.1) as f32 / 800.0)),
-                input_effect: is_input_effect_needed(&janggu_state, tick as i128),
-            },
+        display_notes_and_judge(
+            common_context,
+            &chart,
+            &mut judge,
+            &janggu_state,
             game_ui_resources,
+            &mut processed_notes,
+            &mut accuracy,
+            &mut accuracy_tick,
+            &hit_sounds,
+            tick.into(),
         );
 
         // Display janggu animation
-        let frame_index = if let Some(min_note_position) = unprocessed_notes
-            .iter()
-            .map(|x| x.get_position(chart.bpm, chart.delay, 120, tick))
-            .min_by(|a, b| a.partial_cmp(b).unwrap())
+        let frame_index = if let Some(min_note_position) =
+            [chart.left_face.clone(), chart.right_face.clone()]
+                .concat()
+                .iter()
+                .filter(|x| (x.timing_in_ms(chart.bpm, chart.delay) as i64).sub(tick as i64) > -800)
+                .map(|x| x.get_position(chart.bpm, chart.delay, 120, tick))
+                .min_by(|a, b| a.partial_cmp(b).unwrap())
         {
             if min_note_position > 1.5 {
                 (tryitout_tutorial_started_at.elapsed().as_secs() * 2) as usize % 2

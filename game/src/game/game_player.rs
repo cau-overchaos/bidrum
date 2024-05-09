@@ -1,6 +1,8 @@
 pub mod draw_gameplay_ui;
 pub mod game_result;
 pub mod janggu_state_with_tick;
+pub mod judge_and_display_notes;
+pub mod load_hit_sounds;
 mod render_video;
 pub mod timing_judge;
 
@@ -18,12 +20,14 @@ use sdl2::{image::LoadTexture, pixels::PixelFormatEnum};
 use crate::game::{
     common::{event_loop_common, render_common},
     game_common_context,
+    game_player::judge_and_display_notes::display_notes_and_judge,
 };
 
 use self::{
     draw_gameplay_ui::{DisplayedSongNote, UIContent},
     game_result::GameResult,
     janggu_state_with_tick::JangguStateWithTick,
+    load_hit_sounds::load_hit_sounds,
     render_video::VideoFileRenderer,
     timing_judge::{NoteAccuracy, TimingJudge},
 };
@@ -68,19 +72,8 @@ pub(crate) fn play_song(
     let start_tick = clock.time() + 500; // the song will start at 500ms after clock starting
     let song_path_string = song.audio_filename.clone();
 
-    // hit sould path
-    let kung_hit_sound_path = "assets/sound/janggu_hit/kung.wav";
-    let deok_hit_sound_path = "assets/sound/janggu_hit/deok.wav";
-
-    // hit sound load
-    let mut audio_manager = AudioManager::<DefaultBackend>::new(AudioManagerSettings::default())
-        .expect("Failed to create audio manager");
-    let kung_sound_data =
-        StaticSoundData::from_file(kung_hit_sound_path, StaticSoundSettings::default())
-            .expect("Failed to load kung sound");
-    let deok_sound_data =
-        StaticSoundData::from_file(deok_hit_sound_path, StaticSoundSettings::default())
-            .expect("Failed to load deok sound");
+    // Load hit sound data
+    let hit_sounds = load_hit_sounds();
 
     // to receive coin input while loading the audio file,
     // loading should be done in separated thread.
@@ -178,97 +171,25 @@ pub(crate) fn play_song(
                 .unwrap();
         }
 
+        // Update janggu state
+        let input_now = common_context.read_janggu_state();
+        janggu_state_with_tick.update(input_now, tick_now);
+
         // display notes and accuracy
-        let mut display_notes = Vec::<DisplayedSongNote>::new();
         if tick_now >= 0 {
-            // get positions of the notes
-            for i in &chart.left_face {
-                if !processed_note_ids.contains(&i.id) {
-                    display_notes.push(DisplayedSongNote {
-                        face: JangguFace::궁편,
-                        stick: i.stick,
-                        distance: i.get_position(
-                            chart.bpm,
-                            chart.delay,
-                            chart.bpm * 2,
-                            (tick_now) as u64,
-                        ),
-                    });
-                }
-            }
-
-            for i in &chart.right_face {
-                if !processed_note_ids.contains(&i.id) {
-                    display_notes.push(DisplayedSongNote {
-                        face: JangguFace::열편,
-                        stick: i.stick,
-                        distance: i.get_position(
-                            chart.bpm,
-                            chart.delay,
-                            chart.bpm * 2,
-                            (tick_now) as u64,
-                        ),
-                    });
-                }
-            }
-
-            // make judgement
-            let input_now = common_context.read_janggu_state();
-            janggu_state_with_tick.update(input_now, tick_now);
-            let new_accuracies = timing_judge.judge(&janggu_state_with_tick, tick_now as u64);
-
-            // play hit sound when use git janggu
-            if janggu_state_with_tick.궁채.is_keydown_now {
-                audio_manager
-                    .play(kung_sound_data.clone())
-                    .expect("Failed to play kung sound");
-            }
-            if janggu_state_with_tick.열채.is_keydown_now {
-                audio_manager
-                    .play(deok_sound_data.clone())
-                    .expect("Failed to play deok sound");
-            }
-
-            // if any judgement is made, display it
-            if !new_accuracies.is_empty() {
-                accuracy_tick = Some(tick_now);
-                accuracy = new_accuracies.iter().map(|x| x.accuracy).max();
-                for i in new_accuracies {
-                    processed_note_ids.push(i.note_id);
-                }
-            }
+            display_notes_and_judge(
+                common_context,
+                &chart,
+                &mut timing_judge,
+                &janggu_state_with_tick,
+                &mut gameplay_ui_resources,
+                &mut processed_note_ids,
+                &mut accuracy,
+                &mut accuracy_tick,
+                &hit_sounds,
+                tick_now,
+            );
         }
-
-        // judgement is visible for only 1200 ms
-        const ACCURACY_DISPLAY_DURATION: u32 = 800;
-        if let Some(accuracy_tick_unwrapped) = accuracy_tick {
-            if tick_now - accuracy_tick_unwrapped > ACCURACY_DISPLAY_DURATION as i128 {
-                accuracy_tick = None;
-            }
-        }
-
-        // draw game play ui
-        draw_gameplay_ui::draw_gameplay_ui(
-            &mut common_context.canvas,
-            display_notes,
-            UIContent {
-                accuracy: if let Some(_) = accuracy_tick {
-                    accuracy
-                } else {
-                    None
-                },
-                accuracy_time_progress: if let Some(accuracy_time_unwrapped) = accuracy_tick {
-                    Some(
-                        (tick_now - accuracy_time_unwrapped) as f32
-                            / ACCURACY_DISPLAY_DURATION as f32,
-                    )
-                } else {
-                    None
-                },
-                input_effect: is_input_effect_needed(&janggu_state_with_tick, tick_now),
-            },
-            &mut gameplay_ui_resources,
-        );
 
         // display necessary data such as coin count
         render_common(common_context);
