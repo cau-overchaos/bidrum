@@ -7,7 +7,10 @@ mod timing_judge;
 use std::{path::Path, thread};
 
 use kira::{
-    clock::ClockSpeed, manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings}, sound::static_sound::{StaticSoundData, StaticSoundSettings}, tween::Tween
+    clock::ClockSpeed,
+    manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings},
+    sound::static_sound::{StaticSoundData, StaticSoundSettings},
+    tween::Tween,
 };
 use num_rational::Rational64;
 use sdl2::{image::LoadTexture, pixels::PixelFormatEnum};
@@ -70,9 +73,14 @@ pub(crate) fn play_song(
     let deok_hit_sound_path = "assets/sound/janggu_hit/deok.wav";
 
     // hit sound load
-    let mut audio_manager = AudioManager::<DefaultBackend>::new(AudioManagerSettings::default()).expect("Failed to create audio manager");
-    let kung_sound_data = StaticSoundData::from_file(kung_hit_sound_path, StaticSoundSettings::default()).expect("Failed to load kung sound");
-    let deok_sound_data = StaticSoundData::from_file(deok_hit_sound_path, StaticSoundSettings::default()).expect("Failed to load deok sound");
+    let mut audio_manager = AudioManager::<DefaultBackend>::new(AudioManagerSettings::default())
+        .expect("Failed to create audio manager");
+    let kung_sound_data =
+        StaticSoundData::from_file(kung_hit_sound_path, StaticSoundSettings::default())
+            .expect("Failed to load kung sound");
+    let deok_sound_data =
+        StaticSoundData::from_file(deok_hit_sound_path, StaticSoundSettings::default())
+            .expect("Failed to load deok sound");
 
     // to receive coin input while loading the audio file,
     // loading should be done in separated thread.
@@ -211,10 +219,14 @@ pub(crate) fn play_song(
 
             // play hit sound when use git janggu
             if janggu_state_with_tick.궁채.is_keydown_now {
-                audio_manager.play(kung_sound_data.clone()).expect("Failed to play kung sound");
+                audio_manager
+                    .play(kung_sound_data.clone())
+                    .expect("Failed to play kung sound");
             }
             if janggu_state_with_tick.열채.is_keydown_now {
-                audio_manager.play(deok_sound_data.clone()).expect("Failed to play deok sound");
+                audio_manager
+                    .play(deok_sound_data.clone())
+                    .expect("Failed to play deok sound");
             }
 
             // if any judgement is made, display it
@@ -272,5 +284,8 @@ pub(crate) fn play_song(
             }
         }
     }
+
+    video_file_renderer.stop_decoding();
+
     return Some(timing_judge.get_game_result());
 }
