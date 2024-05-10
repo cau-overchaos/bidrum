@@ -84,6 +84,9 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
         .event_pump()
         .expect("event pump initialization fail");
 
+    // create ttf context
+    let ttf_context = sdl2::ttf::init().expect("Failed to init ttf context");
+
     // create GameCommonContext object
     let mut context = GameCommonContext {
         coins: 0,
@@ -95,6 +98,7 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
         audio_manager: AudioManager::<DefaultBackend>::new(AudioManagerSettings::default())
             .expect("AudioManager initialization failure"),
         janggu_bits_ptr: janggu_bits,
+        ttf_context: ttf_context,
     };
 
     // enter game loop
