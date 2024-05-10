@@ -60,11 +60,10 @@ fn display_animated_example_note(
         as u32;
     let janggu_animation_rect = Rect::new(
         (common_context.canvas.viewport().width() as i32) / 2
-            + (60 + animation_frame_width as i32)
-                * match stick {
-                    JangguStick::궁채 => -1,
-                    JangguStick::열채 => 1,
-                },
+            + match pane {
+                JangguFace::궁편 => -(60 + animation_frame_width as i32),
+                JangguFace::열편 => 60,
+            },
         (common_context.canvas.viewport().height() as i32) / 2 + 120,
         animation_frame_width,
         animation_frame_height,
@@ -195,11 +194,10 @@ fn display_tryitout_notes(
         as u32;
     let janggu_animation_rect = Rect::new(
         (common_context.canvas.viewport().width() as i32) / 2
-            + (60 + animation_frame_width as i32)
-                * match stick {
-                    JangguStick::궁채 => -1,
-                    JangguStick::열채 => 1,
-                },
+            + match pane {
+                JangguFace::궁편 => -(60 + animation_frame_width as i32),
+                JangguFace::열편 => 60,
+            },
         (common_context.canvas.viewport().height() as i32) / 2 + 120,
         animation_frame_width,
         animation_frame_height,
@@ -286,7 +284,7 @@ fn display_tryitout_notes(
     }
 }
 
-pub(crate) fn do_learn_left_stick_note(
+pub(crate) fn do_learn_stick_note(
     common_context: &mut GameCommonContext,
     game_ui_resources: &mut GamePlayUIResources,
     janggu_state_and_tutorial_start_time: &mut (&mut JangguStateWithTick, Instant),
@@ -299,7 +297,7 @@ pub(crate) fn do_learn_left_stick_note(
 
     // Load tutorial message images and sounds
     let texture_creator = common_context.canvas.texture_creator();
-    let messages = [1, 2, 3, 4].map(|idx| -> (Texture, StaticSoundData) {
+    let messages = [1, 2, 3, 4, 5, 6].map(|idx| -> (Texture, StaticSoundData) {
         return (
             texture_creator
                 .load_texture(format!(
@@ -342,4 +340,22 @@ pub(crate) fn do_learn_left_stick_note(
     );
 
     display_tryitout_notes(common_context, game_ui_resources, stick, JangguFace::궁편);
+
+    display_animated_example_note(
+        common_context,
+        game_ui_resources,
+        janggu_state_and_tutorial_start_time,
+        &messages[4],
+        stick,
+        JangguFace::열편,
+    );
+
+    display_tutorial_messages(
+        common_context,
+        game_ui_resources,
+        &messages[5..6],
+        janggu_state_and_tutorial_start_time,
+    );
+
+    display_tryitout_notes(common_context, game_ui_resources, stick, JangguFace::열편);
 }

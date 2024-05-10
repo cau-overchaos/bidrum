@@ -7,7 +7,7 @@ use bidrum_data_struct_lib::janggu::JangguStick;
 use kira::sound::static_sound::StaticSoundData;
 use sdl2::{rect::Rect, render::Texture};
 
-use self::{greetings::do_tutorial_greetings, learn_stick_note::do_learn_left_stick_note};
+use self::{greetings::do_tutorial_greetings, learn_stick_note::do_learn_stick_note};
 
 use super::{
     common::{event_loop_common, render_common},
@@ -47,7 +47,7 @@ fn do_tutorial(common_context: &mut GameCommonContext) {
         &mut janggu_state_and_start_time,
     );
 
-    do_learn_left_stick_note(
+    do_learn_stick_note(
         common_context,
         &mut gameplay_ui_resources,
         &mut janggu_state_and_start_time,
