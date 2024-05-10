@@ -25,7 +25,7 @@ pub(crate) fn event_loop_common(event: &Event, coins: &mut u32) -> bool {
 }
 
 pub(crate) fn render_common(context: &mut GameCommonContext) {
-    let ttf_context = sdl2::ttf::init().expect("ttf context initialization failure");
+    let ttf_context = &context.ttf_context;
 
     let canvas = &mut context.canvas;
     let texture_creator = canvas.texture_creator();
