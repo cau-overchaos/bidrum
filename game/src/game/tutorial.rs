@@ -53,6 +53,13 @@ fn do_tutorial(common_context: &mut GameCommonContext) {
         &mut janggu_state_and_start_time,
         JangguStick::궁채,
     );
+
+    do_learn_stick_note(
+        common_context,
+        &mut gameplay_ui_resources,
+        &mut janggu_state_and_start_time,
+        JangguStick::열채,
+    );
 }
 
 pub(self) fn display_tutorial_messages(

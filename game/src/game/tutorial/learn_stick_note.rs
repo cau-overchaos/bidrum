@@ -329,7 +329,10 @@ pub(crate) fn do_learn_stick_note(
         janggu_state_and_tutorial_start_time,
         &messages[2],
         stick,
-        JangguFace::궁편,
+        match stick {
+            JangguStick::궁채 => JangguFace::궁편,
+            JangguStick::열채 => JangguFace::열편,
+        },
     );
 
     display_tutorial_messages(
@@ -339,7 +342,15 @@ pub(crate) fn do_learn_stick_note(
         janggu_state_and_tutorial_start_time,
     );
 
-    display_tryitout_notes(common_context, game_ui_resources, stick, JangguFace::궁편);
+    display_tryitout_notes(
+        common_context,
+        game_ui_resources,
+        stick,
+        match stick {
+            JangguStick::궁채 => JangguFace::궁편,
+            JangguStick::열채 => JangguFace::열편,
+        },
+    );
 
     display_animated_example_note(
         common_context,
@@ -347,7 +358,10 @@ pub(crate) fn do_learn_stick_note(
         janggu_state_and_tutorial_start_time,
         &messages[4],
         stick,
-        JangguFace::열편,
+        match stick {
+            JangguStick::궁채 => JangguFace::열편,
+            JangguStick::열채 => JangguFace::궁편,
+        },
     );
 
     display_tutorial_messages(
@@ -357,5 +371,13 @@ pub(crate) fn do_learn_stick_note(
         janggu_state_and_tutorial_start_time,
     );
 
-    display_tryitout_notes(common_context, game_ui_resources, stick, JangguFace::열편);
+    display_tryitout_notes(
+        common_context,
+        game_ui_resources,
+        stick,
+        match stick {
+            JangguStick::궁채 => JangguFace::열편,
+            JangguStick::열채 => JangguFace::궁편,
+        },
+    );
 }
