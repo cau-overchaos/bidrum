@@ -1,4 +1,7 @@
-use std::sync::{atomic::AtomicU8, Arc};
+use std::{
+    sync::{atomic::AtomicU8, Arc},
+    time::Instant,
+};
 
 use bidrum_data_struct_lib::song::GameSong;
 use kira::manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings};
@@ -99,6 +102,7 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
             .expect("AudioManager initialization failure"),
         janggu_bits_ptr: janggu_bits,
         ttf_context: ttf_context,
+        game_initialized_at: Instant::now(),
     };
 
     // enter game loop
