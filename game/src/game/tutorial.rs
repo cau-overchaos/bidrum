@@ -27,7 +27,7 @@ use super::{
 
 fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
     let ask_started_at = Instant::now();
-    let mut selected = true;
+    let mut selected = None;
     let mut janggu_state = JangguStateWithTick::new();
     'running: loop {
         let tick = ask_started_at.elapsed().as_millis();
@@ -51,18 +51,18 @@ fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
             || (janggu_state.열채.is_keydown_now
                 && matches!(janggu_state.열채.face, Some(JangguFace::궁편)))
         {
-            if (selected) {
+            if selected.is_some_and(|x| x) {
                 return true;
             } else {
-                selected = true;
+                selected = Some(true);
             }
         } else if (janggu_state.궁채.is_keydown_now
             && matches!(janggu_state.궁채.face, Some(JangguFace::열편)))
             || (janggu_state.열채.is_keydown_now
                 && matches!(janggu_state.열채.face, Some(JangguFace::열편)))
         {
-            if (selected) {
-                selected = false;
+            if selected.is_some_and(|x| x) {
+                selected = Some(false);
             } else {
                 return false;
             }
@@ -79,16 +79,18 @@ fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
             .as_str(),
             None,
             None,
-            Some(if selected {
-                DialogButton::Yes
+            if selected.is_some_and(|x| x) {
+                Some(DialogButton::Yes)
+            } else if selected.is_some_and(|x| !x) {
+                Some(DialogButton::No)
             } else {
-                DialogButton::No
-            }),
+                None
+            },
         );
         render_common(common_context);
         common_context.canvas.present();
     }
-    return selected;
+    return selected.unwrap_or(true);
 }
 
 fn do_tutorial(common_context: &mut GameCommonContext) {
