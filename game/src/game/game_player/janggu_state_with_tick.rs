@@ -3,7 +3,7 @@ use bidrum_data_struct_lib::janggu::{JangguFace, JangguStick};
 
 /// Stick state of Janggu
 #[derive(Debug, Clone, Copy)]
-pub(crate) struct JangguStickStateWithTick {
+pub struct JangguStickStateWithTick {
     /// timing when the stick is started to touch the face
     pub keydown_timing: i128,
     /// face which the stick is touching
@@ -18,7 +18,7 @@ pub(crate) struct JangguStickStateWithTick {
 ///
 /// Note that, for ease of implementation. "None" is also interpreted as keydown
 #[derive(Debug)]
-pub(crate) struct JangguStateWithTick {
+pub struct JangguStateWithTick {
     pub 궁채: JangguStickStateWithTick,
     pub 열채: JangguStickStateWithTick,
 }

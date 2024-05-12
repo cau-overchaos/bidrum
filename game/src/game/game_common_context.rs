@@ -1,4 +1,7 @@
-use std::sync::{atomic::AtomicU8, Arc};
+use std::{
+    sync::{atomic::AtomicU8, Arc},
+    time::Instant,
+};
 
 use kira::manager::AudioManager;
 use sdl2::{render::Canvas, video::Window, EventPump};
@@ -17,6 +20,7 @@ pub(crate) struct GameCommonContext {
     /// ddpi, hdpi, vdpi
     pub(crate) dpi: (f32, f32, f32),
     pub(crate) ttf_context: sdl2::ttf::Sdl2TtfContext,
+    pub(crate) game_initialized_at: Instant,
 }
 
 impl GameCommonContext {

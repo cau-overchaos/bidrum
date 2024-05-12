@@ -2,7 +2,7 @@ use bidrum_data_struct_lib::song::GameSong;
 
 use super::{
     display_result::display_result, game_common_context::GameCommonContext, game_player::play_song,
-    select_song::select_song,
+    select_song::select_song, tutorial,
 };
 
 pub(crate) fn start_game(common_context: &mut GameCommonContext) {
@@ -10,7 +10,7 @@ pub(crate) fn start_game(common_context: &mut GameCommonContext) {
     let mut total_stages = 0;
 
     // TO-DO: do authentication here
-    // TO-DO: call tutorial here
+    tutorial::do_tutorial_if_user_wants(common_context);
 
     // player can play 3 songs with a credit
     while total_stages < 3 {
