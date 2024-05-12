@@ -4,7 +4,7 @@ mod learn_stick_note;
 
 use std::time::{Duration, Instant};
 
-use bidrum_data_struct_lib::janggu::JangguStick;
+use bidrum_data_struct_lib::janggu::{JangguFace, JangguStick};
 use kira::sound::static_sound::StaticSoundData;
 use sdl2::{rect::Rect, render::Texture};
 
@@ -22,10 +22,73 @@ use super::{
         is_input_effect_needed,
         janggu_state_with_tick::{self, JangguStateWithTick},
     },
+    util::confirm_dialog::{render_confirm_dialog, DialogButton},
 };
 
-fn ask_for_tutorial(_common_context: &mut GameCommonContext) -> bool {
-    true
+fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
+    let ask_started_at = Instant::now();
+    let mut selected = true;
+    let mut janggu_state = JangguStateWithTick::new();
+    'running: loop {
+        let tick = ask_started_at.elapsed().as_millis();
+
+        for i in common_context.event_pump.poll_iter() {
+            if event_loop_common(&i, &mut common_context.coins) {
+                return false;
+            }
+        }
+
+        // break when timeout
+        let elapsed_secs = ask_started_at.elapsed().as_secs();
+        if elapsed_secs > 10 {
+            break 'running;
+        }
+
+        // process keypress
+        janggu_state.update(common_context.read_janggu_state(), tick as i128);
+        if (janggu_state.궁채.is_keydown_now
+            && matches!(janggu_state.궁채.face, Some(JangguFace::궁편)))
+            || (janggu_state.열채.is_keydown_now
+                && matches!(janggu_state.열채.face, Some(JangguFace::궁편)))
+        {
+            if (selected) {
+                return true;
+            } else {
+                selected = true;
+            }
+        } else if (janggu_state.궁채.is_keydown_now
+            && matches!(janggu_state.궁채.face, Some(JangguFace::열편)))
+            || (janggu_state.열채.is_keydown_now
+                && matches!(janggu_state.열채.face, Some(JangguFace::열편)))
+        {
+            if (selected) {
+                selected = false;
+            } else {
+                return false;
+            }
+        }
+
+        // render confirm dialog
+        common_context.canvas.clear();
+        render_confirm_dialog(
+            common_context,
+            format!(
+                "튜토리얼을 진행하시겠습니까?\n남은 시간: {}",
+                10 - elapsed_secs
+            )
+            .as_str(),
+            None,
+            None,
+            Some(if selected {
+                DialogButton::Yes
+            } else {
+                DialogButton::No
+            }),
+        );
+        render_common(common_context);
+        common_context.canvas.present();
+    }
+    return selected;
 }
 
 fn do_tutorial(common_context: &mut GameCommonContext) {
