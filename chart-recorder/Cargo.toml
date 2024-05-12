@@ -1,0 +1,15 @@
+[package]
+name = "chart-recorder"
+version = "0.1.0"
+edition = "2021"
+authors = ["Yeonjin Shin <litehell@litehell.info>"]
+description = "Simplicated chart recorder for bidrum"
+
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+bidrum-data-struct-lib = { path = "../data-struct-lib" }
+kira = "0.8.6"
+device_query = "2.0.0"
+clap = { version = "4.4.13", features = ["derive"] }
