@@ -56,15 +56,16 @@ fn janggu_face_to_one_letter_str(face: Option<&JangguFace>) -> &str {
 }
 
 fn main() {
-    let args = Args::parse();
-
     // Introduction
     println!("Bidrum chart recorder");
     println!("");
     println!("This program CANNOT edit the existing chart.");
     println!("but, this program can play music and generate");
-    println!("the chart as you hit the janggu (or keyboard, whatever)");
+    println!("the chart as you hit the janggu (via keyboard)");
     println!("");
+
+    // Parse args
+    let args = Args::parse();
 
     // Init kira backend
     println!("initializing kira backend");
