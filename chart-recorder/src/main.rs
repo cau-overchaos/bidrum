@@ -51,7 +51,7 @@ fn janggu_face_to_one_letter_str(face: Option<&JangguFace>) -> &str {
     } else if matches!(face, Some(JangguFace::열편)) {
         "R"
     } else {
-        "X"
+        "_"
     }
 }
 
@@ -125,19 +125,21 @@ fn main() {
             right_stick.insert(beat_and_split, janggu_state.열채.face.unwrap());
         }
 
+        let split_digits = args.splits.to_string().len();
         if !beat_and_split_before.is_some_and(|x| x == beat_and_split) {
             if let Some(beat_and_split_before_unwrapped) = beat_and_split_before {
                 let beat_idx = beat_and_split_before_unwrapped / args.splits as u64;
                 let split = beat_and_split_before_unwrapped % args.splits as u64;
                 println!(
-                    "beat: {} ({} / {}) : left_stick = {}, right_stick = {}",
+                    "beat: {} ({:0split_width$} / {}) : left_stick = {}, right_stick = {}",
                     beat_idx,
                     split,
                     args.splits,
                     janggu_face_to_one_letter_str(left_stick.get(&beat_and_split_before_unwrapped)),
                     janggu_face_to_one_letter_str(
                         right_stick.get(&beat_and_split_before_unwrapped)
-                    )
+                    ),
+                    split_width = split_digits
                 )
             }
             beat_and_split_before = Some(beat_and_split);
