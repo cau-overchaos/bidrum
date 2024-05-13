@@ -105,7 +105,7 @@ fn main() {
 
             if elapsed < record_start_tick {
                 println!(
-                    "music will start after {:.2} sec",
+                    "chart recording will start after {:.2} sec",
                     (record_start_tick - elapsed) as f32 / 1000.0,
                 );
                 continue;
