@@ -45,6 +45,16 @@ struct Args {
     artist: Option<String>,
 }
 
+fn janggu_face_to_one_letter_str(face: Option<&JangguFace>) -> &str {
+    if matches!(face, Some(JangguFace::궁편)) {
+        "L"
+    } else if matches!(face, Some(JangguFace::열편)) {
+        "R"
+    } else {
+        "X"
+    }
+}
+
 fn main() {
     let args = Args::parse();
 
@@ -119,12 +129,14 @@ fn main() {
                 let beat_idx = beat_and_split_before_unwrapped / args.splits as u64;
                 let split = beat_and_split_before_unwrapped % args.splits as u64;
                 println!(
-                    "beat: {} ({} / {}) : left_stick = {:?}, right_stick = {:?}",
+                    "beat: {} ({} / {}) : left_stick = {}, right_stick = {}",
                     beat_idx,
                     split,
                     args.splits,
-                    left_stick.get(&beat_and_split_before_unwrapped),
-                    right_stick.get(&beat_and_split_before_unwrapped)
+                    janggu_face_to_one_letter_str(left_stick.get(&beat_and_split_before_unwrapped)),
+                    janggu_face_to_one_letter_str(
+                        right_stick.get(&beat_and_split_before_unwrapped)
+                    )
                 )
             }
             beat_and_split_before = Some(beat_and_split);
