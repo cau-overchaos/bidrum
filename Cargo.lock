@@ -173,6 +173,9 @@ name = "bidrum-hat"
 version = "0.1.0"
 dependencies = [
  "btleplug",
+ "futures",
+ "tokio",
+ "uuid",
 ]
 
 [[package]]
@@ -1781,6 +1784,7 @@ dependencies = [
  "backtrace",
  "libc",
  "mio",
+ "num_cpus",
  "pin-project-lite",
  "socket2",
  "windows-sys 0.48.0",
