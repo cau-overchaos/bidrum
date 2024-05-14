@@ -1,8 +1,17 @@
+use std::time::Duration;
+
 use bidrum_data_struct_lib::{
     janggu::JangguFace,
     song::{GameChart, GameSong},
 };
-use kira::sound::static_sound::StaticSoundData;
+use kira::{
+    sound::{
+        static_sound::{StaticSoundData, StaticSoundHandle},
+        PlaybackState,
+    },
+    tween::Tween,
+    StartTime,
+};
 
 use crate::game::{
     game_common_context,
@@ -19,6 +28,20 @@ use super::{
     timing_judge::TimingJudge,
 };
 
+pub struct EffectSoundHandles {
+    left_stick: Option<StaticSoundHandle>,
+    right_stick: Option<StaticSoundHandle>,
+}
+
+impl EffectSoundHandles {
+    pub fn new() -> EffectSoundHandles {
+        EffectSoundHandles {
+            left_stick: None,
+            right_stick: None,
+        }
+    }
+}
+
 pub(crate) fn display_notes_and_judge(
     common_context: &mut game_common_context::GameCommonContext,
     chart: &GameChart,
@@ -29,6 +52,7 @@ pub(crate) fn display_notes_and_judge(
     accuracy: &mut Option<NoteAccuracy>,
     accuracy_tick: &mut Option<i128>,
     hit_sounds: &[StaticSoundData; 2],
+    effect_sound_handles: &mut EffectSoundHandles,
     tick_now: i128,
 ) {
     let kung_sound_data = hit_sounds[0].clone();
@@ -73,16 +97,33 @@ pub(crate) fn display_notes_and_judge(
 
         // play hit sound when use git janggu
         if janggu_state_with_tick.궁채.is_keydown_now {
-            common_context
-                .audio_manager
-                .play(kung_sound_data.clone())
-                .expect("Failed to play kung sound");
+            let play_sound = if let Some(handle) = &mut effect_sound_handles.left_stick {
+                !matches!(handle.state(), PlaybackState::Playing) || handle.position() > 0.01
+            } else {
+                true
+            };
+            if play_sound {
+                let new_handle = common_context
+                    .audio_manager
+                    .play(kung_sound_data.clone())
+                    .expect("Failed to play kung sound");
+                effect_sound_handles.left_stick = Some(new_handle);
+            }
         }
         if janggu_state_with_tick.열채.is_keydown_now {
-            common_context
-                .audio_manager
-                .play(deok_sound_data.clone())
-                .expect("Failed to play deok sound");
+            let play_sound = if let Some(handle) = &mut effect_sound_handles.right_stick {
+                !matches!(handle.state(), PlaybackState::Playing) || handle.position() > 0.01
+            } else {
+                true
+            };
+
+            if play_sound {
+                let new_handle = common_context
+                    .audio_manager
+                    .play(deok_sound_data.clone())
+                    .expect("Failed to play deok sound");
+                effect_sound_handles.right_stick = Some(new_handle);
+            }
         }
 
         // if any judgement is made, display it

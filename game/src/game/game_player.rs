@@ -27,6 +27,7 @@ use self::{
     draw_gameplay_ui::{DisplayedSongNote, UIContent},
     game_result::GameResult,
     janggu_state_with_tick::JangguStateWithTick,
+    judge_and_display_notes::EffectSoundHandles,
     load_hit_sounds::load_hit_sounds,
     render_video::VideoFileRenderer,
     timing_judge::{NoteAccuracy, TimingJudge},
@@ -74,6 +75,7 @@ pub(crate) fn play_song(
 
     // Load hit sound data
     let hit_sounds = load_hit_sounds();
+    let mut effect_sound_handles = EffectSoundHandles::new();
 
     // to receive coin input while loading the audio file,
     // loading should be done in separated thread.
@@ -187,6 +189,7 @@ pub(crate) fn play_song(
                 &mut accuracy,
                 &mut accuracy_tick,
                 &hit_sounds,
+                &mut effect_sound_handles,
                 tick_now,
             );
         }

@@ -1,8 +1,8 @@
-use ffmpeg_next::codec::video;
 use sdl2::rect::Rect;
 use sdl2::render::Texture;
 
 use std::path::Path;
+use std::sync::atomic::AtomicU32;
 use std::sync::mpsc::channel;
 use std::{sync, thread};
 
@@ -10,7 +10,7 @@ use ffmpeg_next::format::{input, Pixel};
 use ffmpeg_next::media::Type;
 use ffmpeg_next::software::scaling::{context::Context as Scaler, flag::Flags};
 //use ffmpeg::util::rational::Rational;
-use num_rational::Rational64;
+use num_rational::{Rational32, Rational64};
 
 /// Video file renderer with guarantee of rendering frame around `wanted_time_in_second`
 /// without using delay
@@ -20,6 +20,7 @@ pub(crate) struct VideoFileRenderer {
     stop_thread: sync::Arc<sync::atomic::AtomicBool>,
     timebase: Rational64,
     size: (u32, u32),
+    decoded_frame_count: sync::Arc<sync::atomic::AtomicU32>,
     rx: std::sync::mpsc::Receiver<YUVData>,
 }
 
@@ -74,6 +75,19 @@ impl VideoFileRenderer {
         // create channel
         let (tx, rx) = channel();
 
+        // calculate decoded frame buffer limit
+        let decoded_frame_buffer_limit = std::cmp::max(
+            // frames of 2ms
+            Rational32::new(
+                stream.avg_frame_rate().numerator(),
+                stream.avg_frame_rate().denominator() * 500,
+            )
+            .to_integer() as u32,
+            10,
+        );
+
+        let decoded_frame_count = sync::Arc::new(AtomicU32::new(0));
+
         // get timebase
         // e.g. if timebase is 1/75, pts 1 means 1/75s, pts 2 means 2/75s, ...and more.
         let timebase = Rational64::new(
@@ -83,6 +97,7 @@ impl VideoFileRenderer {
 
         // spawn thread
         let stop_thread_for_thread = stop_thread.clone();
+        let decoded_frame_count_for_thread = decoded_frame_count.clone();
         thread::spawn(move || {
             // create scaler
             let mut scaler = Scaler::get(
@@ -124,8 +139,14 @@ impl VideoFileRenderer {
                             v_pitch: scaled_frame.stride(2),
                         };
                         if !stop_thread_for_thread.load(sync::atomic::Ordering::Relaxed) {
+                            while decoded_frame_count_for_thread
+                                .load(sync::atomic::Ordering::Relaxed)
+                                >= decoded_frame_buffer_limit
+                            {}
                             // Ignore errors
                             let _ = tx.send(data);
+                            decoded_frame_count_for_thread
+                                .fetch_add(1, sync::atomic::Ordering::Relaxed);
                         }
                     }
                 }
@@ -139,6 +160,7 @@ impl VideoFileRenderer {
             stop_thread: stop_thread.clone(),
             size: size,
             timebase: timebase,
+            decoded_frame_count: decoded_frame_count,
             rx: rx,
         };
     }
@@ -187,6 +209,8 @@ impl VideoFileRenderer {
         // loop for decoded frame datas
         let mut frame_data = None;
         while let Ok(data) = self.rx.try_recv() {
+            self.decoded_frame_count
+                .fetch_sub(1, sync::atomic::Ordering::Relaxed);
             self.last_decoded_timestamp = Some(data.timestamp);
             frame_data = Some(data.clone());
             if data.timestamp >= target_ts {

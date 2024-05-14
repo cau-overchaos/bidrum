@@ -19,7 +19,7 @@ use crate::game::{
         draw_gameplay_ui::{self, DisplayedSongNote, GamePlayUIResources, UIContent},
         is_input_effect_needed,
         janggu_state_with_tick::JangguStateWithTick,
-        judge_and_display_notes::display_notes_and_judge,
+        judge_and_display_notes::{display_notes_and_judge, EffectSoundHandles},
         load_hit_sounds::load_hit_sounds,
         timing_judge,
     },
@@ -168,6 +168,7 @@ fn display_tryitout_notes(
 
     // Load hit sounds
     let hit_sounds = load_hit_sounds();
+    let mut hit_sound_handles = EffectSoundHandles::new();
 
     // Load janggu-hitting instruction animation frames
     let animation_frames = [1, 2, 3, 4, 5, 6].map(|idx| -> Texture {
@@ -253,6 +254,7 @@ fn display_tryitout_notes(
             &mut accuracy,
             &mut accuracy_tick,
             &hit_sounds,
+            &mut hit_sound_handles,
             tick.into(),
         );
 
