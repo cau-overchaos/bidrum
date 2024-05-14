@@ -13,3 +13,4 @@ bidrum-data-struct-lib = { path = "../data-struct-lib" }
 kira = "0.8.6"
 device_query = "2.0.0"
 clap = { version = "4.4.13", features = ["derive"] }
+rand = "0.8.5"

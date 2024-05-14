@@ -1,6 +1,7 @@
+mod beep_boop;
 mod janggu_state_with_tick;
 
-use std::{collections::HashMap, fs::File, io::Write};
+use std::{collections::HashMap, env, fs::File, io::Write};
 
 use bidrum_data_struct_lib::{
     janggu::{JangguFace, JangguStick},
@@ -13,7 +14,7 @@ use kira::{
     sound::static_sound::{StaticSoundData, StaticSoundSettings},
 };
 
-use crate::janggu_state_with_tick::JangguStateWithTick;
+use crate::{beep_boop::beep_boop, janggu_state_with_tick::JangguStateWithTick};
 
 /// Chart recorder for bidrum, which plays the music and generates the chart as you hit the janggu
 #[derive(Parser, Debug)]
@@ -47,6 +48,10 @@ struct Args {
     /// Delay of input device(or you) in milliseconds
     #[arg(long, default_value_t = 0)]
     input_delay: i16,
+
+    /// Run Beep-Boop input delay measurement
+    #[arg(long)]
+    beep_boop: bool,
 }
 
 fn janggu_face_to_one_letter_str(face: Option<&JangguFace>) -> &str {
@@ -60,6 +65,17 @@ fn janggu_face_to_one_letter_str(face: Option<&JangguFace>) -> &str {
 }
 
 fn main() {
+    // Run beep-boop
+    if env::args().find(|x| x.eq("--beep-boop")).is_some() {
+        return beep_boop();
+    }
+
+    // Parse args and run beep-boop if given
+    let args = Args::parse();
+    if args.beep_boop {
+        return beep_boop();
+    }
+
     // Introduction
     println!("Bidrum chart recorder");
     println!("");
@@ -67,9 +83,6 @@ fn main() {
     println!("but, this program can play music and generate");
     println!("the chart as you hit the janggu (via keyboard)");
     println!("");
-
-    // Parse args
-    let args = Args::parse();
 
     // Init kira backend
     println!("initializing kira backend");
