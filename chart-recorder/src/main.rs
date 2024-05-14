@@ -43,6 +43,10 @@ struct Args {
     /// Chart artist name
     #[arg(short, long)]
     artist: Option<String>,
+
+    /// Delay of input device(or you) in milliseconds
+    #[arg(long, default_value_t = 0)]
+    input_delay: i16,
 }
 
 fn janggu_face_to_one_letter_str(face: Option<&JangguFace>) -> &str {
@@ -111,7 +115,15 @@ fn main() {
                 continue;
             }
 
-            elapsed - record_start_tick
+            let tick = elapsed - record_start_tick;
+            let delayed_tick = tick as i64 - args.input_delay as i64;
+
+            if delayed_tick < 0 {
+                println!("delayed...");
+                continue;
+            }
+
+            delayed_tick as u64
         };
 
         janggu_state.update(tick);
