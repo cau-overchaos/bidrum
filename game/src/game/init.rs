@@ -24,7 +24,7 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
 
     // create window
     let mut window = video_subsystem
-        .window("rust-sdl2 demo: Video", 800, 600)
+        .window("BIDRUM", 800, 600)
         .position_centered()
         .opengl()
         .build()
