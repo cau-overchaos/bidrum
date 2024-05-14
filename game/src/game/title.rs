@@ -1,13 +1,17 @@
 use std::{path::Path, time::Duration};
 
+use num_rational::Rational64;
 use sdl2::{
     event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect, render::Canvas,
     video::Window,
 };
 
+use crate::create_streaming_iyuv_texture;
+
 use super::{
     common::{event_loop_common, render_common},
     game_common_context::GameCommonContext,
+    render_video::VideoFileRenderer,
 };
 
 fn center_rect(rect: Rect, w: u32, h: u32) -> Rect {
@@ -53,7 +57,16 @@ pub(crate) enum TitleResult {
 }
 
 pub(crate) fn render_title(common_context: &mut GameCommonContext) -> TitleResult {
-    let mut delta: i32 = 0;
+    let texture_creator = common_context.canvas.texture_creator();
+    let mut background_video =
+        VideoFileRenderer::new(Path::new("assets/video/title_bga.mkv"), true);
+    let background_video_size = background_video.get_size();
+    let mut background_video_texture = create_streaming_iyuv_texture!(
+        texture_creator,
+        background_video_size.0,
+        background_video_size.1
+    )
+    .expect("Failed to create texture for title background video");
     loop {
         for event in common_context.event_pump.poll_iter() {
             if event_loop_common(&event, &mut common_context.coins) {
@@ -73,35 +86,19 @@ pub(crate) fn render_title(common_context: &mut GameCommonContext) -> TitleResul
             }
         }
 
-        let canvas = &mut common_context.canvas;
-        canvas.clear();
+        common_context.canvas.clear();
 
-        let viewport = canvas.viewport();
-        let rect_size = 200;
-        for i in 0..(viewport.w / rect_size) + 5 {
-            let mut color = if i % 2 == 0 {
-                Color::CYAN
-            } else {
-                Color::WHITE
-            };
-            for j in 0..(viewport.h / rect_size) + 5 {
-                let x: i32 = viewport.x + rect_size * i - delta;
-                let y: i32 = viewport.y + rect_size * j - delta;
-                canvas.set_draw_color(color);
-                canvas
-                    .fill_rect(Rect::new(x, y, rect_size as u32, rect_size as u32))
-                    .expect("???");
-                color = match color {
-                    Color::CYAN => Color::WHITE,
-                    Color::WHITE => Color::CYAN,
-                    _ => panic!("?"),
-                }
-            }
-        }
+        background_video.wanted_time_in_second = Rational64::new(
+            common_context.game_initialized_at.elapsed().as_millis() as i64,
+            1000,
+        );
+        background_video.render_frame(&mut background_video_texture);
+        common_context
+            .canvas
+            .copy(&background_video_texture, None, None)
+            .expect("Failed to render title background video");
 
-        delta = (delta + 1) % (rect_size * 3);
-
-        render_logo(canvas);
+        render_logo(&mut common_context.canvas);
         render_common(common_context);
         common_context.canvas.present();
         std::thread::sleep(Duration::from_millis(3));

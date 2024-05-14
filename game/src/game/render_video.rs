@@ -42,6 +42,17 @@ struct YUVData {
     v_pitch: usize,
 }
 
+#[macro_export]
+macro_rules! create_streaming_iyuv_texture {
+    ($texture_creator: expr, $width: expr, $height: expr) => {
+        $texture_creator.create_texture_streaming(
+            sdl2::pixels::PixelFormatEnum::IYUV,
+            $width,
+            $height,
+        )
+    };
+}
+
 impl VideoFileRenderer {
     /// Creates new VideoFileRenderer from video file path
     pub(crate) fn new(path: &Path, infinite: bool) -> VideoFileRenderer {

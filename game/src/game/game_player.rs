@@ -16,10 +16,13 @@ use kira::{
 use num_rational::Rational64;
 use sdl2::{image::LoadTexture, pixels::PixelFormatEnum};
 
-use crate::game::{
-    common::{event_loop_common, render_common},
-    game_common_context,
-    game_player::judge_and_display_notes::display_notes_and_judge,
+use crate::{
+    create_streaming_iyuv_texture,
+    game::{
+        common::{event_loop_common, render_common},
+        game_common_context,
+        game_player::judge_and_display_notes::display_notes_and_judge,
+    },
 };
 
 use self::{
@@ -135,9 +138,9 @@ pub(crate) fn play_song(
     let mut video_file_renderer = VideoFileRenderer::new(Path::new(&song.video_filename), false);
     let video_file_size = video_file_renderer.get_size();
     let texture_creator = common_context.canvas.texture_creator();
-    let mut texture = texture_creator
-        .create_texture_streaming(PixelFormatEnum::IYUV, video_file_size.0, video_file_size.1) // the texture should be streaming IYUV format
-        .expect("Failed to create texture");
+    let mut texture =
+        create_streaming_iyuv_texture!(texture_creator, video_file_size.0, video_file_size.1) // the texture should be streaming IYUV format
+            .expect("Failed to create texture");
 
     // variables for displaying accuracy
     let mut accuracy: Option<NoteAccuracy> = None;
