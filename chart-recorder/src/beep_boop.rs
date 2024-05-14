@@ -9,8 +9,6 @@ use kira::{
 };
 use rand::Rng;
 
-fn generate_beep() {}
-
 pub fn beep_boop() {
     println!("Beep-boop input measurement program");
     println!("");
