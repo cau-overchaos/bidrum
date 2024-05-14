@@ -1,3 +1,4 @@
+use ffmpeg_next::ffi::{av_seek_frame, AVSEEK_FLAG_ANY, AVSEEK_FLAG_BACKWARD, AV_TIME_BASE};
 use sdl2::rect::Rect;
 use sdl2::render::Texture;
 
@@ -17,11 +18,14 @@ use num_rational::{Rational32, Rational64};
 pub(crate) struct VideoFileRenderer {
     pub(crate) wanted_time_in_second: Rational64,
     last_decoded_timestamp: Option<i64>,
+    last_target_ts: Option<i64>,
     stop_thread: sync::Arc<sync::atomic::AtomicBool>,
     timebase: Rational64,
     size: (u32, u32),
     decoded_frame_count: sync::Arc<sync::atomic::AtomicU32>,
     rx: std::sync::mpsc::Receiver<YUVData>,
+    infinite: bool,
+    duration: Rational64,
 }
 
 /// Video frame data
@@ -40,7 +44,7 @@ struct YUVData {
 
 impl VideoFileRenderer {
     /// Creates new VideoFileRenderer from video file path
-    pub(crate) fn new(path: &Path) -> VideoFileRenderer {
+    pub(crate) fn new(path: &Path, infinite: bool) -> VideoFileRenderer {
         // init FFmpeg
         ffmpeg_next::init().unwrap();
 
@@ -95,6 +99,9 @@ impl VideoFileRenderer {
             stream.time_base().denominator() as i64,
         );
 
+        // get video duration
+        let duration = Rational64::new(input.duration(), AV_TIME_BASE as i64);
+
         // spawn thread
         let stop_thread_for_thread = stop_thread.clone();
         let decoded_frame_count_for_thread = decoded_frame_count.clone();
@@ -112,43 +119,62 @@ impl VideoFileRenderer {
             .unwrap();
 
             // loop for the packets of the video file
-            for (stream, packet) in input.packets() {
-                if stop_thread_for_thread.load(sync::atomic::Ordering::Relaxed) {
-                    return;
-                }
-                if stream.index() == video_stream_index {
-                    // send packet
-                    let _ = video_decoder.send_packet(&packet);
+            loop {
+                for (stream, packet) in input.packets() {
+                    if stop_thread_for_thread.load(sync::atomic::Ordering::Relaxed) {
+                        return;
+                    }
+                    if stream.index() == video_stream_index {
+                        // send packet
+                        let _ = video_decoder.send_packet(&packet);
 
-                    // try to decode packets
-                    let processed_frame = Self::process_received_frames(&mut video_decoder);
+                        // try to decode packets
+                        let processed_frame = Self::process_received_frames(&mut video_decoder);
 
-                    // if decoding success
-                    if let Some(decoded_frame) = processed_frame {
-                        let mut scaled_frame = ffmpeg_next::frame::Video::empty();
-                        scaler.run(&decoded_frame, &mut scaled_frame).unwrap();
-                        let data = YUVData {
-                            height: scaled_frame.height(),
-                            width: scaled_frame.width(),
-                            timestamp: decoded_frame.timestamp().unwrap(),
-                            y_plane: scaled_frame.data(0).to_vec(),
-                            y_pitch: scaled_frame.stride(0),
-                            u_plane: scaled_frame.data(1).to_vec(),
-                            u_pitch: scaled_frame.stride(1),
-                            v_plane: scaled_frame.data(2).to_vec(),
-                            v_pitch: scaled_frame.stride(2),
-                        };
-                        if !stop_thread_for_thread.load(sync::atomic::Ordering::Relaxed) {
-                            while decoded_frame_count_for_thread
-                                .load(sync::atomic::Ordering::Relaxed)
-                                >= decoded_frame_buffer_limit
-                            {}
-                            // Ignore errors
-                            let _ = tx.send(data);
-                            decoded_frame_count_for_thread
-                                .fetch_add(1, sync::atomic::Ordering::Relaxed);
+                        // if decoding success
+                        if let Some(decoded_frame) = processed_frame {
+                            let mut scaled_frame = ffmpeg_next::frame::Video::empty();
+                            scaler.run(&decoded_frame, &mut scaled_frame).unwrap();
+                            let data = YUVData {
+                                height: scaled_frame.height(),
+                                width: scaled_frame.width(),
+                                timestamp: decoded_frame.timestamp().unwrap(),
+                                y_plane: scaled_frame.data(0).to_vec(),
+                                y_pitch: scaled_frame.stride(0),
+                                u_plane: scaled_frame.data(1).to_vec(),
+                                u_pitch: scaled_frame.stride(1),
+                                v_plane: scaled_frame.data(2).to_vec(),
+                                v_pitch: scaled_frame.stride(2),
+                            };
+                            if !stop_thread_for_thread.load(sync::atomic::Ordering::Relaxed) {
+                                while decoded_frame_count_for_thread
+                                    .load(sync::atomic::Ordering::Relaxed)
+                                    >= decoded_frame_buffer_limit
+                                {}
+                                // Ignore errors
+                                let _ = tx.send(data);
+                                decoded_frame_count_for_thread
+                                    .fetch_add(1, sync::atomic::Ordering::Relaxed);
+                            }
                         }
                     }
+                }
+
+                if infinite {
+                    // Seek the video to the beginning
+                    unsafe {
+                        av_seek_frame(
+                            input.as_mut_ptr(),
+                            -1,
+                            0,
+                            AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_ANY,
+                        );
+                    }
+
+                    // Flush the video decoder (if you don not, it will not render any frames anymore)
+                    video_decoder.flush();
+                } else {
+                    break;
                 }
             }
         });
@@ -157,11 +183,14 @@ impl VideoFileRenderer {
         return VideoFileRenderer {
             wanted_time_in_second: wanted_time_in_second,
             last_decoded_timestamp: None,
+            last_target_ts: None,
             stop_thread: stop_thread.clone(),
             size: size,
             timebase: timebase,
             decoded_frame_count: decoded_frame_count,
             rx: rx,
+            infinite: infinite,
+            duration: duration,
         };
     }
 
@@ -196,9 +225,19 @@ impl VideoFileRenderer {
     pub(crate) fn render_frame(&mut self, texture: &mut Texture) {
         // calculate desired timestamp with the timebase and `wanted_time_in_second` property
         // ideally, frame at the desired timestamp is the best.
-        let target_ts = (self.wanted_time_in_second / self.timebase).to_integer() as i64;
+        let target_ts = (if self.infinite {
+            self.wanted_time_in_second % self.duration
+        } else {
+            self.wanted_time_in_second
+        } / self.timebase)
+            .to_integer() as i64;
+
+        // is the wanted time backward?
+        let target_ts_is_backwards =
+            self.infinite && self.last_target_ts.is_some_and(|x| x > target_ts);
+
         if let Some(last_decoded_timestamp) = self.last_decoded_timestamp {
-            if last_decoded_timestamp > target_ts {
+            if last_decoded_timestamp > target_ts && !target_ts_is_backwards {
                 // too fast
                 return;
             }
@@ -209,6 +248,20 @@ impl VideoFileRenderer {
         // loop for decoded frame datas
         let mut frame_data = None;
         while let Ok(data) = self.rx.try_recv() {
+            if target_ts_is_backwards
+                && self
+                    .last_decoded_timestamp
+                    .is_some_and(|x| x <= data.timestamp)
+            {
+                // Consume all frames
+                // until it start from beginning
+                continue;
+            } else if target_ts_is_backwards {
+                // Set last_decoded_timestamp to the initial value if the time is backwards
+                // because it should start from beginning again!
+                self.last_decoded_timestamp = None;
+            }
+
             self.decoded_frame_count
                 .fetch_sub(1, sync::atomic::Ordering::Relaxed);
             self.last_decoded_timestamp = Some(data.timestamp);
@@ -242,5 +295,7 @@ impl VideoFileRenderer {
                 )
                 .unwrap();
         }
+
+        self.last_target_ts = Some(target_ts);
     }
 }

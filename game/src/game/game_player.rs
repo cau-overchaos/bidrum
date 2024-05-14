@@ -132,7 +132,7 @@ pub(crate) fn play_song(
     clock.start().expect("Failed to start clock");
 
     // load video file and create video renderer and texture
-    let mut video_file_renderer = VideoFileRenderer::new(Path::new(&song.video_filename));
+    let mut video_file_renderer = VideoFileRenderer::new(Path::new(&song.video_filename), false);
     let video_file_size = video_file_renderer.get_size();
     let texture_creator = common_context.canvas.texture_creator();
     let mut texture = texture_creator
