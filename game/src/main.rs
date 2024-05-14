@@ -29,6 +29,9 @@ struct Args {
     /// Runs game in non-ullscreen
     #[arg(short, long)]
     windowed: bool,
+    /// Enables vsync or not? (Default: enabled in macos, disabled otherwise)
+    #[arg(long)]
+    vsync: Option<bool>,
 }
 
 fn main() {
@@ -70,6 +73,11 @@ fn main() {
             fullscreen: !args.windowed,
             height: args.window_height,
             width: args.window_width,
+            vsync: args.vsync.unwrap_or(if cfg!(target_os = "macos") {
+                true
+            } else {
+                false
+            }),
         },
     );
 }

@@ -11,6 +11,7 @@ pub struct InitGameOptions {
     pub width: Option<u32>,
     pub height: Option<u32>,
     pub fullscreen: bool,
+    pub vsync: bool,
 }
 
 pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
@@ -71,12 +72,14 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
     sdl_context.mouse().show_cursor(false);
 
     // create canvas
-    let mut canvas = window
-        .into_canvas()
-        .present_vsync()
-        .build()
-        .map_err(|e| e.to_string())
-        .expect("canvas initialization fail");
+    let mut canvas = if options.vsync {
+        window.into_canvas().present_vsync()
+    } else {
+        window.into_canvas()
+    }
+    .build()
+    .map_err(|e| e.to_string())
+    .expect("canvas initialization fail");
 
     canvas.clear();
     canvas.present();
