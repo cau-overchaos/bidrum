@@ -216,6 +216,9 @@ fn main() {
         }
     }
 
+    left_face.sort_by(|a, b| a.beat().cmp(&b.beat()));
+    right_face.sort_by(|a, b| a.beat().cmp(&b.beat()));
+
     let json = GameChart::to_json_string(
         args.artist.unwrap_or("Team Overchaos".to_string()),
         args.delay.into(),
