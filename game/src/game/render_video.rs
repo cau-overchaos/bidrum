@@ -15,8 +15,8 @@ use num_rational::{Rational32, Rational64};
 
 /// Video file renderer with guarantee of rendering frame around `wanted_time_in_second`
 /// without using delay
-pub(crate) struct VideoFileRenderer {
-    pub(crate) wanted_time_in_second: Rational64,
+pub struct VideoFileRenderer {
+    pub wanted_time_in_second: Rational64,
     last_decoded_timestamp: Option<i64>,
     last_target_ts: Option<i64>,
     stop_thread: sync::Arc<sync::atomic::AtomicBool>,

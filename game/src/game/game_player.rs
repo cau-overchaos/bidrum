@@ -3,7 +3,6 @@ pub mod game_result;
 pub mod janggu_state_with_tick;
 pub mod judge_and_display_notes;
 pub mod load_hit_sounds;
-mod render_video;
 pub mod timing_judge;
 
 use std::{path::Path, thread};
@@ -29,11 +28,12 @@ use self::{
     janggu_state_with_tick::JangguStateWithTick,
     judge_and_display_notes::EffectSoundHandles,
     load_hit_sounds::load_hit_sounds,
-    render_video::VideoFileRenderer,
     timing_judge::{NoteAccuracy, TimingJudge},
 };
 
 use bidrum_data_struct_lib::{janggu::JangguFace, song::GameSong};
+
+use super::render_video::VideoFileRenderer;
 
 pub fn is_input_effect_needed(state: &JangguStateWithTick, tick: i128) -> [Option<JangguFace>; 2] {
     const TIME_DELTA: i128 = 150;
