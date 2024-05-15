@@ -135,14 +135,14 @@ pub(crate) fn play_song(
     let mut video_file_renderer = None;
     let mut video_file_size = None;
 
-    if let Some(video_file_name) = &song.video_filename {
+    if let Some(video_file_name) = &song.video_filename { // If video_filename is specified, get video_file_render and video_file_size
         video_file_renderer = Some(VideoFileRenderer::new(Path::new(video_file_name)));
         video_file_size = Some(video_file_renderer.as_ref().expect("Failed to get video file renderer").get_size());
     }
 
     let texture_creator = common_context.canvas.texture_creator();
     let mut texture = None;
-    if let Some(video_file_size) = video_file_size {
+    if let Some(video_file_size) = video_file_size { // If video_file_size is not None, get texture for video rendering
         texture = Some(texture_creator
         .create_texture_streaming(PixelFormatEnum::IYUV, video_file_size.0, video_file_size.1).expect("Failed to create texture streaming")); // the texture should be streaming IYUV format
     }
@@ -169,7 +169,7 @@ pub(crate) fn play_song(
 
         // display bga
         if tick_now >= 0 {
-            if let Some(ref mut video_file_renderer) = video_file_renderer {
+            if let Some(ref mut video_file_renderer) = video_file_renderer { // if video_file_renderer is not None, render video
                 video_file_renderer.wanted_time_in_second = Rational64::new(tick_now as i64, 1000);
                 video_file_renderer.render_frame(&mut texture.as_mut().expect("Failed to use texture.")); // TODO 
                 common_context.canvas.copy(texture.as_ref().expect("Failed to use texture."), None, None).unwrap(); // TODO
@@ -219,7 +219,7 @@ pub(crate) fn play_song(
         }
     }
 
-    if let Some(mut video_file_renderer) = video_file_renderer {
+    if let Some(mut video_file_renderer) = video_file_renderer { // If video_file_renderer is not None, stop playing video
         video_file_renderer.stop_decoding();
     }
     return Some(timing_judge.get_game_result());
