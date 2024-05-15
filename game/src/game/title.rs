@@ -98,6 +98,38 @@ pub(crate) fn render_title(common_context: &mut GameCommonContext) -> TitleResul
             .copy(&background_video_texture, None, None)
             .expect("Failed to render title background video");
 
+        common_context
+            .canvas
+            .set_blend_mode(sdl2::render::BlendMode::Blend);
+        let easing_value = {
+            let duration = 1200.0;
+            let remainder = (common_context.game_initialized_at.elapsed().as_millis() as f32
+                % (duration * 2.0))
+                / duration;
+            ezing::cubic_inout(if remainder > 1.0 {
+                2.0 - remainder
+            } else {
+                remainder
+            })
+        };
+        common_context.canvas.set_draw_color(Color::RGBA(
+            255,
+            255,
+            255,
+            (120.0 + easing_value * 30.0) as u8,
+        ));
+
+        let viewport = common_context.canvas.viewport();
+        common_context
+            .canvas
+            .fill_rect(Rect::new(
+                viewport.width() as i32 / 4,
+                0,
+                viewport.width() / 2,
+                viewport.height(),
+            ))
+            .expect("Failed to fill rect");
+
         render_logo(&mut common_context.canvas);
         render_common(common_context);
         common_context.canvas.present();
