@@ -14,10 +14,10 @@ use super::{
     render_video::VideoFileRenderer,
 };
 
-fn center_rect(rect: Rect, w: u32, h: u32) -> Rect {
+fn get_logo_rect(rect: Rect, w: u32, h: u32) -> Rect {
     return Rect::new(
         rect.x + (rect.width() / 2 - w / 2) as i32,
-        rect.y + (rect.height() / 2 - h / 2) as i32,
+        rect.y + (rect.height() / 2 - h) as i32,
         w,
         h,
     );
@@ -41,7 +41,7 @@ fn render_logo(canvas: &mut Canvas<Window>) {
         .copy(
             &texture,
             None,
-            Some(center_rect(
+            Some(get_logo_rect(
                 canvas.viewport(),
                 canvas.viewport().width() / 3,
                 (canvas.viewport().width() as f32 / 3.0 * (logo_height as f32 / logo_width as f32))
