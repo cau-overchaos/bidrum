@@ -242,10 +242,10 @@ impl GameSong {
                 .to_string();
             if let Some(video_filename) = deserialized.video_filename {
                 deserialized.video_filename = Some(Path::join(path, video_filename)
-                .to_str()
-                .unwrap()
-                .to_string()
-            );
+                    .to_str()
+                    .unwrap()
+                    .to_string()
+                );
             }
             deserialized.cover_image_filename = Path::join(path, deserialized.cover_image_filename)
                 .to_str()

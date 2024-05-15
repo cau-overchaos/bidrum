@@ -147,6 +147,8 @@ pub(crate) fn play_song(
         .create_texture_streaming(PixelFormatEnum::IYUV, video_file_size.0, video_file_size.1).expect("Failed to create texture streaming")); // the texture should be streaming IYUV format
     }
 
+    let play_background_texture = texture_creator.load_texture("assets/img/play_ui/play_background.jpeg").expect("Failed to load play background image."); 
+
     // variables for displaying accuracy
     let mut accuracy: Option<NoteAccuracy> = None;
     let mut accuracy_tick: Option<i128> = None;
@@ -171,8 +173,10 @@ pub(crate) fn play_song(
         if tick_now >= 0 {
             if let Some(ref mut video_file_renderer) = video_file_renderer { // if video_file_renderer is not None, render video
                 video_file_renderer.wanted_time_in_second = Rational64::new(tick_now as i64, 1000);
-                video_file_renderer.render_frame(&mut texture.as_mut().expect("Failed to use texture.")); // TODO 
-                common_context.canvas.copy(texture.as_ref().expect("Failed to use texture."), None, None).unwrap(); // TODO
+                video_file_renderer.render_frame(&mut texture.as_mut().expect("Failed to use texture."));
+                common_context.canvas.copy(texture.as_ref().expect("Failed to use texture."), None, None).unwrap();
+            } else {
+                common_context.canvas.copy(&play_background_texture, None, None).unwrap();
             }
         } else {
             // song is not started yet
