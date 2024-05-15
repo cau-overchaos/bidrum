@@ -25,7 +25,7 @@ pub struct GameSong {
     pub artist: String,
     pub category: GameSongCategory,
     pub audio_filename: String,
-    pub video_filename: String,
+    pub video_filename: Option<String>,
     pub cover_image_filename: String,
     pub levels: Vec<u32>,
 }
@@ -240,10 +240,13 @@ impl GameSong {
                 .to_str()
                 .unwrap()
                 .to_string();
-            deserialized.video_filename = Path::join(path, deserialized.video_filename)
+            if let Some(video_filename) = deserialized.video_filename {
+                deserialized.video_filename = Some(Path::join(path, video_filename)
                 .to_str()
                 .unwrap()
-                .to_string();
+                .to_string()
+            );
+            }
             deserialized.cover_image_filename = Path::join(path, deserialized.cover_image_filename)
                 .to_str()
                 .unwrap()

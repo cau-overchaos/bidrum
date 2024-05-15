@@ -132,12 +132,20 @@ pub(crate) fn play_song(
     clock.start().expect("Failed to start clock");
 
     // load video file and create video renderer and texture
-    let mut video_file_renderer = VideoFileRenderer::new(Path::new(&song.video_filename));
-    let video_file_size = video_file_renderer.get_size();
+    let mut video_file_renderer = None;
+    let mut video_file_size = None;
+
+    if let Some(video_file_name) = &song.video_filename {
+        video_file_renderer = Some(VideoFileRenderer::new(Path::new(video_file_name)));
+        video_file_size = Some(video_file_renderer.as_ref().expect("Failed to get video file renderer").get_size());
+    }
+
     let texture_creator = common_context.canvas.texture_creator();
-    let mut texture = texture_creator
-        .create_texture_streaming(PixelFormatEnum::IYUV, video_file_size.0, video_file_size.1) // the texture should be streaming IYUV format
-        .expect("Failed to create texture");
+    let mut texture = None;
+    if let Some(video_file_size) = video_file_size {
+        texture = Some(texture_creator
+        .create_texture_streaming(PixelFormatEnum::IYUV, video_file_size.0, video_file_size.1).expect("Failed to create texture streaming")); // the texture should be streaming IYUV format
+    }
 
     // variables for displaying accuracy
     let mut accuracy: Option<NoteAccuracy> = None;
@@ -161,9 +169,11 @@ pub(crate) fn play_song(
 
         // display bga
         if tick_now >= 0 {
-            video_file_renderer.wanted_time_in_second = Rational64::new(tick_now as i64, 1000);
-            video_file_renderer.render_frame(&mut texture);
-            common_context.canvas.copy(&texture, None, None).unwrap();
+            if let Some(ref mut video_file_renderer) = video_file_renderer {
+                video_file_renderer.wanted_time_in_second = Rational64::new(tick_now as i64, 1000);
+                video_file_renderer.render_frame(&mut texture.as_mut().expect("Failed to use texture.")); // TODO 
+                common_context.canvas.copy(texture.as_ref().expect("Failed to use texture."), None, None).unwrap(); // TODO
+            }
         } else {
             // song is not started yet
             // therefore display game cover image
@@ -209,7 +219,8 @@ pub(crate) fn play_song(
         }
     }
 
-    video_file_renderer.stop_decoding();
-
+    if let Some(mut video_file_renderer) = video_file_renderer {
+        video_file_renderer.stop_decoding();
+    }
     return Some(timing_judge.get_game_result());
 }
