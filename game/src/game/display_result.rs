@@ -6,6 +6,7 @@ use sdl2::{
     pixels::Color,
     rect::Rect,
     render::{Canvas, TextureQuery},
+    ttf::Sdl2TtfContext,
     video::Window,
 };
 
@@ -19,9 +20,11 @@ use super::{
 
 use bidrum_data_struct_lib::song::GameSong;
 
-fn render_game_result(canvas: &mut Canvas<Window>, result: &GameResult) {
-    let ttf_context = sdl2::ttf::init().expect("ttf context initialization failure");
-
+fn render_game_result(
+    ttf_context: &Sdl2TtfContext,
+    canvas: &mut Canvas<Window>,
+    result: &GameResult,
+) {
     let texture_creator = canvas.texture_creator();
 
     let mut font = ttf_context
@@ -110,7 +113,7 @@ pub(crate) fn display_result(
             canvas_difficulty_image_ratio as u32,
             canvas_difficulty_image_ratio as u32,
         );
-        render_game_result(canvas, &result);
+        render_game_result(&common_context.ttf_context, canvas, &result);
         render_common(common_context);
         common_context.canvas.present();
     }

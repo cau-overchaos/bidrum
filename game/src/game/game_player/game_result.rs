@@ -11,3 +11,14 @@ pub(crate) struct GameResult {
     pub health: i64,
     pub max_health: u64,
 }
+
+impl GameResult {
+    pub fn total_judged_note_count(&self) -> u64 {
+        return self.overchaos_count
+            + self.perfect_count
+            + self.great_count
+            + self.good_count
+            + self.bad_count
+            + self.miss_count;
+    }
+}

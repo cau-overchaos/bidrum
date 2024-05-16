@@ -50,7 +50,81 @@ pub struct GameChart {
     pub right_face: Vec<GameNote>,
 }
 
+impl GameChart {
+    /// Creates chart
+    pub fn to_json_string(
+        artist: String,
+        delay: u64,
+        bpm: u32,
+        left_face: Vec<GameNote>,
+        right_face: Vec<GameNote>,
+    ) -> Result<String, serde_json::Error> {
+        let chart = GameChart {
+            artist: artist,
+            delay: delay,
+            bpm: bpm,
+            left_face: left_face,
+            right_face: right_face,
+        };
+
+        serde_json::to_string(&chart)
+    }
+
+    /// Creates example chart for tutorial
+    pub fn create_example_chart_for_tutorial(
+        stick: JangguStick,
+        face: JangguFace,
+        note_count: u64,
+        note_gap_in_beat: u64,
+        bpm: u32,
+    ) -> GameChart {
+        let notes = Vec::<GameNote>::from_iter((0..note_count).map(|idx| GameNote {
+            beat_index: (idx + 1) * (note_gap_in_beat),
+            face: face,
+            stick: stick,
+            id: idx,
+            tick_denomiator: 0,
+            tick_nomiator: 0,
+        }));
+
+        let chart = GameChart {
+            artist: String::from("Team Overchaos"),
+            delay: 0,
+            bpm: bpm,
+            left_face: if matches!(face, JangguFace::궁편) {
+                notes.clone()
+            } else {
+                vec![]
+            },
+            right_face: if matches!(face, JangguFace::열편) {
+                notes.clone()
+            } else {
+                vec![]
+            },
+        };
+
+        return chart;
+    }
+}
+
 impl GameNote {
+    pub fn create_raw_note(
+        stick: JangguStick,
+        beat_index: u64,
+        tick_nomiator: i64,
+        tick_denomiator: i64,
+    ) -> GameNote {
+        return GameNote {
+            stick: stick,
+            beat_index: beat_index,
+            tick_nomiator: tick_nomiator,
+            tick_denomiator: tick_denomiator,
+            // face and id are useless
+            face: JangguFace::궁편,
+            id: 0,
+        };
+    }
+
     /// get the position of the note in unit of beat
     pub fn beat(&self) -> Rational64 {
         return Rational64::new(self.beat_index as i64, 1)

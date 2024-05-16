@@ -1,13 +1,16 @@
-mod draw_gameplay_ui;
+pub mod draw_gameplay_ui;
 pub mod game_result;
-mod janggu_state_with_tick;
+pub mod janggu_state_with_tick;
+pub mod judge_and_display_notes;
+pub mod load_hit_sounds;
 mod render_video;
-mod timing_judge;
+pub mod timing_judge;
 
 use std::{path::Path, thread};
 
 use kira::{
     clock::ClockSpeed,
+    manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings},
     sound::static_sound::{StaticSoundData, StaticSoundSettings},
     tween::Tween,
 };
@@ -17,19 +20,22 @@ use sdl2::{image::LoadTexture, pixels::PixelFormatEnum};
 use crate::game::{
     common::{event_loop_common, render_common},
     game_common_context,
+    game_player::judge_and_display_notes::display_notes_and_judge,
 };
 
 use self::{
     draw_gameplay_ui::{DisplayedSongNote, UIContent},
     game_result::GameResult,
     janggu_state_with_tick::JangguStateWithTick,
+    judge_and_display_notes::EffectSoundHandles,
+    load_hit_sounds::load_hit_sounds,
     render_video::VideoFileRenderer,
     timing_judge::{NoteAccuracy, TimingJudge},
 };
 
 use bidrum_data_struct_lib::{janggu::JangguFace, song::GameSong};
 
-fn is_input_effect_needed(state: &JangguStateWithTick, tick: i128) -> [Option<JangguFace>; 2] {
+pub fn is_input_effect_needed(state: &JangguStateWithTick, tick: i128) -> [Option<JangguFace>; 2] {
     const TIME_DELTA: i128 = 150;
     let mut faces = [None, None];
     if let Some(_) = state.궁채.face {
@@ -66,6 +72,10 @@ pub(crate) fn play_song(
         .expect("clock initialization failure");
     let start_tick = clock.time() + 500; // the song will start at 500ms after clock starting
     let song_path_string = song.audio_filename.clone();
+
+    // Load hit sound data
+    let hit_sounds = load_hit_sounds();
+    let mut effect_sound_handles = EffectSoundHandles::new();
 
     // to receive coin input while loading the audio file,
     // loading should be done in separated thread.
@@ -163,85 +173,26 @@ pub(crate) fn play_song(
                 .unwrap();
         }
 
+        // Update janggu state
+        let input_now = common_context.read_janggu_state();
+        janggu_state_with_tick.update(input_now, tick_now);
+
         // display notes and accuracy
-        let mut display_notes = Vec::<DisplayedSongNote>::new();
         if tick_now >= 0 {
-            // get positions of the notes
-            for i in &chart.left_face {
-                if !processed_note_ids.contains(&i.id) {
-                    display_notes.push(DisplayedSongNote {
-                        face: JangguFace::궁편,
-                        stick: i.stick,
-                        distance: i.get_position(
-                            chart.bpm,
-                            chart.delay,
-                            chart.bpm * 2,
-                            (tick_now) as u64,
-                        ),
-                    });
-                }
-            }
-
-            for i in &chart.right_face {
-                if !processed_note_ids.contains(&i.id) {
-                    display_notes.push(DisplayedSongNote {
-                        face: JangguFace::열편,
-                        stick: i.stick,
-                        distance: i.get_position(
-                            chart.bpm,
-                            chart.delay,
-                            chart.bpm * 2,
-                            (tick_now) as u64,
-                        ),
-                    });
-                }
-            }
-
-            // make judgement
-            let input_now = common_context.read_janggu_state();
-            janggu_state_with_tick.update(input_now, tick_now);
-            let new_accuracies = timing_judge.judge(&janggu_state_with_tick, tick_now as u64);
-
-            // if any judgement is made, display it
-            if !new_accuracies.is_empty() {
-                accuracy_tick = Some(tick_now);
-                accuracy = new_accuracies.iter().map(|x| x.accuracy).max();
-                for i in new_accuracies {
-                    processed_note_ids.push(i.note_id);
-                }
-            }
+            display_notes_and_judge(
+                common_context,
+                &chart,
+                &mut timing_judge,
+                &janggu_state_with_tick,
+                &mut gameplay_ui_resources,
+                &mut processed_note_ids,
+                &mut accuracy,
+                &mut accuracy_tick,
+                &hit_sounds,
+                &mut effect_sound_handles,
+                tick_now,
+            );
         }
-
-        // judgement is visible for only 1200 ms
-        const ACCURACY_DISPLAY_DURATION: u32 = 800;
-        if let Some(accuracy_tick_unwrapped) = accuracy_tick {
-            if tick_now - accuracy_tick_unwrapped > ACCURACY_DISPLAY_DURATION as i128 {
-                accuracy_tick = None;
-            }
-        }
-
-        // draw game play ui
-        draw_gameplay_ui::draw_gameplay_ui(
-            &mut common_context.canvas,
-            display_notes,
-            UIContent {
-                accuracy: if let Some(_) = accuracy_tick {
-                    accuracy
-                } else {
-                    None
-                },
-                accuracy_time_progress: if let Some(accuracy_time_unwrapped) = accuracy_tick {
-                    Some(
-                        (tick_now - accuracy_time_unwrapped) as f32
-                            / ACCURACY_DISPLAY_DURATION as f32,
-                    )
-                } else {
-                    None
-                },
-                input_effect: is_input_effect_needed(&janggu_state_with_tick, tick_now),
-            },
-            &mut gameplay_ui_resources,
-        );
 
         // display necessary data such as coin count
         render_common(common_context);
@@ -257,5 +208,8 @@ pub(crate) fn play_song(
             }
         }
     }
+
+    video_file_renderer.stop_decoding();
+
     return Some(timing_judge.get_game_result());
 }

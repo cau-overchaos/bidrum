@@ -6,4 +6,5 @@ pub mod init;
 pub mod select_song;
 pub mod start;
 pub mod title;
+pub mod tutorial;
 pub mod util;
