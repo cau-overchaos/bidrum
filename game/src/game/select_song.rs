@@ -31,7 +31,7 @@ pub(crate) fn select_song(
 ) -> SongSelectionResult {
 
     let texture_creator =  common_context.canvas.texture_creator();
-    let ttf_context = sdl2::ttf::init().expect("ttf context initialization failure");
+    let ttf_context = &common_context.ttf_context;
     let font_path = "assets/sans.ttf";
     let font_size = 40;
     let font = ttf_context.load_font(font_path, font_size).expect("loading font failed");
