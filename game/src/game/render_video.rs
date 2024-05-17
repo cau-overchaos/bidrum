@@ -1,4 +1,6 @@
-use ffmpeg_next::ffi::{av_seek_frame, AVSEEK_FLAG_ANY, AVSEEK_FLAG_BACKWARD, AV_TIME_BASE};
+use ffmpeg_next::ffi::{
+    av_seek_frame, AVSEEK_FLAG_ANY, AVSEEK_FLAG_BACKWARD, AVSEEK_FLAG_FRAME, AV_TIME_BASE,
+};
 use sdl2::rect::Rect;
 use sdl2::render::Texture;
 
@@ -20,6 +22,7 @@ pub struct VideoFileRenderer {
     decoded_first_time: bool,
     last_decoded_timestamp: Option<i64>,
     last_target_ts: Option<i64>,
+    seek_to: sync::Arc<sync::atomic::AtomicI64>,
     stop_thread: sync::Arc<sync::atomic::AtomicBool>,
     timebase: Rational64,
     size: (u32, u32),
@@ -65,6 +68,10 @@ impl VideoFileRenderer {
 
         // init wanted_time
         let wanted_time_in_second = Rational64::new(0, 1);
+
+        // init seek_to variable
+        // to prevent freezing bug
+        let seek_to = sync::Arc::new(sync::atomic::AtomicI64::new(-1));
 
         // init stream
         let mut input = input(&path.to_str().expect("Non-unicode character in path"))
@@ -117,6 +124,7 @@ impl VideoFileRenderer {
         // spawn thread
         let stop_thread_for_thread = stop_thread.clone();
         let decoded_frame_count_for_thread = decoded_frame_count.clone();
+        let seek_to_for_thread = seek_to.clone();
         thread::spawn(move || {
             // create scaler
             let mut scaler = Scaler::get(
@@ -133,6 +141,9 @@ impl VideoFileRenderer {
             // loop for the packets of the video file
             loop {
                 for (stream, packet) in input.packets() {
+                    if seek_to_for_thread.load(sync::atomic::Ordering::Relaxed) >= 0 {
+                        break;
+                    }
                     if stop_thread_for_thread.load(sync::atomic::Ordering::Relaxed) {
                         return;
                     }
@@ -172,7 +183,23 @@ impl VideoFileRenderer {
                     }
                 }
 
-                if infinite {
+                let seek_to = seek_to_for_thread.load(sync::atomic::Ordering::Relaxed);
+                if seek_to >= 0 {
+                    // Seek the video to required position
+                    unsafe {
+                        av_seek_frame(
+                            input.as_mut_ptr(),
+                            video_stream_index as i32,
+                            seek_to,
+                            AVSEEK_FLAG_BACKWARD | AVSEEK_FLAG_FRAME,
+                        );
+                    }
+
+                    video_decoder.flush();
+
+                    // Set seek_to zero
+                    seek_to_for_thread.store(-1, sync::atomic::Ordering::Relaxed);
+                } else if infinite {
                     // Seek the video to the beginning
                     unsafe {
                         av_seek_frame(
@@ -204,6 +231,7 @@ impl VideoFileRenderer {
             infinite: infinite,
             duration: duration,
             decoded_first_time: true,
+            seek_to: seek_to,
         };
     }
 
@@ -238,12 +266,12 @@ impl VideoFileRenderer {
     pub(crate) fn render_frame(&mut self, texture: &mut Texture) {
         // calculate desired timestamp with the timebase and `wanted_time_in_second` property
         // ideally, frame at the desired timestamp is the best.
-        let target_ts = (if self.infinite {
+        let wanted_time_in_second = if self.infinite {
             self.wanted_time_in_second % self.duration
         } else {
             self.wanted_time_in_second
-        } / self.timebase)
-            .to_integer() as i64;
+        };
+        let target_ts = (wanted_time_in_second / self.timebase).to_integer() as i64;
 
         // is the wanted time backward?
         let target_ts_is_backwards =
@@ -257,6 +285,11 @@ impl VideoFileRenderer {
         }
 
         let mut reached_target_ts = false;
+
+        if self.decoded_first_time && target_ts > 10 {
+            self.seek_to
+                .store(target_ts, sync::atomic::Ordering::Relaxed);
+        }
 
         // loop for decoded frame datas
         let mut frame_data = None;
