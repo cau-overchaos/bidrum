@@ -2,11 +2,17 @@ mod ending;
 mod greetings;
 mod learn_stick_note;
 
-use std::time::{Duration, Instant};
+use std::{
+    path::Path,
+    time::{Duration, Instant},
+};
 
 use bidrum_data_struct_lib::janggu::{JangguFace, JangguStick};
 use kira::sound::static_sound::StaticSoundData;
+use num_rational::Rational64;
 use sdl2::{rect::Rect, render::Texture};
+
+use crate::create_streaming_iyuv_texture;
 
 use self::{
     ending::do_tutorial_ending, greetings::do_tutorial_greetings,
@@ -22,6 +28,7 @@ use super::{
         is_input_effect_needed,
         janggu_state_with_tick::{self, JangguStateWithTick},
     },
+    render_video::VideoFileRenderer,
     util::confirm_dialog::{render_confirm_dialog, DialogButton},
 };
 
@@ -29,6 +36,19 @@ fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
     let ask_started_at = Instant::now();
     let mut selected = None;
     let mut janggu_state = JangguStateWithTick::new();
+
+    // Create background video renderer and its texture
+    let texture_creator = common_context.canvas.texture_creator();
+    let mut background_video =
+        VideoFileRenderer::new(Path::new("assets/video/title_bga.mkv"), true);
+    let background_video_size = background_video.get_size();
+    let mut background_video_texture = create_streaming_iyuv_texture!(
+        texture_creator,
+        background_video_size.0,
+        background_video_size.1
+    )
+    .unwrap();
+
     'running: loop {
         let tick = ask_started_at.elapsed().as_millis();
 
@@ -68,8 +88,19 @@ fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
             }
         }
 
+        // Decode background video
+        background_video.wanted_time_in_second = Rational64::new(
+            common_context.game_initialized_at.elapsed().as_millis() as i64,
+            1000,
+        );
+        background_video.render_frame(&mut background_video_texture);
+
         // render confirm dialog
         common_context.canvas.clear();
+        common_context
+            .canvas
+            .copy(&background_video_texture, None, None)
+            .unwrap();
         render_confirm_dialog(
             common_context,
             format!(
