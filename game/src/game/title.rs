@@ -12,6 +12,7 @@ use super::{
     common::{event_loop_common, render_common},
     game_common_context::GameCommonContext,
     render_video::VideoFileRenderer,
+    util::create_outlined_font_texture::create_outlined_font_texture,
 };
 
 fn get_logo_rect(rect: Rect, w: u32, h: u32) -> Rect {
@@ -49,6 +50,58 @@ fn render_logo(canvas: &mut Canvas<Window>) {
             )),
         )
         .expect("Logo rendering failure");
+}
+
+fn render_text(common_context: &mut GameCommonContext) {
+    let texture_creator = common_context.canvas.texture_creator();
+    let mut font = common_context
+        .ttf_context
+        .load_font_at_index("assets/sans.ttf", 262144 /* Regular */, 35)
+        .expect("Failed to load sans");
+
+    let mut texture = create_outlined_font_texture(
+        &texture_creator,
+        &mut font,
+        if common_context.coins >= common_context.price {
+            "장구를 쳐서 시작하세요!"
+        } else {
+            "동전을 넣어주세요"
+        },
+        2,
+        Color::WHITE,
+        Color::RGB(160, 160, 160),
+    )
+    .expect("Font rendering failure");
+    let animation_progress =
+        (common_context.game_initialized_at.elapsed().as_millis() as f64 % 2000.0) / 2000.0;
+    texture.set_alpha_mod(
+        (255.0
+            * ezing::sine_inout(
+                if animation_progress > 0.5 {
+                    1.0 - animation_progress
+                } else {
+                    animation_progress
+                } * 2.0,
+            )) as u8,
+    );
+
+    let viewport = common_context.canvas.viewport();
+    common_context
+        .canvas
+        .set_blend_mode(sdl2::render::BlendMode::Blend);
+    common_context
+        .canvas
+        .copy(
+            &texture,
+            None,
+            Some(Rect::new(
+                (viewport.width() - texture.query().width) as i32 / 2,
+                (viewport.height() - texture.query().height) as i32 / 2 + 100,
+                texture.query().width,
+                texture.query().height,
+            )),
+        )
+        .expect("Failed to render text");
 }
 
 pub(crate) enum TitleResult {
@@ -131,6 +184,7 @@ pub(crate) fn render_title(common_context: &mut GameCommonContext) -> TitleResul
             .expect("Failed to fill rect");
 
         render_logo(&mut common_context.canvas);
+        render_text(common_context);
         render_common(common_context);
         common_context.canvas.present();
         std::thread::sleep(Duration::from_millis(3));
