@@ -40,7 +40,7 @@ fn render_game_result(
         "Good", result.good_count,
         "Bad", result.bad_count,
         "Miss", result.miss_count,
-        "Combo", result.combo,
+        "Combo", result.max_combo,
         "Score", result.score,
         result.health, result.max_health
     );
