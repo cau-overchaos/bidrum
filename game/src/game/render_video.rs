@@ -17,6 +17,7 @@ use num_rational::{Rational32, Rational64};
 /// without using delay
 pub struct VideoFileRenderer {
     pub wanted_time_in_second: Rational64,
+    decoded_first_time: bool,
     last_decoded_timestamp: Option<i64>,
     last_target_ts: Option<i64>,
     stop_thread: sync::Arc<sync::atomic::AtomicBool>,
@@ -202,6 +203,7 @@ impl VideoFileRenderer {
             rx: rx,
             infinite: infinite,
             duration: duration,
+            decoded_first_time: true,
         };
     }
 
@@ -258,7 +260,11 @@ impl VideoFileRenderer {
 
         // loop for decoded frame datas
         let mut frame_data = None;
-        while let Ok(data) = self.rx.try_recv() {
+        while let Ok(data) = if self.decoded_first_time {
+            self.rx.recv().map_err(|x| x.to_string())
+        } else {
+            self.rx.try_recv().map_err(|x| x.to_string())
+        } {
             if target_ts_is_backwards
                 && self
                     .last_decoded_timestamp
@@ -285,6 +291,10 @@ impl VideoFileRenderer {
             if reached_target_ts {
                 break;
             }
+        }
+
+        if self.decoded_first_time {
+            self.decoded_first_time = false;
         }
 
         // render only when we have something to render
