@@ -3,18 +3,15 @@ use std::{
     time::Instant,
 };
 
-use bidrum_data_struct_lib::song::GameSong;
 use kira::manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings};
 
-use super::{
-    game_common_context::GameCommonContext, game_player::play_song, start::start_game,
-    title::render_title,
-};
+use super::{game_common_context::GameCommonContext, start::start_game, title::render_title};
 
 pub struct InitGameOptions {
     pub width: Option<u32>,
     pub height: Option<u32>,
     pub fullscreen: bool,
+    pub vsync: bool,
 }
 
 pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
@@ -28,7 +25,7 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
 
     // create window
     let mut window = video_subsystem
-        .window("rust-sdl2 demo: Video", 800, 600)
+        .window("BIDRUM", 800, 600)
         .position_centered()
         .opengl()
         .build()
@@ -57,6 +54,10 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
 
     // set window fullscreen
     if options.fullscreen {
+        window.set_position(
+            sdl2::video::WindowPos::Positioned(0),
+            sdl2::video::WindowPos::Positioned(0),
+        );
         window
             .set_fullscreen(sdl2::video::FullscreenType::True)
             .expect("Failed to be fullscreen");
@@ -71,12 +72,14 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
     sdl_context.mouse().show_cursor(false);
 
     // create canvas
-    let mut canvas = window
-        .into_canvas()
-        .present_vsync()
-        .build()
-        .map_err(|e| e.to_string())
-        .expect("canvas initialization fail");
+    let mut canvas = if options.vsync {
+        window.into_canvas().present_vsync()
+    } else {
+        window.into_canvas()
+    }
+    .build()
+    .map_err(|e| e.to_string())
+    .expect("canvas initialization fail");
 
     canvas.clear();
     canvas.present();
