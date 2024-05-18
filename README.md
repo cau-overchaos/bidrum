@@ -28,7 +28,7 @@ Due to difficulties on building Rust FFmpeg library on Windows, The GNU toolchai
     ```bash
     pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-ffmpeg mingw-w64-x86_64-clang mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_ttf mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-SDL2_mixer
     ```
-1. (Optional) Run the following commands and remember default host and default toolchain
+1. (Optional) Run the following commands in PowerShell or cmd and remember default host and default toolchain.
     - You can use the default host and default toolchain remembered here after building bidrum, with `rustup set default-host` and `rustup default` commands.
     ```powershell
     rustup toolchain list
@@ -53,7 +53,7 @@ Due to difficulties on building Rust FFmpeg library on Windows, The GNU toolchai
     ar = "C:\\msys64\\mingw64\\bin\\ar.exe"
     ```
 1. Add `(MSYS2 installation path)\mingw64\bin` to `PATH` environment variable
-1. Run `cargo build --target x86_64-pc-windows-gnu`
+1. Run `cargo build --target x86_64-pc-windows-gnu` on PowerShell or cmd
 1. When running the game, `assets` directory and `music` directory should be in the working directory.
 
 ## Docs
