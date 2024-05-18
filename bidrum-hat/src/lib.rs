@@ -4,15 +4,16 @@ use std::{f32, thread};
 
 use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral, ScanFilter};
 use btleplug::platform::Manager;
-use futures::executor;
 use futures::stream::StreamExt;
+use futures::{executor, FutureExt};
 use uuid::Uuid;
 
 pub struct BidrumHat {
     spinning: Arc<AtomicBool>,
+    dropping: Arc<AtomicBool>,
 }
 
-async fn get_data(spinning: Arc<AtomicBool>) {
+async fn get_data(spinning: Arc<AtomicBool>, dropping: Arc<AtomicBool>) {
     let service_uuid = Uuid::parse_str("8e191920-dda8-4f40-b2bc-f8f99f680c94").unwrap();
     let characteristic_uuid = Uuid::parse_str("2a89fe67-88ff-4bac-8e42-d122d6995ad1").unwrap();
 
@@ -25,7 +26,7 @@ async fn get_data(spinning: Arc<AtomicBool>) {
         eprintln!("No Bluetooth adapters found");
     }
 
-    for adapter in adapter_list.iter() {
+    'adapter_loop: for adapter in adapter_list.iter() {
         // println!("Starting scan...");
         let mut events = adapter
             .events()
@@ -37,50 +38,62 @@ async fn get_data(spinning: Arc<AtomicBool>) {
             .await
             .expect("Can't scan BLE adapter for connected devices...");
 
-        while let Some(event) = events.next().await {
-            match event {
-                CentralEvent::DeviceDiscovered(id) => {
-                    let peripheral = adapter.peripheral(&id).await.unwrap();
-                    let local_name = peripheral.properties().await.unwrap().unwrap().local_name;
+        let mut event_join_handle = events.next();
+        loop {
+            let event_option = loop {
+                if dropping.load(Ordering::Relaxed) {
+                    break 'adapter_loop;
+                }
+                if let Some(v) = (&mut event_join_handle).now_or_never() {
+                    break v;
+                }
+            };
 
-                    if local_name.is_some_and(|x| x.contains("bidrum-hat")) {
-                        if !peripheral.is_connected().await.unwrap_or(false) {
-                            peripheral.connect().await.expect("Failed to connect");
-                        }
+            if let Some(event) = event_option {
+                match event {
+                    CentralEvent::DeviceDiscovered(id) => {
+                        let peripheral = adapter.peripheral(&id).await.unwrap();
+                        let local_name = peripheral.properties().await.unwrap().unwrap().local_name;
 
-                        peripheral
-                            .discover_services()
-                            .await
-                            .expect("Failed to discover services");
+                        if local_name.is_some_and(|x| x.contains("bidrum-hat")) {
+                            if !peripheral.is_connected().await.unwrap_or(false) {
+                                peripheral.connect().await.expect("Failed to connect");
+                            }
 
-                        if let Some(characteristic) =
-                            peripheral.characteristics().iter().find(|x| {
-                                x.uuid == characteristic_uuid && x.service_uuid == service_uuid
-                            })
-                        {
                             peripheral
-                                .subscribe(characteristic)
+                                .discover_services()
                                 .await
-                                .expect("Failed to subscribe characteristic");
+                                .expect("Failed to discover services");
 
-                            let mut notification_stream = peripheral
-                                .notifications()
-                                .await
-                                .expect("Failed to make notification stream");
+                            if let Some(characteristic) =
+                                peripheral.characteristics().iter().find(|x| {
+                                    x.uuid == characteristic_uuid && x.service_uuid == service_uuid
+                                })
+                            {
+                                peripheral
+                                    .subscribe(characteristic)
+                                    .await
+                                    .expect("Failed to subscribe characteristic");
 
-                            // Process while the BLE connection is not broken or stopped.
-                            while let Some(data) = notification_stream.next().await {
-                                let norm = std::str::from_utf8(data.value.as_slice())
-                                    .unwrap_or("0.0")
-                                    .parse::<f32>()
-                                    .unwrap();
+                                let mut notification_stream = peripheral
+                                    .notifications()
+                                    .await
+                                    .expect("Failed to make notification stream");
 
-                                spinning.store(norm > 1.0, Ordering::Relaxed);
+                                // Process while the BLE connection is not broken or stopped.
+                                while let Some(data) = notification_stream.next().await {
+                                    let norm = std::str::from_utf8(data.value.as_slice())
+                                        .unwrap_or("0.0")
+                                        .parse::<f32>()
+                                        .unwrap();
+
+                                    spinning.store(norm > 1.0, Ordering::Relaxed);
+                                }
                             }
                         }
                     }
+                    _ => {}
                 }
-                _ => {}
             }
         }
     }
@@ -90,19 +103,30 @@ impl BidrumHat {
     pub fn new() -> BidrumHat {
         let spinning = Arc::new(AtomicBool::new(false));
         let spinning_for_thread = spinning.clone();
+        let dropping = Arc::new(AtomicBool::new(false));
+        let dropping_for_thread = dropping.clone();
 
         thread::spawn(move || {
             let handle = tokio::runtime::Runtime::new().unwrap();
             let _guard = handle.enter();
-            executor::block_on(get_data(spinning_for_thread));
+            executor::block_on(get_data(spinning_for_thread, dropping_for_thread));
         });
 
-        let result = BidrumHat { spinning: spinning };
+        let result = BidrumHat {
+            spinning: spinning,
+            dropping: dropping,
+        };
 
         return result;
     }
     pub fn spinning(&self) -> bool {
         self.spinning.load(Ordering::Relaxed)
+    }
+}
+
+impl Drop for BidrumHat {
+    fn drop(&mut self) {
+        self.dropping.store(true, Ordering::Relaxed);
     }
 }
 
