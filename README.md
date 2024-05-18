@@ -19,6 +19,8 @@
 
 
 ### Windows
+**It's not recommended to build on Windows because development is usually done on Linux and Mac OS.**
+
 Due to difficulties on building Rust FFmpeg library on Windows, The GNU toolchain is used instead of MSVC toolchain.
 
 1. Install [MSYS2](https://www.msys2.org)
