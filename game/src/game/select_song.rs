@@ -141,9 +141,6 @@ pub(crate) fn select_song(
         }
 
         let elapsed_time = last_key_press_time.elapsed().as_millis() as f32;
-        let leftmost_item_idx : i32 = selecetd_song_item_idx - 2 - 1; // index of leftmost song item
-        let right_most_item_idx : i32 = selecetd_song_item_idx + 2 + 1; // index of rightmost song item
-
         if moving_direction == MovingDirection::Left { // if user press right key, then song items move to right for specific distance
             let current_moved_distance = elapsed_time * moving_speed as f32;
             if current_moved_distance <= moving_distance as f32 { // until song items move moving_distance
@@ -169,6 +166,9 @@ pub(crate) fn select_song(
                 selected_song_item_moving_center_x = selected_song_item_center_x;
             }
         }
+
+        let leftmost_item_idx : i32 = selecetd_song_item_idx - 2 - 1; // index of leftmost song item
+        let right_most_item_idx : i32 = selecetd_song_item_idx + 2 + 1; // index of rightmost song item
 
         common_context.canvas.clear();
 
