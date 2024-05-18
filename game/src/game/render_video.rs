@@ -57,6 +57,12 @@ macro_rules! create_streaming_iyuv_texture {
     };
 }
 
+impl Drop for VideoFileRenderer {
+    fn drop(&mut self) {
+        self.stop_decoding()
+    }
+}
+
 impl VideoFileRenderer {
     /// Creates new VideoFileRenderer from video file path
     pub(crate) fn new(path: &Path, infinite: bool) -> VideoFileRenderer {
