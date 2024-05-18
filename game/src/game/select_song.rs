@@ -31,14 +31,13 @@ pub(crate) fn select_song(
 ) -> SongSelectionResult {
 
     let texture_creator =  common_context.canvas.texture_creator();
-    let ttf_context = &common_context.ttf_context;
-    let font_path = "assets/sans.ttf";
-    let font_size = 40;
-    let font = ttf_context.load_font(font_path, font_size).expect("loading font failed");
-
     let song_selection_img_texture = texture_creator.load_texture("assets/img/select_song_ui/song_item_scroll.png").expect("failed to load song item image");
     let song_selection_img_texture_original_width = song_selection_img_texture.query().width;
     let song_selection_img_texture_original_height = song_selection_img_texture.query().height;
+
+    let font_path = "assets/sans.ttf";
+    let title_font_size = 40;
+    let artist_font_size = 20;
 
     // convert GameSong vector to SongSelectionItem vector
     let song_selection_items = {
@@ -223,9 +222,13 @@ pub(crate) fn select_song(
             set_center_y_of_rect(&mut cover_img_rect, cover_img_center_y);
             common_context.canvas.copy(&song_selection_items[real_song_selection_idx as usize].cover_img_texture, None, cover_img_rect).expect("Failed to render cover image");
         
+            let ttf_context = &common_context.ttf_context;
+            let title_font = ttf_context.load_font(font_path, title_font_size).expect("loading font failed");
+            let artist_font = ttf_context.load_font(font_path, artist_font_size).expect("loading font failed");
+
             let title_str_center_x = item_center_x;
             let title_str_center_y = song_selection_item_center_y + item_rect.h / 4;
-            let surface = font.render(&song_selection_items[real_song_selection_idx as usize].title).blended(Color::BLACK).unwrap();
+            let surface = title_font.render(&song_selection_items[real_song_selection_idx as usize].title).blended(Color::BLACK).unwrap();
             let texture = texture_creator.create_texture_from_surface(&surface).unwrap();
             let texture_query = texture.query();
             let mut title_str_rect: Rect = Rect::new(-1, -1, texture_query.width, texture_query.height);
@@ -235,7 +238,7 @@ pub(crate) fn select_song(
         
             let artist_str_center_x = item_center_x;
             let artist_str_center_y = title_str_center_y + title_str_center_y / 25;
-            let surface = font.render(&song_selection_items[real_song_selection_idx as usize].artist).blended(Color::BLACK).unwrap();
+            let surface = artist_font.render(&song_selection_items[real_song_selection_idx as usize].artist).blended(Color::BLACK).unwrap();
             let texture = texture_creator.create_texture_from_surface(&surface).unwrap();
             let texture_query = texture.query();
             let mut artist_str_rect: Rect = Rect::new(-1, -1, texture_query.width, texture_query.height);
@@ -245,7 +248,7 @@ pub(crate) fn select_song(
         }
 
         // drawing common
-        // render_common(common_context);
+        render_common(common_context);
 
         common_context.canvas.present();
     }
