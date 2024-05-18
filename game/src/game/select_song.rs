@@ -73,7 +73,6 @@ pub(crate) fn select_song(
     let song_display_area_y = (viewport.height() / 4) as i32;
 
     // selected song item variables
-    let displayed_selected_song_cnt = 4; // it should be odd number for existence of center song item
     let song_selection_item_rect_width = (song_display_area_height) * 3/4 ;
     let song_selection_item_rect_height = song_selection_item_rect_width * (song_selection_img_texture_original_height / song_selection_img_texture_original_width);
 
@@ -89,7 +88,7 @@ pub(crate) fn select_song(
     let mut last_key_press_time = Instant::now(); // most recent time when the user press left or right key
 
     let moving_speed = 1; // moving speed of song selection item
-    let song_selection_item_interval = (song_display_area_width / displayed_selected_song_cnt) as i32; // interval between song selection item, adjusting the interval to display displayed_selected_song_cnt number of items on display
+    let song_selection_item_interval = (song_display_area_width / 4) as i32; // interval between song selection item, adjusting the interval to display displayed_selected_song_cnt number of items on display
     let moving_distance = song_selection_item_interval; // maximum moving distance of song selection item 
     let mut moving_direction : MovingDirection= MovingDirection::Stop; // moving direction of song selection item
     
@@ -139,8 +138,8 @@ pub(crate) fn select_song(
         }
 
         let elapsed_time = last_key_press_time.elapsed().as_millis() as f32;
-        let leftmost_item_idx : i32 = selecetd_song_item_idx -(displayed_selected_song_cnt as i32 / 2) - 1;
-        let right_most_item_idx : i32 = selecetd_song_item_idx + (displayed_selected_song_cnt as i32 / 2) + 1;
+        let leftmost_item_idx : i32 = selecetd_song_item_idx - 2 - 1;
+        let right_most_item_idx : i32 = selecetd_song_item_idx + 2 + 1;
         if moving_direction == MovingDirection::Left { // if user press right key, then song menu moves to right for specific distance
             let current_moved_distance = elapsed_time * moving_speed as f32;
             if current_moved_distance <= moving_distance as f32 { // until 
