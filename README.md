@@ -48,6 +48,8 @@ Due to difficulties on building Rust FFmpeg library on Windows, The GNU toolchai
     rustup default stable-x86_64-pc-windows-gnu
     ```
 1. Create `.cargo/config.toml` file and write the following to the file.
+    - For location of `.cargo/config.toml`, Read [The Cargo Book](https://doc.rust-lang.org/cargo/reference/config.html#hierarchical-structure).
+        - If you have no idea about it, the root directory of bidrum (where there is `README.md` file which you're reading now) may be good for location of `.cargo/config.toml`.
     - The following assumes that MSYS2 installation path is `C:\msys64`. If the installation path is different, Modify it.
     ```toml
     [target.x86_64-pc-windows-gnu]
