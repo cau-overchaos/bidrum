@@ -1,7 +1,7 @@
 use std::{path::Path, time::Instant};
 
 use bidrum_data_struct_lib::song::GameSong;
-use sdl2::{ event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect, render::Texture};
+use sdl2::{ event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect, render::Texture, sys::ttf::TTF_STYLE_BOLD};
 
 use super::{common::{event_loop_common, render_common}, game_common_context::GameCommonContext};
 
@@ -36,7 +36,7 @@ pub(crate) fn select_song(
     let song_selection_img_texture_original_height = song_selection_img_texture.query().height;
 
     let font_path = "assets/sans.ttf";
-    let title_font_size = 40;
+    let title_font_size = 30;
     let artist_font_size = 20;
 
     // convert GameSong vector to SongSelectionItem vector
@@ -222,8 +222,8 @@ pub(crate) fn select_song(
             common_context.canvas.copy(&song_selection_items[real_song_selection_idx as usize].cover_img_texture, None, cover_img_rect).expect("Failed to render cover image");
         
             let ttf_context = &common_context.ttf_context;
-            let title_font = ttf_context.load_font(font_path, title_font_size).expect("loading font failed");
-            let artist_font = ttf_context.load_font(font_path, artist_font_size).expect("loading font failed");
+            let title_font = ttf_context.load_font(font_path, (title_font_size as f32 * (item_rect.w as f32 / song_selection_item_rect_width as f32)) as u16).expect("loading font failed"); // change font size according to the item_rect size
+            let artist_font = ttf_context.load_font(font_path, (artist_font_size as f32 * (item_rect.w as f32 / song_selection_item_rect_width as f32)) as u16 ).expect("loading font failed"); // change font size according to the item_rect size
 
             let title_str_center_x = item_center_x;
             let title_str_center_y = song_selection_item_center_y + item_rect.h / 4;
@@ -236,7 +236,7 @@ pub(crate) fn select_song(
             common_context.canvas.copy(&texture, None, title_str_rect).expect("Failed to render title texture");
         
             let artist_str_center_x = item_center_x;
-            let artist_str_center_y = title_str_center_y + title_str_center_y / 25;
+            let artist_str_center_y = title_str_center_y + (title_str_center_y as f32 * (item_rect.w as f32 / song_selection_item_rect_width as f32) / 25 as f32) as i32; // change interval between title and artist fort according to the item_rect size
             let surface = artist_font.render(&song_selection_items[real_song_selection_idx as usize].artist).blended(Color::BLACK).unwrap();
             let texture = texture_creator.create_texture_from_surface(&surface).unwrap();
             let texture_query = texture.query();
