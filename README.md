@@ -19,7 +19,42 @@
 
 
 ### Windows
-TBA
+Due to difficulties on building Rust FFmpeg library on Windows, The GNU toolchain is used instead of MSVC toolchain.
+
+1. Install [MSYS2](https://www.msys2.org)
+1. Install Rust with [rustup](https://rustup.rs)
+1. Run following command on **MSYS2 SHELL**. (**NOT POWERSHELL / CMD / GIT BASH**)
+    - Append `--noconfirm` parameter if you want to say "yes" to all the questions automatically
+    ```bash
+    pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-ffmpeg mingw-w64-x86_64-clang mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_ttf mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-SDL2_mixer
+    ```
+1. (Optional) Run the following commands and remember default host and default toolchain
+    - You can use the default host and default toolchain remembered here after building bidrum, with `rustup set default-host` and `rustup default` commands.
+    ```powershell
+    rustup toolchain list
+    rustup show
+    ```
+1. Run following commands in PowerShell or cmd. If you had ran these commands before, you can skip this step.
+    ```powershell
+    rustup toolchain install stable-gnu
+    rustup target add x86_64-pc-windows-gnu
+    ```
+1. Run following commands in PowerShell or cmd
+    - Please note that `rustup set default-host` and `rustup default` command is permanent.
+    ```powershell
+    rustup set default-host x86_64-pc-windows-gnu
+    rustup default stable-x86_64-pc-windows-gnu
+    ```
+1. Create `.cargo/config.toml` file and write the following to the file.
+    - The following assumes that MSYS2 installation path is `C:\msys64`. If the installation path is different, Modify it.
+    ```toml
+    [target.x86_64-pc-windows-gnu]
+    linker = "C:\\msys64\\mingw64\\bin\\gcc.exe"
+    ar = "C:\\msys64\\mingw64\\bin\\ar.exe"
+    ```
+1. Add `(MSYS2 installation path)\mingw64\bin` to `PATH` environment variable
+1. Run `cargo build --target x86_64-pc-windows-gnu`
+1. When running the game, `assets` directory and `music` directory should be in the working directory.
 
 ## Docs
 - [Glossary](docs/glossary.md)
