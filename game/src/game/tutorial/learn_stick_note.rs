@@ -133,6 +133,7 @@ fn display_animated_example_note(
                 accuracy: None,
                 accuracy_time_progress: None,
                 input_effect: is_input_effect_needed(janggu_state_and_tutorial_start_time.0, tick),
+                overall_effect_tick: common_context.game_initialized_at.elapsed().as_millis(),
             },
             game_ui_resources,
         );

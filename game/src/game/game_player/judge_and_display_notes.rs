@@ -160,6 +160,7 @@ pub(crate) fn display_notes_and_judge(
                 None
             },
             input_effect: is_input_effect_needed(&janggu_state_with_tick, tick_now),
+            overall_effect_tick: common_context.game_initialized_at.elapsed().as_millis(),
         },
         gameplay_ui_resources,
     );

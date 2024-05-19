@@ -10,7 +10,7 @@ use sdl2::{
 
 use bidrum_data_struct_lib::janggu::{JangguFace, JangguStick};
 
-use super::timing_judge::{JudgeResult, NoteAccuracy};
+use super::timing_judge::NoteAccuracy;
 
 struct NoteTextures<'a> {
     left_stick: Texture<'a>,
@@ -34,6 +34,7 @@ pub struct UIContent {
     pub(crate) accuracy: Option<NoteAccuracy>,
     pub(crate) accuracy_time_progress: Option<f32>,
     pub(crate) input_effect: [Option<JangguFace>; 2],
+    pub(crate) overall_effect_tick: u128,
 }
 
 fn load_note_textures(
@@ -130,16 +131,18 @@ pub fn draw_gameplay_ui(
 
     // draw janggu on center
     let viewport = canvas.viewport();
-    canvas.copy(
-        &janggu_texture,
-        None,
-        Rect::new(
-            (viewport.width() - janggu_width) as i32 / 2,
-            (viewport.height() - background_height_with_border) as i32 / 2,
-            janggu_width,
-            background_height_with_border,
-        ),
-    );
+    canvas
+        .copy(
+            &janggu_texture,
+            None,
+            Rect::new(
+                (viewport.width() - janggu_width) as i32 / 2,
+                (viewport.height() - background_height_with_border) as i32 / 2,
+                janggu_width,
+                background_height_with_border,
+            ),
+        )
+        .expect("Failed to draw janggu icon");
 
     // draw backgrounds
     let background_width = (viewport.width() - janggu_width) / 2;
@@ -149,18 +152,38 @@ pub fn draw_gameplay_ui(
         0,                                             /* x coordinate of left background */
         background_width as i32 + janggu_width as i32, /* x coordinate of right background */
     ] {
-        let background_alpha = if other.input_effect.iter().any(|i| {
-            i.is_some_and(|x| {
-                if background_x == 0 {
-                    x == JangguFace::궁편
-                } else {
-                    x == JangguFace::열편
-                }
-            })
-        }) {
-            200
-        } else {
-            150
+        let background_alpha = {
+            // is the face hitted?
+            let hitting = other.input_effect.iter().any(|i| {
+                i.is_some_and(|x| {
+                    if background_x == 0 {
+                        x == JangguFace::궁편
+                    } else {
+                        x == JangguFace::열편
+                    }
+                })
+            });
+
+            // base which changed by whether it's hitted or not
+            let base = if hitting { 200 } else { 100 };
+
+            // effect that changes by time
+            let effect_by_time = (50.0 * {
+                ezing::quad_out({
+                    let blinking_duration = 300;
+                    let total_duration = 1000;
+                    assert!(0 < blinking_duration && blinking_duration <= total_duration);
+
+                    let remainder = (other.overall_effect_tick % total_duration) as f64;
+                    if remainder < blinking_duration as f64 {
+                        (blinking_duration as f64 - remainder) / blinking_duration as f64
+                    } else {
+                        0.0
+                    }
+                })
+            }) as u8;
+
+            base + effect_by_time
         };
         canvas.set_draw_color(Color::RGBA(200, 200, 200, background_alpha));
         canvas
