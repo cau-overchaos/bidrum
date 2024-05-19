@@ -98,11 +98,6 @@ macro_rules! create_button_texture {
     }};
 }
 
-pub enum DialogButton {
-    Yes,
-    No,
-}
-
 /// Renders dialog at center
 pub fn render_confirm_dialog(
     common_context: &mut GameCommonContext,
@@ -110,6 +105,7 @@ pub fn render_confirm_dialog(
     yes_button_text: Option<&str>,
     no_button_text: Option<&str>,
     animation_progress: f64,
+    alpha: Option<u8>,
 ) {
     // Set font-size, line-height and load font
     let font_size = 38;
@@ -130,7 +126,7 @@ pub fn render_confirm_dialog(
         .expect("Failed to load font");
 
     let texture_creator = common_context.canvas.texture_creator();
-    let font_textures: Vec<Texture> = message
+    let mut font_textures: Vec<Texture> = message
         .split('\n')
         .into_iter()
         .map(|x| render_font_texture!(texture_creator, font, font_color, x))
@@ -177,7 +173,7 @@ pub fn render_confirm_dialog(
     assert!(min_button_gap <= button_gap && button_gap <= max_button_gap);
 
     // Render button area
-    let button_area = texture_creator
+    let mut button_area = texture_creator
         .create_texture_from_surface({
             // Calculate width and height
             let width = button_gap * 2
@@ -296,7 +292,7 @@ pub fn render_confirm_dialog(
     let dialog_y = ((viewport.height() - dialog_height) / 2) as i32;
     common_context
         .canvas
-        .set_draw_color(Color::RGBA(0x62, 0x62, 0x62, 255));
+        .set_draw_color(Color::RGBA(0x62, 0x62, 0x62, alpha.unwrap_or(255)));
     common_context
         .canvas
         .fill_rect(Rect::new(
@@ -308,9 +304,10 @@ pub fn render_confirm_dialog(
         .unwrap();
 
     // Copy background
-    let background = texture_creator
+    let mut background = texture_creator
         .load_texture("assets/dialog/bg.png")
         .expect("Failed to load background texture");
+    background.set_alpha_mod(alpha.unwrap_or(255));
     common_context
         .canvas
         .copy(
@@ -321,7 +318,11 @@ pub fn render_confirm_dialog(
         .unwrap();
 
     // Copy font textures
-    for (line_idx, line_texture) in font_textures.iter().enumerate() {
+    for (line_idx, line_texture) in font_textures.iter_mut().enumerate() {
+        if let Some(alpha) = alpha {
+            line_texture.set_alpha_mod(alpha);
+        }
+
         common_context
             .canvas
             .copy(
@@ -342,6 +343,10 @@ pub fn render_confirm_dialog(
     // Copy button
     let button_area_bottom = dialog_y + (dialog_height - dialog_padding_y) as i32;
     let button_area_y = button_area_bottom - button_area.query().height as i32;
+    if let Some(alpha) = alpha {
+        button_area.set_alpha_mod(alpha);
+    }
+
     common_context
         .canvas
         .copy(

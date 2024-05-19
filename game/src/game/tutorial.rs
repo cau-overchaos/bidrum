@@ -26,11 +26,10 @@ use super::{
         janggu_state_with_tick::{self, JangguStateWithTick},
     },
     render_video::VideoFileRenderer,
-    util::confirm_dialog::{render_confirm_dialog, DialogButton},
+    util::confirm_dialog::render_confirm_dialog,
 };
 
 fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
-    let ask_started_at = Instant::now();
     let mut selected = None;
     let mut janggu_state = JangguStateWithTick::new();
 
@@ -46,8 +45,15 @@ fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
     )
     .unwrap();
 
-    'running: loop {
-        let tick = ask_started_at.elapsed().as_millis();
+    // show video only
+    let video_only_duration = 150;
+    let video_only_started_at = Instant::now();
+    loop {
+        let tick = video_only_started_at.elapsed().as_millis();
+
+        if tick > video_only_duration {
+            break;
+        }
 
         for i in common_context.event_pump.poll_iter() {
             if event_loop_common(&i, &mut common_context.coins) {
@@ -56,9 +62,87 @@ fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
             }
         }
 
+        // Decode background video
+        background_video.wanted_time_in_second = Rational64::new(
+            common_context.game_initialized_at.elapsed().as_millis() as i64,
+            1000,
+        );
+
+        common_context.canvas.clear();
+
+        // render bga
+        background_video.render_frame(&mut background_video_texture);
+        common_context
+            .canvas
+            .copy(&background_video_texture, None, None)
+            .unwrap();
+
+        render_common(common_context);
+        common_context.canvas.present();
+    }
+
+    // fade in
+    let fade_in_started_at = Instant::now();
+    let fade_in_duration = 300;
+    let timeout = 10;
+    loop {
+        let fade_in_tick = fade_in_started_at.elapsed().as_millis();
+
+        if fade_in_tick > fade_in_duration {
+            break;
+        }
+
+        for i in common_context.event_pump.poll_iter() {
+            if event_loop_common(&i, &mut common_context.coins) {
+                background_video.stop_decoding();
+                return false;
+            }
+        }
+
+        // Decode background video
+        background_video.wanted_time_in_second = Rational64::new(
+            common_context.game_initialized_at.elapsed().as_millis() as i64,
+            1000,
+        );
+
+        common_context.canvas.clear();
+
+        // render bga
+        background_video.render_frame(&mut background_video_texture);
+        common_context
+            .canvas
+            .copy(&background_video_texture, None, None)
+            .unwrap();
+
+        // render dialog
+        render_confirm_dialog(
+            common_context,
+            format!("튜토리얼을 진행하시겠습니까?\n남은 시간: {}", timeout).as_str(),
+            None,
+            None,
+            (common_context.game_initialized_at.elapsed().as_millis() as f64 % 1000.0) / 1000.0,
+            Some((ezing::sine_out(fade_in_tick as f64 / fade_in_duration as f64) * 255.0) as u8),
+        );
+
+        render_common(common_context);
+        common_context.canvas.present();
+    }
+
+    // show dialog
+    let dialog_started_at = Instant::now();
+    'running: loop {
+        let tick = dialog_started_at.elapsed().as_millis();
+
+        for i in common_context.event_pump.poll_iter() {
+            if event_loop_common(&i, &mut common_context.coins) {
+                selected = Some(false);
+                break 'running;
+            }
+        }
+
         // break when timeout
-        let elapsed_secs = ask_started_at.elapsed().as_secs();
-        if elapsed_secs > 10 {
+        let elapsed_secs = dialog_started_at.elapsed().as_secs();
+        if elapsed_secs > timeout {
             break 'running;
         }
 
@@ -99,13 +183,68 @@ fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
             common_context,
             format!(
                 "튜토리얼을 진행하시겠습니까?\n남은 시간: {}",
-                10 - elapsed_secs
+                timeout - elapsed_secs
             )
             .as_str(),
             None,
             None,
             (common_context.game_initialized_at.elapsed().as_millis() as f64 % 1000.0) / 1000.0,
+            None,
         );
+        render_common(common_context);
+        common_context.canvas.present();
+    }
+
+    // fade out
+    let fade_out_started_at = Instant::now();
+    let fade_out_duration = 300;
+    let last_elapsed_secs = timeout - dialog_started_at.elapsed().as_secs().min(10);
+    loop {
+        let fade_out_tick = fade_out_started_at.elapsed().as_millis();
+
+        if fade_out_tick > fade_out_duration {
+            break;
+        }
+
+        for i in common_context.event_pump.poll_iter() {
+            if event_loop_common(&i, &mut common_context.coins) {
+                background_video.stop_decoding();
+                return false;
+            }
+        }
+
+        // Decode background video
+        background_video.wanted_time_in_second = Rational64::new(
+            common_context.game_initialized_at.elapsed().as_millis() as i64,
+            1000,
+        );
+
+        common_context.canvas.clear();
+
+        // render bga
+        background_video.render_frame(&mut background_video_texture);
+        common_context
+            .canvas
+            .copy(&background_video_texture, None, None)
+            .unwrap();
+
+        // render dialog
+        render_confirm_dialog(
+            common_context,
+            format!(
+                "튜토리얼을 진행하시겠습니까?\n남은 시간: {}",
+                last_elapsed_secs
+            )
+            .as_str(),
+            None,
+            None,
+            (common_context.game_initialized_at.elapsed().as_millis() as f64 % 1000.0) / 1000.0,
+            Some(
+                ((1.0 - ezing::sine_out(fade_out_tick as f64 / fade_out_duration as f64)) * 255.0)
+                    as u8,
+            ),
+        );
+
         render_common(common_context);
         common_context.canvas.present();
     }
