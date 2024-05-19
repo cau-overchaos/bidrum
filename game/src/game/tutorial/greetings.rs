@@ -3,6 +3,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+use bidrum_data_struct_lib::janggu::JangguFace;
 use kira::sound::static_sound::{StaticSoundData, StaticSoundSettings};
 use sdl2::{image::LoadTexture, render::Texture};
 
@@ -10,7 +11,7 @@ use crate::game::{
     common::{event_loop_common, render_common},
     game_common_context::GameCommonContext,
     game_player::{
-        draw_gameplay_ui::{self, GamePlayUIResources, UIContent},
+        draw_gameplay_ui::{self, GamePlayUIResources, InputEffect, UIContent},
         is_input_effect_needed, janggu_state_with_tick,
     },
 };
@@ -62,7 +63,7 @@ pub(crate) fn do_tutorial_greetings(
             UIContent {
                 accuracy: None,
                 accuracy_time_progress: None,
-                input_effect: is_input_effect_needed(janggu_state_and_tutorial_start_time.0, tick),
+                input_effect: InputEffect::new(),
                 overall_effect_tick: common_context.game_initialized_at.elapsed().as_millis(),
             },
             game_ui_resources,

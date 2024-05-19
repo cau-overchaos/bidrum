@@ -10,7 +10,7 @@ use sdl2::{
 
 use bidrum_data_struct_lib::janggu::{JangguFace, JangguStick};
 
-use super::timing_judge::NoteAccuracy;
+use super::{janggu_state_with_tick::JangguStateWithTick, timing_judge::NoteAccuracy};
 
 struct NoteTextures<'a> {
     left_stick: Texture<'a>,
@@ -30,10 +30,84 @@ pub struct DisplayedSongNote {
     pub(crate) stick: JangguStick,
 }
 
+#[derive(Clone)]
+pub struct InputEffectItem {
+    pub(crate) pressed: bool,
+    pub(crate) keydown_timing: Option<i128>,
+}
+
+#[derive(Clone)]
+pub struct InputEffect {
+    pub(crate) left_face: InputEffectItem,
+    pub(crate) right_face: InputEffectItem,
+    pub(crate) base_tick: i128,
+}
+
+impl InputEffect {
+    pub fn new() -> InputEffect {
+        return InputEffect {
+            base_tick: 0,
+            left_face: InputEffectItem {
+                pressed: false,
+                keydown_timing: None,
+            },
+            right_face: InputEffectItem {
+                pressed: false,
+                keydown_timing: None,
+            },
+        };
+    }
+    pub fn update(&mut self, janggu: &JangguStateWithTick, tick_now: i128) {
+        self.base_tick = tick_now;
+
+        // Process left face
+        self.left_face.pressed = false;
+        if janggu.궁채.face.is_some_and(|x| x == JangguFace::궁편) {
+            self.left_face.pressed = true;
+            self.left_face.keydown_timing =
+                Some(if let Some(prev) = self.left_face.keydown_timing {
+                    prev.max(janggu.궁채.keydown_timing)
+                } else {
+                    janggu.궁채.keydown_timing
+                })
+        }
+        if janggu.열채.face.is_some_and(|x| x == JangguFace::궁편) {
+            self.left_face.pressed = true;
+            self.left_face.keydown_timing =
+                Some(if let Some(prev) = self.left_face.keydown_timing {
+                    prev.max(janggu.열채.keydown_timing)
+                } else {
+                    janggu.열채.keydown_timing
+                })
+        }
+
+        // Process right face
+        self.right_face.pressed = false;
+        if janggu.궁채.face.is_some_and(|x| x == JangguFace::열편) {
+            self.right_face.pressed = true;
+            self.right_face.keydown_timing =
+                Some(if let Some(prev) = self.right_face.keydown_timing {
+                    prev.max(janggu.궁채.keydown_timing)
+                } else {
+                    janggu.궁채.keydown_timing
+                })
+        }
+        if janggu.열채.face.is_some_and(|x| x == JangguFace::열편) {
+            self.right_face.pressed = true;
+            self.right_face.keydown_timing =
+                Some(if let Some(prev) = self.right_face.keydown_timing {
+                    prev.max(janggu.열채.keydown_timing)
+                } else {
+                    janggu.열채.keydown_timing
+                })
+        }
+    }
+}
+
 pub struct UIContent {
     pub(crate) accuracy: Option<NoteAccuracy>,
     pub(crate) accuracy_time_progress: Option<f32>,
-    pub(crate) input_effect: [Option<JangguFace>; 2],
+    pub(crate) input_effect: InputEffect,
     pub(crate) overall_effect_tick: u128,
 }
 
@@ -125,44 +199,57 @@ pub fn draw_gameplay_ui(
         background_height_without_border + background_border_height * 2;
 
     // calculate janggu width
-    let janggu_width = ((janggu_texture.query().width as f32
+    let janggu_width_min = ((janggu_texture.query().width as f32
         / janggu_texture.query().height as f32)
         * background_height_with_border as f32) as u32;
+    let janggu_width_max = janggu_width_min + 20;
 
-    // draw janggu on center
+    // calc janggu icon size
+    let janggu_width = janggu_width_min
+        + ((janggu_width_max - janggu_width_min) as f64 * {
+            // animation duration
+            let animation_duration = 250;
+
+            // last keydown timing
+            let last_keydown_timing = other
+                .input_effect
+                .left_face
+                .keydown_timing
+                .unwrap_or(0)
+                .max(other.input_effect.right_face.keydown_timing.unwrap_or(0));
+
+            // elapsed time since last keydown timing
+            let delta = other.input_effect.base_tick - last_keydown_timing;
+
+            // return easing value
+            if delta < animation_duration {
+                1.0 - ezing::bounce_inout(delta as f64 / animation_duration as f64)
+            } else {
+                0.0
+            }
+        }) as u32;
+    let janggu_height = ((janggu_texture.query().height as f32
+        / janggu_texture.query().width as f32)
+        * janggu_width as f32) as u32;
+
+    // get viewport
     let viewport = canvas.viewport();
-    canvas
-        .copy(
-            &janggu_texture,
-            None,
-            Rect::new(
-                (viewport.width() - janggu_width) as i32 / 2,
-                (viewport.height() - background_height_with_border) as i32 / 2,
-                janggu_width,
-                background_height_with_border,
-            ),
-        )
-        .expect("Failed to draw janggu icon");
 
     // draw backgrounds
-    let background_width = (viewport.width() - janggu_width) / 2;
+    let background_width = (viewport.width() - janggu_width_min) / 2;
     let background_y =
         (canvas.viewport().height() as i32 - (background_height_without_border as i32)) / 2;
     for background_x in [
-        0,                                             /* x coordinate of left background */
-        background_width as i32 + janggu_width as i32, /* x coordinate of right background */
+        0,                                                 /* x coordinate of left background */
+        background_width as i32 + janggu_width_min as i32, /* x coordinate of right background */
     ] {
         let background_alpha = {
             // is the face hitted?
-            let hitting = other.input_effect.iter().any(|i| {
-                i.is_some_and(|x| {
-                    if background_x == 0 {
-                        x == JangguFace::궁편
-                    } else {
-                        x == JangguFace::열편
-                    }
-                })
-            });
+            let hitting = if background_x == 0 {
+                other.input_effect.left_face.pressed
+            } else {
+                other.input_effect.right_face.pressed
+            };
 
             // base which changed by whether it's hitted or not
             let base = if hitting { 200 } else { 100 };
@@ -224,7 +311,7 @@ pub fn draw_gameplay_ui(
     let judgeline_line_ypos = background_y + background_padding as i32;
     let judgement_line_xposes = [
         background_width as i32 - judgement_line_width as i32 - judgement_line_padding_px, /* left judgement line */
-        background_width as i32 + janggu_width as i32 + judgement_line_padding_px, /* right judgement line */
+        background_width as i32 + janggu_width_min as i32 + judgement_line_padding_px, /* right judgement line */
     ];
     for judgement_line_xpos in judgement_line_xposes {
         canvas
@@ -291,7 +378,7 @@ pub fn draw_gameplay_ui(
             JangguFace::궁편 => (viewport.width() / 2) as i32 - near_center_edge_x_pos,
             JangguFace::열편 => near_center_edge_x_pos - (viewport.width() / 2) as i32,
         };
-        if distance_with_center <= (janggu_width / 2) as i32 {
+        if distance_with_center <= (janggu_width_min / 2) as i32 {
             return;
         }
 
@@ -316,6 +403,20 @@ pub fn draw_gameplay_ui(
             draw_note(i);
         }
     }
+
+    // draw janggu icon on center
+    canvas
+        .copy(
+            &janggu_texture,
+            None,
+            Rect::new(
+                (viewport.width() - janggu_width) as i32 / 2,
+                (viewport.height() - janggu_height) as i32 / 2,
+                janggu_width,
+                janggu_height,
+            ),
+        )
+        .expect("Failed to draw janggu icon");
 
     // draw note accuracy
     if let Some(accuracy) = other.accuracy {

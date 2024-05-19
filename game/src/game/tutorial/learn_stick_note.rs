@@ -8,7 +8,6 @@ use bidrum_data_struct_lib::{
     janggu::{self, JangguFace, JangguStick},
     song::{GameChart, GameNote},
 };
-use ffmpeg_next::subtitle::Text;
 use kira::sound::static_sound::{StaticSoundData, StaticSoundSettings};
 use sdl2::{image::LoadTexture, rect::Rect, render::Texture};
 
@@ -16,8 +15,7 @@ use crate::game::{
     common::{self, event_loop_common, render_common},
     game_common_context::GameCommonContext,
     game_player::{
-        draw_gameplay_ui::{self, DisplayedSongNote, GamePlayUIResources, UIContent},
-        is_input_effect_needed,
+        draw_gameplay_ui::{self, DisplayedSongNote, GamePlayUIResources, InputEffect, UIContent},
         janggu_state_with_tick::JangguStateWithTick,
         judge_and_display_notes::{display_notes_and_judge, EffectSoundHandles},
         load_hit_sounds::load_hit_sounds,
@@ -75,6 +73,8 @@ fn display_animated_example_note(
     common_context.audio_manager.play(message.1.clone());
     let voice_started_at = Instant::now();
 
+    let mut input_effect = InputEffect::new();
+
     loop {
         for event in common_context.event_pump.poll_iter() {
             event_loop_common(&event, &mut common_context.coins);
@@ -89,6 +89,9 @@ fn display_animated_example_note(
         janggu_state_and_tutorial_start_time
             .0
             .update(common_context.read_janggu_state(), tick);
+
+        // Update input effect
+        input_effect.update(janggu_state_and_tutorial_start_time.0, tick);
 
         // Clear canvas
         common_context.canvas.clear();
@@ -132,7 +135,7 @@ fn display_animated_example_note(
             UIContent {
                 accuracy: None,
                 accuracy_time_progress: None,
-                input_effect: is_input_effect_needed(janggu_state_and_tutorial_start_time.0, tick),
+                input_effect: input_effect.clone(),
                 overall_effect_tick: common_context.game_initialized_at.elapsed().as_millis(),
             },
             game_ui_resources,
@@ -220,6 +223,7 @@ fn display_tryitout_notes(
     let mut accuracy = None;
     let mut accuracy_tick = None;
 
+    let mut input_effect = InputEffect::new();
     let mut janggu_state = JangguStateWithTick::new();
     janggu_state.update(common_context.read_janggu_state(), 0);
 
@@ -240,6 +244,7 @@ fn display_tryitout_notes(
         // Update janggu input state
         let tick = tryitout_tutorial_started_at.elapsed().as_millis() as u64;
         janggu_state.update(common_context.read_janggu_state(), tick as i128);
+        input_effect.update(&janggu_state, tick as i128);
 
         // Clear canvas
         common_context.canvas.clear();
@@ -256,6 +261,7 @@ fn display_tryitout_notes(
             &mut accuracy_tick,
             &hit_sounds,
             &mut hit_sound_handles,
+            &input_effect,
             tick.into(),
         );
 

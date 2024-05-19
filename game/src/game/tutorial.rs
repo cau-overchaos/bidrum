@@ -5,6 +5,7 @@ mod learn_stick_note;
 use std::{path::Path, time::Instant};
 
 use bidrum_data_struct_lib::janggu::{JangguFace, JangguStick};
+use ffmpeg_next::format::Input;
 use kira::sound::static_sound::StaticSoundData;
 use num_rational::Rational64;
 use sdl2::{rect::Rect, render::Texture};
@@ -21,7 +22,7 @@ use super::{
     game_common_context::GameCommonContext,
     game_player::{
         self,
-        draw_gameplay_ui::{self, GamePlayUIResources, UIContent},
+        draw_gameplay_ui::{self, GamePlayUIResources, InputEffect, UIContent},
         is_input_effect_needed,
         janggu_state_with_tick::{self, JangguStateWithTick},
     },
@@ -325,7 +326,7 @@ pub(self) fn display_tutorial_messages(
             UIContent {
                 accuracy: None,
                 accuracy_time_progress: None,
-                input_effect: is_input_effect_needed(janggu_state_and_tutorial_start_time.0, tick),
+                input_effect: InputEffect::new(),
                 overall_effect_tick: common_context.game_initialized_at.elapsed().as_millis(),
             },
             game_ui_resources,

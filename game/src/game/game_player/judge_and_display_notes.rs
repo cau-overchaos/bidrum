@@ -23,7 +23,7 @@ use crate::game::{
 };
 
 use super::{
-    draw_gameplay_ui::{self, GamePlayUIResources},
+    draw_gameplay_ui::{self, GamePlayUIResources, InputEffect},
     janggu_state_with_tick::JangguStateWithTick,
     timing_judge::TimingJudge,
 };
@@ -53,6 +53,7 @@ pub(crate) fn display_notes_and_judge(
     accuracy_tick: &mut Option<i128>,
     hit_sounds: &[StaticSoundData; 2],
     effect_sound_handles: &mut EffectSoundHandles,
+    input_effect: &InputEffect,
     tick_now: i128,
 ) {
     let kung_sound_data = hit_sounds[0].clone();
@@ -159,7 +160,7 @@ pub(crate) fn display_notes_and_judge(
             } else {
                 None
             },
-            input_effect: is_input_effect_needed(&janggu_state_with_tick, tick_now),
+            input_effect: input_effect.clone(),
             overall_effect_tick: common_context.game_initialized_at.elapsed().as_millis(),
         },
         gameplay_ui_resources,

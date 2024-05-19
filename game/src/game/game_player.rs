@@ -26,7 +26,7 @@ use crate::{
 };
 
 use self::{
-    draw_gameplay_ui::{DisplayedSongNote, UIContent},
+    draw_gameplay_ui::{DisplayedSongNote, InputEffect, UIContent},
     game_result::GameResult,
     janggu_state_with_tick::JangguStateWithTick,
     judge_and_display_notes::EffectSoundHandles,
@@ -177,6 +177,8 @@ pub(crate) fn play_song(
 
     let mut gameplay_ui_resources = draw_gameplay_ui::GamePlayUIResources::new(&texture_creator);
 
+    let mut input_effect = InputEffect::new();
+
     'running: loop {
         let tick_now = clock.time().ticks as i128 - start_tick.ticks as i128;
         for event in common_context.event_pump.poll_iter() {
@@ -224,6 +226,7 @@ pub(crate) fn play_song(
 
         // display notes and accuracy
         if tick_now >= 0 {
+            input_effect.update(&janggu_state_with_tick, tick_now);
             display_notes_and_judge(
                 common_context,
                 &chart,
@@ -235,6 +238,7 @@ pub(crate) fn play_song(
                 &mut accuracy_tick,
                 &hit_sounds,
                 &mut effect_sound_handles,
+                &input_effect,
                 tick_now,
             );
         }
