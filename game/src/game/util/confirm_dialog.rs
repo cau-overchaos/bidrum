@@ -2,7 +2,7 @@ use sdl2::{
     image::LoadTexture,
     pixels::{Color, PixelFormatEnum},
     rect::Rect,
-    render::{TargetRenderError, Texture, TextureCreator},
+    render::Texture,
 };
 
 use crate::game::game_common_context::GameCommonContext;
