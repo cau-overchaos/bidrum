@@ -51,21 +51,15 @@ fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
             || (janggu_state.열채.is_keydown_now
                 && matches!(janggu_state.열채.face, Some(JangguFace::궁편)))
         {
-            if selected.is_some_and(|x| x) {
-                return true;
-            } else {
-                selected = Some(true);
-            }
+            selected = Some(true);
+            break;
         } else if (janggu_state.궁채.is_keydown_now
             && matches!(janggu_state.궁채.face, Some(JangguFace::열편)))
             || (janggu_state.열채.is_keydown_now
                 && matches!(janggu_state.열채.face, Some(JangguFace::열편)))
         {
-            if selected.is_some_and(|x| x) {
-                selected = Some(false);
-            } else {
-                return false;
-            }
+            selected = Some(false);
+            break;
         }
 
         // render confirm dialog
@@ -79,13 +73,7 @@ fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
             .as_str(),
             None,
             None,
-            if selected.is_some_and(|x| x) {
-                Some(DialogButton::Yes)
-            } else if selected.is_some_and(|x| !x) {
-                Some(DialogButton::No)
-            } else {
-                None
-            },
+            (common_context.game_initialized_at.elapsed().as_millis() as f64 % 1000.0) / 1000.0,
         );
         render_common(common_context);
         common_context.canvas.present();
