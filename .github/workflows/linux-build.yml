@@ -1,4 +1,4 @@
-name: Rust
+name: Build on Linux
 
 on:
   push:
@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  build-linux:
 
     runs-on: ubuntu-latest
 
