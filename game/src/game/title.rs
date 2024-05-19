@@ -1,19 +1,24 @@
 use std::{path::Path, time::Duration};
 
+use num_rational::Rational64;
 use sdl2::{
     event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect, render::Canvas,
     video::Window,
 };
 
+use crate::create_streaming_iyuv_texture;
+
 use super::{
     common::{event_loop_common, render_common},
     game_common_context::GameCommonContext,
+    render_video::VideoFileRenderer,
+    util::create_outlined_font_texture::create_outlined_font_texture,
 };
 
-fn center_rect(rect: Rect, w: u32, h: u32) -> Rect {
+fn get_logo_rect(rect: Rect, w: u32, h: u32) -> Rect {
     return Rect::new(
         rect.x + (rect.width() / 2 - w / 2) as i32,
-        rect.y + (rect.height() / 2 - h / 2) as i32,
+        rect.y + (rect.height() / 2 - h) as i32,
         w,
         h,
     );
@@ -37,7 +42,7 @@ fn render_logo(canvas: &mut Canvas<Window>) {
         .copy(
             &texture,
             None,
-            Some(center_rect(
+            Some(get_logo_rect(
                 canvas.viewport(),
                 canvas.viewport().width() / 3,
                 (canvas.viewport().width() as f32 / 3.0 * (logo_height as f32 / logo_width as f32))
@@ -47,13 +52,74 @@ fn render_logo(canvas: &mut Canvas<Window>) {
         .expect("Logo rendering failure");
 }
 
+fn render_text(common_context: &mut GameCommonContext) {
+    let texture_creator = common_context.canvas.texture_creator();
+    let mut font = common_context
+        .ttf_context
+        .load_font_at_index("assets/sans.ttf", 262144 /* Regular */, 35)
+        .expect("Failed to load sans");
+
+    let mut texture = create_outlined_font_texture(
+        &texture_creator,
+        &mut font,
+        if common_context.coins >= common_context.price {
+            "장구를 쳐서 시작하세요!"
+        } else {
+            "동전을 넣어주세요"
+        },
+        2,
+        Color::WHITE,
+        Color::RGB(160, 160, 160),
+    )
+    .expect("Font rendering failure");
+    let animation_progress =
+        (common_context.game_initialized_at.elapsed().as_millis() as f64 % 2000.0) / 2000.0;
+    texture.set_alpha_mod(
+        (255.0
+            * ezing::sine_inout(
+                if animation_progress > 0.5 {
+                    1.0 - animation_progress
+                } else {
+                    animation_progress
+                } * 2.0,
+            )) as u8,
+    );
+
+    let viewport = common_context.canvas.viewport();
+    common_context
+        .canvas
+        .set_blend_mode(sdl2::render::BlendMode::Blend);
+    common_context
+        .canvas
+        .copy(
+            &texture,
+            None,
+            Some(Rect::new(
+                (viewport.width() - texture.query().width) as i32 / 2,
+                (viewport.height() - texture.query().height) as i32 / 2 + 100,
+                texture.query().width,
+                texture.query().height,
+            )),
+        )
+        .expect("Failed to render text");
+}
+
 pub(crate) enum TitleResult {
     Exit,
     StartGame,
 }
 
 pub(crate) fn render_title(common_context: &mut GameCommonContext) -> TitleResult {
-    let mut delta: i32 = 0;
+    let texture_creator = common_context.canvas.texture_creator();
+    let mut background_video =
+        VideoFileRenderer::new(Path::new("assets/video/title_bga.mkv"), true);
+    let background_video_size = background_video.get_size();
+    let mut background_video_texture = create_streaming_iyuv_texture!(
+        texture_creator,
+        background_video_size.0,
+        background_video_size.1
+    )
+    .expect("Failed to create texture for title background video");
     loop {
         for event in common_context.event_pump.poll_iter() {
             if event_loop_common(&event, &mut common_context.coins) {
@@ -73,35 +139,52 @@ pub(crate) fn render_title(common_context: &mut GameCommonContext) -> TitleResul
             }
         }
 
-        let canvas = &mut common_context.canvas;
-        canvas.clear();
+        common_context.canvas.clear();
 
-        let viewport = canvas.viewport();
-        let rect_size = 200;
-        for i in 0..(viewport.w / rect_size) + 5 {
-            let mut color = if i % 2 == 0 {
-                Color::CYAN
+        background_video.wanted_time_in_second = Rational64::new(
+            common_context.game_initialized_at.elapsed().as_millis() as i64,
+            1000,
+        );
+        background_video.render_frame(&mut background_video_texture);
+        common_context
+            .canvas
+            .copy(&background_video_texture, None, None)
+            .expect("Failed to render title background video");
+
+        common_context
+            .canvas
+            .set_blend_mode(sdl2::render::BlendMode::Blend);
+        let easing_value = {
+            let duration = 1200.0;
+            let remainder = (common_context.game_initialized_at.elapsed().as_millis() as f32
+                % (duration * 2.0))
+                / duration;
+            ezing::cubic_inout(if remainder > 1.0 {
+                2.0 - remainder
             } else {
-                Color::WHITE
-            };
-            for j in 0..(viewport.h / rect_size) + 5 {
-                let x: i32 = viewport.x + rect_size * i - delta;
-                let y: i32 = viewport.y + rect_size * j - delta;
-                canvas.set_draw_color(color);
-                canvas
-                    .fill_rect(Rect::new(x, y, rect_size as u32, rect_size as u32))
-                    .expect("???");
-                color = match color {
-                    Color::CYAN => Color::WHITE,
-                    Color::WHITE => Color::CYAN,
-                    _ => panic!("?"),
-                }
-            }
-        }
+                remainder
+            })
+        };
+        common_context.canvas.set_draw_color(Color::RGBA(
+            255,
+            255,
+            255,
+            (120.0 + easing_value * 30.0) as u8,
+        ));
 
-        delta = (delta + 1) % (rect_size * 3);
+        let viewport = common_context.canvas.viewport();
+        common_context
+            .canvas
+            .fill_rect(Rect::new(
+                viewport.width() as i32 / 4,
+                0,
+                viewport.width() / 2,
+                viewport.height(),
+            ))
+            .expect("Failed to fill rect");
 
-        render_logo(canvas);
+        render_logo(&mut common_context.canvas);
+        render_text(common_context);
         render_common(common_context);
         common_context.canvas.present();
         std::thread::sleep(Duration::from_millis(3));

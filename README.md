@@ -72,3 +72,4 @@ This program, including source code, cannot be used/copied/redistributed/modifie
  - Noto Sans KR: Copyright (C) Google, licensed under SIL Open Font License
  - [Press Start](https://www.fontspace.com/press-start-2p-font-f11591): Copyright (c) 2011, Cody "CodeMan38" Boisclair (cody@zone38.net), licensed under SIL Open Font License (OFL)
  - Janggu free icon: [Korea icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/korea)
+ - Title background video: [Seoul Korea - Free Paper Style Background Loop](https://www.youtube.com/watch?v=6G_v0eLtbRE)

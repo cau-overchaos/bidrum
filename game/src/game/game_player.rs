@@ -3,7 +3,6 @@ pub mod game_result;
 pub mod janggu_state_with_tick;
 pub mod judge_and_display_notes;
 pub mod load_hit_sounds;
-mod render_video;
 pub mod timing_judge;
 
 use std::{path::Path, thread};
@@ -17,10 +16,13 @@ use kira::{
 use num_rational::Rational64;
 use sdl2::{image::LoadTexture, pixels::PixelFormatEnum};
 
-use crate::game::{
-    common::{event_loop_common, render_common},
-    game_common_context,
-    game_player::judge_and_display_notes::display_notes_and_judge,
+use crate::{
+    create_streaming_iyuv_texture,
+    game::{
+        common::{event_loop_common, render_common},
+        game_common_context,
+        game_player::judge_and_display_notes::display_notes_and_judge,
+    },
 };
 
 use self::{
@@ -29,11 +31,12 @@ use self::{
     janggu_state_with_tick::JangguStateWithTick,
     judge_and_display_notes::EffectSoundHandles,
     load_hit_sounds::load_hit_sounds,
-    render_video::VideoFileRenderer,
     timing_judge::{NoteAccuracy, TimingJudge},
 };
 
 use bidrum_data_struct_lib::{janggu::JangguFace, song::GameSong};
+
+use super::render_video::VideoFileRenderer;
 
 pub fn is_input_effect_needed(state: &JangguStateWithTick, tick: i128) -> [Option<JangguFace>; 2] {
     const TIME_DELTA: i128 = 150;
@@ -135,19 +138,35 @@ pub(crate) fn play_song(
     let mut video_file_renderer = None;
     let mut video_file_size = None;
 
-    if let Some(video_file_name) = &song.video_filename { // If video_filename is specified, get video_file_render and video_file_size
-        video_file_renderer = Some(VideoFileRenderer::new(Path::new(video_file_name)));
-        video_file_size = Some(video_file_renderer.as_ref().expect("Failed to get video file renderer").get_size());
+    if let Some(video_file_name) = &song.video_filename {
+        // If video_filename is specified, get video_file_render and video_file_size
+        video_file_renderer = Some(VideoFileRenderer::new(Path::new(video_file_name), false));
+        video_file_size = Some(
+            video_file_renderer
+                .as_ref()
+                .expect("Failed to get video file renderer")
+                .get_size(),
+        );
     }
 
     let texture_creator = common_context.canvas.texture_creator();
     let mut texture = None;
-    if let Some(video_file_size) = video_file_size { // If video_file_size is not None, get texture for video rendering
-        texture = Some(texture_creator
-        .create_texture_streaming(PixelFormatEnum::IYUV, video_file_size.0, video_file_size.1).expect("Failed to create texture streaming")); // the texture should be streaming IYUV format
+    if let Some(video_file_size) = video_file_size {
+        // If video_file_size is not None, get texture for video rendering
+        texture = Some(
+            texture_creator
+                .create_texture_streaming(
+                    PixelFormatEnum::IYUV,
+                    video_file_size.0,
+                    video_file_size.1,
+                )
+                .expect("Failed to create texture streaming"),
+        ); // the texture should be streaming IYUV format
     }
 
-    let play_background_texture = texture_creator.load_texture("assets/img/play_ui/play_background.jpeg").expect("Failed to load play background image."); 
+    let play_background_texture = texture_creator
+        .load_texture("assets/img/play_ui/play_background.jpeg")
+        .expect("Failed to load play background image.");
 
     // variables for displaying accuracy
     let mut accuracy: Option<NoteAccuracy> = None;
@@ -171,12 +190,24 @@ pub(crate) fn play_song(
 
         // display bga
         if tick_now >= 0 {
-            if let Some(ref mut video_file_renderer) = video_file_renderer { // if video_file_renderer is not None, render video
+            if let Some(ref mut video_file_renderer) = video_file_renderer {
+                // if video_file_renderer is not None, render video
                 video_file_renderer.wanted_time_in_second = Rational64::new(tick_now as i64, 1000);
-                video_file_renderer.render_frame(&mut texture.as_mut().expect("Failed to use texture."));
-                common_context.canvas.copy(texture.as_ref().expect("Failed to use texture."), None, None).unwrap();
+                video_file_renderer
+                    .render_frame(&mut texture.as_mut().expect("Failed to use texture."));
+                common_context
+                    .canvas
+                    .copy(
+                        texture.as_ref().expect("Failed to use texture."),
+                        None,
+                        None,
+                    )
+                    .unwrap();
             } else {
-                common_context.canvas.copy(&play_background_texture, None, None).unwrap();
+                common_context
+                    .canvas
+                    .copy(&play_background_texture, None, None)
+                    .unwrap();
             }
         } else {
             // song is not started yet
@@ -223,7 +254,8 @@ pub(crate) fn play_song(
         }
     }
 
-    if let Some(mut video_file_renderer) = video_file_renderer { // If video_file_renderer is not None, stop playing video
+    if let Some(mut video_file_renderer) = video_file_renderer {
+        // If video_file_renderer is not None, stop playing video
         video_file_renderer.stop_decoding();
     }
     return Some(timing_judge.get_game_result());

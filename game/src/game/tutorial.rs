@@ -2,11 +2,14 @@ mod ending;
 mod greetings;
 mod learn_stick_note;
 
-use std::time::{Duration, Instant};
+use std::{path::Path, time::Instant};
 
 use bidrum_data_struct_lib::janggu::{JangguFace, JangguStick};
 use kira::sound::static_sound::StaticSoundData;
+use num_rational::Rational64;
 use sdl2::{rect::Rect, render::Texture};
+
+use crate::create_streaming_iyuv_texture;
 
 use self::{
     ending::do_tutorial_ending, greetings::do_tutorial_greetings,
@@ -22,6 +25,7 @@ use super::{
         is_input_effect_needed,
         janggu_state_with_tick::{self, JangguStateWithTick},
     },
+    render_video::VideoFileRenderer,
     util::confirm_dialog::{render_confirm_dialog, DialogButton},
 };
 
@@ -29,11 +33,25 @@ fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
     let ask_started_at = Instant::now();
     let mut selected = None;
     let mut janggu_state = JangguStateWithTick::new();
+
+    // Create background video renderer and its texture
+    let texture_creator = common_context.canvas.texture_creator();
+    let mut background_video =
+        VideoFileRenderer::new(Path::new("assets/video/title_bga.mkv"), true);
+    let background_video_size = background_video.get_size();
+    let mut background_video_texture = create_streaming_iyuv_texture!(
+        texture_creator,
+        background_video_size.0,
+        background_video_size.1
+    )
+    .unwrap();
+
     'running: loop {
         let tick = ask_started_at.elapsed().as_millis();
 
         for i in common_context.event_pump.poll_iter() {
             if event_loop_common(&i, &mut common_context.coins) {
+                background_video.stop_decoding();
                 return false;
             }
         }
@@ -52,6 +70,7 @@ fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
                 && matches!(janggu_state.열채.face, Some(JangguFace::궁편)))
         {
             selected = Some(true);
+            background_video.stop_decoding();
             break;
         } else if (janggu_state.궁채.is_keydown_now
             && matches!(janggu_state.궁채.face, Some(JangguFace::열편)))
@@ -59,11 +78,23 @@ fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
                 && matches!(janggu_state.열채.face, Some(JangguFace::열편)))
         {
             selected = Some(false);
+            background_video.stop_decoding();
             break;
         }
 
+        // Decode background video
+        background_video.wanted_time_in_second = Rational64::new(
+            common_context.game_initialized_at.elapsed().as_millis() as i64,
+            1000,
+        );
+        background_video.render_frame(&mut background_video_texture);
+
         // render confirm dialog
         common_context.canvas.clear();
+        common_context
+            .canvas
+            .copy(&background_video_texture, None, None)
+            .unwrap();
         render_confirm_dialog(
             common_context,
             format!(
@@ -78,6 +109,8 @@ fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
         render_common(common_context);
         common_context.canvas.present();
     }
+
+    background_video.stop_decoding();
     return selected.unwrap_or(true);
 }
 
