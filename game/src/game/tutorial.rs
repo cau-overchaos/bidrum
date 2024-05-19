@@ -2,10 +2,7 @@ mod ending;
 mod greetings;
 mod learn_stick_note;
 
-use std::{
-    path::Path,
-    time::{Duration, Instant},
-};
+use std::{path::Path, time::Instant};
 
 use bidrum_data_struct_lib::janggu::{JangguFace, JangguStick};
 use kira::sound::static_sound::StaticSoundData;
