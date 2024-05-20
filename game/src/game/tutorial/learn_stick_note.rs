@@ -15,7 +15,10 @@ use crate::game::{
     common::{self, event_loop_common, render_common},
     game_common_context::GameCommonContext,
     game_player::{
-        draw_gameplay_ui::{self, DisplayedSongNote, GamePlayUIResources, InputEffect, UIContent},
+        draw_gameplay_ui::{
+            self, DisapreaingNoteEffect, DisplayedSongNote, GamePlayUIResources, InputEffect,
+            UIContent,
+        },
         janggu_state_with_tick::JangguStateWithTick,
         judge_and_display_notes::{display_notes_and_judge, EffectSoundHandles},
         load_hit_sounds::load_hit_sounds,
@@ -137,6 +140,7 @@ fn display_animated_example_note(
                 accuracy_time_progress: None,
                 input_effect: input_effect.clone(),
                 overall_effect_tick: common_context.game_initialized_at.elapsed().as_millis(),
+                disappearing_note_effects: DisapreaingNoteEffect::new(),
             },
             game_ui_resources,
         );
@@ -262,6 +266,7 @@ fn display_tryitout_notes(
             &hit_sounds,
             &mut hit_sound_handles,
             &input_effect,
+            &mut DisapreaingNoteEffect::new(),
             tick.into(),
         );
 

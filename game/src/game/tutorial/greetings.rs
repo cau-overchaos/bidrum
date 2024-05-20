@@ -11,7 +11,9 @@ use crate::game::{
     common::{event_loop_common, render_common},
     game_common_context::GameCommonContext,
     game_player::{
-        draw_gameplay_ui::{self, GamePlayUIResources, InputEffect, UIContent},
+        draw_gameplay_ui::{
+            self, DisapreaingNoteEffect, GamePlayUIResources, InputEffect, UIContent,
+        },
         is_input_effect_needed, janggu_state_with_tick,
     },
 };
@@ -65,6 +67,7 @@ pub(crate) fn do_tutorial_greetings(
                 accuracy_time_progress: None,
                 input_effect: InputEffect::new(),
                 overall_effect_tick: common_context.game_initialized_at.elapsed().as_millis(),
+                disappearing_note_effects: DisapreaingNoteEffect::new(),
             },
             game_ui_resources,
         );

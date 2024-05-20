@@ -24,6 +24,8 @@ struct AccuracyTextures<'a> {
     bad: Texture<'a>,
     miss: Texture<'a>,
 }
+
+#[derive(Clone)]
 pub struct DisplayedSongNote {
     pub(crate) distance: f64,
     pub(crate) face: JangguFace,
@@ -104,11 +106,31 @@ impl InputEffect {
     }
 }
 
+#[derive(Clone)]
+pub struct DisapreaingNoteEffectItem {
+    pub tick: i128,
+    pub note: DisplayedSongNote,
+}
+
+#[derive(Clone)]
+pub struct DisapreaingNoteEffect {
+    pub base_tick: i128,
+    pub notes: Vec<DisapreaingNoteEffectItem>,
+}
+impl DisapreaingNoteEffect {
+    pub fn new() -> DisapreaingNoteEffect {
+        DisapreaingNoteEffect {
+            base_tick: 0,
+            notes: vec![],
+        }
+    }
+}
 pub struct UIContent {
     pub(crate) accuracy: Option<NoteAccuracy>,
     pub(crate) accuracy_time_progress: Option<f32>,
     pub(crate) input_effect: InputEffect,
     pub(crate) overall_effect_tick: u128,
+    pub(crate) disappearing_note_effects: DisapreaingNoteEffect,
 }
 
 fn load_note_textures(
@@ -174,7 +196,7 @@ pub fn draw_gameplay_ui(
     canvas.set_blend_mode(sdl2::render::BlendMode::Blend);
 
     // load textures
-    let note_textures = &resources.note_textures;
+    let note_textures = &mut resources.note_textures;
     let accuracy_textures = &mut resources.accuray_textures;
     let janggu_texture = &resources.janggu_texture;
 
@@ -332,10 +354,10 @@ pub fn draw_gameplay_ui(
     let note_width_max = std::cmp::max(left_stick_note_width, right_stick_note_width);
 
     // draw note
-    let mut draw_note = |i: &DisplayedSongNote| {
+    let mut draw_note = |i: &DisplayedSongNote, disappearing_effect: Option<f32>| {
         let note_texture = match i.stick {
-            JangguStick::궁채 => &note_textures.left_stick,
-            JangguStick::열채 => &note_textures.right_stick,
+            JangguStick::궁채 => &mut note_textures.left_stick,
+            JangguStick::열채 => &mut note_textures.right_stick,
         };
         let note_width = match i.stick {
             JangguStick::궁채 => left_stick_note_width,
@@ -346,7 +368,13 @@ pub fn draw_gameplay_ui(
             JangguStick::열채 => right_stick_note_height,
         };
         let note_ypos = background_y
-            + (background_height_without_border as i32 - note_height as i32) as i32 / 2;
+            + (background_height_without_border as i32 - note_height as i32) as i32 / 2
+            + if let Some(disappearing_effect_progress) = disappearing_effect {
+                ((background_height_with_border - note_height + 20) as f32
+                    * -ezing::circ_out(disappearing_effect_progress)) as i32
+            } else {
+                0
+            };
 
         /*
          *   note_xpos                                           judgement_line_xpos
@@ -383,6 +411,14 @@ pub fn draw_gameplay_ui(
         }
 
         // draw note
+        if let Some(disappearing_effect_progress) = disappearing_effect {
+            note_texture.set_alpha_mod(
+                (255.0 * (1.0 - ezing::circ_out(disappearing_effect_progress))) as u8,
+            );
+        } else {
+            note_texture.set_alpha_mod(255);
+        }
+
         canvas
             .copy(
                 note_texture,
@@ -395,12 +431,36 @@ pub fn draw_gameplay_ui(
     // draw right-stick first, and then draw left-stick.
     for i in &notes {
         if matches!(i.stick, JangguStick::열채) {
-            draw_note(i);
+            draw_note(i, None);
         }
     }
     for i in &notes {
         if matches!(i.stick, JangguStick::궁채) {
-            draw_note(i);
+            draw_note(i, None);
+        }
+    }
+
+    // draw disappearing notes, too
+    let note_disappearing_duration = 200;
+    for i in &other.disappearing_note_effects.notes {
+        let tick_delta = i.tick.abs_diff(other.disappearing_note_effects.base_tick);
+        if (matches!(i.note.stick, JangguStick::열채) && tick_delta < note_disappearing_duration)
+        {
+            println!("drawing disappearing note at {}", i.note.distance);
+            draw_note(
+                &i.note,
+                Some(tick_delta as f32 / note_disappearing_duration as f32),
+            )
+        }
+    }
+    for i in &other.disappearing_note_effects.notes {
+        let tick_delta = i.tick.abs_diff(other.disappearing_note_effects.base_tick);
+        if (matches!(i.note.stick, JangguStick::궁채) && tick_delta < note_disappearing_duration)
+        {
+            draw_note(
+                &i.note,
+                Some(tick_delta as f32 / note_disappearing_duration as f32),
+            )
         }
     }
 

@@ -26,7 +26,7 @@ use crate::{
 };
 
 use self::{
-    draw_gameplay_ui::{DisplayedSongNote, InputEffect, UIContent},
+    draw_gameplay_ui::{DisapreaingNoteEffect, DisplayedSongNote, InputEffect, UIContent},
     game_result::GameResult,
     janggu_state_with_tick::JangguStateWithTick,
     judge_and_display_notes::EffectSoundHandles,
@@ -178,6 +178,7 @@ pub(crate) fn play_song(
     let mut gameplay_ui_resources = draw_gameplay_ui::GamePlayUIResources::new(&texture_creator);
 
     let mut input_effect = InputEffect::new();
+    let mut disappearing_notes = DisapreaingNoteEffect::new();
 
     'running: loop {
         let tick_now = clock.time().ticks as i128 - start_tick.ticks as i128;
@@ -239,6 +240,7 @@ pub(crate) fn play_song(
                 &hit_sounds,
                 &mut effect_sound_handles,
                 &input_effect,
+                &mut disappearing_notes,
                 tick_now,
             );
         }

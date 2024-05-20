@@ -16,14 +16,14 @@ use kira::{
 use crate::game::{
     game_common_context,
     game_player::{
-        draw_gameplay_ui::{DisplayedSongNote, UIContent},
+        draw_gameplay_ui::{DisapreaingNoteEffectItem, DisplayedSongNote, UIContent},
         is_input_effect_needed,
         timing_judge::NoteAccuracy,
     },
 };
 
 use super::{
-    draw_gameplay_ui::{self, GamePlayUIResources, InputEffect},
+    draw_gameplay_ui::{self, DisapreaingNoteEffect, GamePlayUIResources, InputEffect},
     janggu_state_with_tick::JangguStateWithTick,
     timing_judge::TimingJudge,
 };
@@ -54,6 +54,7 @@ pub(crate) fn display_notes_and_judge(
     hit_sounds: &[StaticSoundData; 2],
     effect_sound_handles: &mut EffectSoundHandles,
     input_effect: &InputEffect,
+    disappearing_notes: &mut DisapreaingNoteEffect,
     tick_now: i128,
 ) {
     let kung_sound_data = hit_sounds[0].clone();
@@ -133,6 +134,30 @@ pub(crate) fn display_notes_and_judge(
             *accuracy = new_accuracies.iter().map(|x| x.accuracy).max();
             for i in new_accuracies {
                 processed_note_ids.push(i.note_id);
+                if !matches!(i.accuracy, NoteAccuracy::Miss) {
+                    disappearing_notes.notes.push(
+                        [chart.left_face.clone(), chart.right_face.clone()]
+                            .concat()
+                            .iter()
+                            .filter(|j| j.id == i.note_id)
+                            .map(|j| DisplayedSongNote {
+                                face: j.face,
+                                stick: j.stick,
+                                distance: j.get_position(
+                                    chart.bpm,
+                                    chart.delay,
+                                    chart.bpm * 2,
+                                    (tick_now) as u64,
+                                ),
+                            })
+                            .map(|j| DisapreaingNoteEffectItem {
+                                note: j.clone(),
+                                tick: tick_now,
+                            })
+                            .last()
+                            .unwrap(),
+                    );
+                }
             }
         }
     }
@@ -146,6 +171,7 @@ pub(crate) fn display_notes_and_judge(
     }
 
     // draw game play ui
+    disappearing_notes.base_tick = tick_now;
     draw_gameplay_ui::draw_gameplay_ui(
         &mut common_context.canvas,
         display_notes,
@@ -162,6 +188,7 @@ pub(crate) fn display_notes_and_judge(
             },
             input_effect: input_effect.clone(),
             overall_effect_tick: common_context.game_initialized_at.elapsed().as_millis(),
+            disappearing_note_effects: disappearing_notes.clone(),
         },
         gameplay_ui_resources,
     );
