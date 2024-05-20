@@ -3,26 +3,19 @@ use std::{
     time::{Duration, Instant},
 };
 
-use bidrum_data_struct_lib::janggu::JangguFace;
 use kira::sound::static_sound::{StaticSoundData, StaticSoundSettings};
 use sdl2::{image::LoadTexture, render::Texture};
 
 use crate::game::{
     common::{event_loop_common, render_common},
     game_common_context::GameCommonContext,
-    game_player::{
-        draw_gameplay_ui::{
-            self, DisapreaingNoteEffect, GamePlayUIResources, InputEffect, UIContent,
-        },
-        is_input_effect_needed, janggu_state_with_tick,
-    },
+    game_player::{chart_player_ui::ChartPlayerUI, janggu_state_with_tick},
 };
 
 use super::display_tutorial_messages;
 
 pub(crate) fn do_tutorial_greetings(
     common_context: &mut GameCommonContext,
-    game_ui_resources: &mut GamePlayUIResources,
     janggu_state_and_tutorial_start_time: &mut (
         &mut janggu_state_with_tick::JangguStateWithTick,
         Instant,
@@ -45,6 +38,7 @@ pub(crate) fn do_tutorial_greetings(
 
     let started_at = std::time::Instant::now();
     let message_start_delay = Duration::from_secs(1);
+    let mut chart_player_ui = ChartPlayerUI::new(&texture_creator);
     loop {
         if started_at.elapsed() > message_start_delay {
             break;
@@ -59,26 +53,15 @@ pub(crate) fn do_tutorial_greetings(
             .update(common_context.read_janggu_state(), tick);
 
         common_context.canvas.clear();
-        draw_gameplay_ui::draw_gameplay_ui(
-            &mut common_context.canvas,
-            vec![],
-            UIContent {
-                accuracy: None,
-                accuracy_time_progress: None,
-                input_effect: InputEffect::new(),
-                overall_effect_tick: common_context.game_initialized_at.elapsed().as_millis(),
-                disappearing_note_effects: DisapreaingNoteEffect::new(),
-            },
-            game_ui_resources,
-        );
-        // First message is not started
+        chart_player_ui.draw(&mut common_context.canvas);
+
+        render_common(common_context);
         common_context.canvas.present();
         continue;
     }
 
     display_tutorial_messages(
         common_context,
-        game_ui_resources,
         &messages,
         janggu_state_and_tutorial_start_time,
     )

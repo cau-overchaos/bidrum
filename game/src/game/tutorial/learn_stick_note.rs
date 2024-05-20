@@ -1,37 +1,31 @@
 use std::{
     ops::Sub,
-    path::{self, Path},
+    path::{self},
     time::{Duration, Instant},
 };
 
 use bidrum_data_struct_lib::{
-    janggu::{self, JangguFace, JangguStick},
-    song::{GameChart, GameNote},
+    janggu::{JangguFace, JangguStick},
+    song::GameChart,
 };
 use kira::sound::static_sound::{StaticSoundData, StaticSoundSettings};
 use sdl2::{image::LoadTexture, rect::Rect, render::Texture};
 
 use crate::game::{
-    common::{self, event_loop_common, render_common},
+    common::event_loop_common,
     game_common_context::GameCommonContext,
     game_player::{
-        draw_gameplay_ui::{
-            self, DisapreaingNoteEffect, DisplayedSongNote, GamePlayUIResources, InputEffect,
-            UIContent,
-        },
+        chart_player::ChartPlayer,
+        chart_player_ui::{displayed_song_note::DisplayedSongNote, ChartPlayerUI},
+        effect_sound_player::EffectSoundPlayer,
         janggu_state_with_tick::JangguStateWithTick,
-        judge_and_display_notes::{display_notes_and_judge, EffectSoundHandles},
-        load_hit_sounds::load_hit_sounds,
-        timing_judge,
     },
-    start,
 };
 
 use super::{display_tutorial_messages, get_message_image_asset_dst_rect};
 
 fn display_animated_example_note(
     common_context: &mut GameCommonContext,
-    game_ui_resources: &mut GamePlayUIResources,
     janggu_state_and_tutorial_start_time: &mut (&mut JangguStateWithTick, Instant),
     message: &(Texture, StaticSoundData),
     stick: JangguStick,
@@ -76,7 +70,7 @@ fn display_animated_example_note(
     common_context.audio_manager.play(message.1.clone());
     let voice_started_at = Instant::now();
 
-    let mut input_effect = InputEffect::new();
+    let mut chart_player_ui = ChartPlayerUI::new(&texture_creator);
 
     loop {
         for event in common_context.event_pump.poll_iter() {
@@ -92,9 +86,6 @@ fn display_animated_example_note(
         janggu_state_and_tutorial_start_time
             .0
             .update(common_context.read_janggu_state(), tick);
-
-        // Update input effect
-        input_effect.update(janggu_state_and_tutorial_start_time.0, tick);
 
         // Clear canvas
         common_context.canvas.clear();
@@ -123,27 +114,23 @@ fn display_animated_example_note(
                                 / note_duration.as_millis() as f64));
             })
             .filter(|i| *i >= 0.0);
-        draw_gameplay_ui::draw_gameplay_ui(
-            &mut common_context.canvas,
-            note_positions
-                .clone()
-                .map(|position| -> DisplayedSongNote {
-                    return DisplayedSongNote {
-                        distance: position,
-                        face: pane,
-                        stick: stick,
-                    };
-                })
-                .collect(),
-            UIContent {
-                accuracy: None,
-                accuracy_time_progress: None,
-                input_effect: input_effect.clone(),
-                overall_effect_tick: common_context.game_initialized_at.elapsed().as_millis(),
-                disappearing_note_effects: DisapreaingNoteEffect::new(),
-            },
-            game_ui_resources,
-        );
+
+        chart_player_ui.notes = note_positions
+            .clone()
+            .map(|position| -> DisplayedSongNote {
+                return DisplayedSongNote {
+                    distance: position,
+                    face: pane,
+                    stick: stick,
+                };
+            })
+            .collect();
+        chart_player_ui
+            .input_effect
+            .update(janggu_state_and_tutorial_start_time.0, tick);
+        chart_player_ui.overall_effect_tick =
+            common_context.game_initialized_at.elapsed().as_millis();
+        chart_player_ui.draw(&mut common_context.canvas);
 
         // Display janggu animation
         let frame_index = if let Some(min_note_position) =
@@ -168,15 +155,13 @@ fn display_animated_example_note(
 
 fn display_tryitout_notes(
     common_context: &mut GameCommonContext,
-    game_ui_resources: &mut GamePlayUIResources,
     stick: JangguStick,
     pane: JangguFace,
 ) {
     let texture_creator = common_context.canvas.texture_creator();
 
-    // Load hit sounds
-    let hit_sounds = load_hit_sounds();
-    let mut hit_sound_handles = EffectSoundHandles::new();
+    // Load effect sounds
+    let mut effect_sound_player = EffectSoundPlayer::new();
 
     // Load janggu-hitting instruction animation frames
     let animation_frames = [1, 2, 3, 4, 5, 6].map(|idx| -> Texture {
@@ -220,14 +205,11 @@ fn display_tryitout_notes(
         GameChart::create_example_chart_for_tutorial(stick, pane, note_count, note_gap, chart_bpm);
 
     // Prepare tutorial play
-    let mut processed_notes = vec![];
-    let mut judge = timing_judge::TimingJudge::new(&chart);
     let mut judged_all_at = None;
     let tryitout_tutorial_started_at = Instant::now();
-    let mut accuracy = None;
-    let mut accuracy_tick = None;
 
-    let mut input_effect = InputEffect::new();
+    let mut chart_player = ChartPlayer::new(chart.clone(), &texture_creator);
+
     let mut janggu_state = JangguStateWithTick::new();
     janggu_state.update(common_context.read_janggu_state(), 0);
 
@@ -237,7 +219,7 @@ fn display_tryitout_notes(
         }
 
         // If tutorial ends, return
-        if judge.get_game_result().total_judged_note_count() == note_count
+        if chart_player.game_result().total_judged_note_count() == note_count
             && judged_all_at.is_none()
         {
             judged_all_at = Some(Instant::now())
@@ -248,26 +230,20 @@ fn display_tryitout_notes(
         // Update janggu input state
         let tick = tryitout_tutorial_started_at.elapsed().as_millis() as u64;
         janggu_state.update(common_context.read_janggu_state(), tick as i128);
-        input_effect.update(&janggu_state, tick as i128);
 
         // Clear canvas
         common_context.canvas.clear();
 
-        // Display UI
-        display_notes_and_judge(
-            common_context,
-            &chart,
-            &mut judge,
-            &janggu_state,
-            game_ui_resources,
-            &mut processed_notes,
-            &mut accuracy,
-            &mut accuracy_tick,
-            &hit_sounds,
-            &mut hit_sound_handles,
-            &input_effect,
-            &mut DisapreaingNoteEffect::new(),
+        // Play effect sound
+        effect_sound_player.play_janggu_sound(&janggu_state, &mut common_context.audio_manager);
+
+        // Judge and display UI
+        chart_player.judge(&janggu_state, tick.into());
+        chart_player.draw(
             tick.into(),
+            &mut common_context.canvas,
+            common_context.game_initialized_at.elapsed().as_millis(),
+            &janggu_state,
         );
 
         // Display janggu animation
@@ -300,7 +276,6 @@ fn display_tryitout_notes(
 
 pub(crate) fn do_learn_stick_note(
     common_context: &mut GameCommonContext,
-    game_ui_resources: &mut GamePlayUIResources,
     janggu_state_and_tutorial_start_time: &mut (&mut JangguStateWithTick, Instant),
     stick: JangguStick,
 ) {
@@ -332,14 +307,12 @@ pub(crate) fn do_learn_stick_note(
     // Display two messages, Telling how the note looks like, at first
     display_tutorial_messages(
         common_context,
-        game_ui_resources,
         &messages[..2],
         janggu_state_and_tutorial_start_time,
     );
 
     display_animated_example_note(
         common_context,
-        game_ui_resources,
         janggu_state_and_tutorial_start_time,
         &messages[2],
         stick,
@@ -351,14 +324,12 @@ pub(crate) fn do_learn_stick_note(
 
     display_tutorial_messages(
         common_context,
-        game_ui_resources,
         &messages[3..4],
         janggu_state_and_tutorial_start_time,
     );
 
     display_tryitout_notes(
         common_context,
-        game_ui_resources,
         stick,
         match stick {
             JangguStick::궁채 => JangguFace::궁편,
@@ -368,7 +339,6 @@ pub(crate) fn do_learn_stick_note(
 
     display_animated_example_note(
         common_context,
-        game_ui_resources,
         janggu_state_and_tutorial_start_time,
         &messages[4],
         stick,
@@ -380,14 +350,12 @@ pub(crate) fn do_learn_stick_note(
 
     display_tutorial_messages(
         common_context,
-        game_ui_resources,
         &messages[5..6],
         janggu_state_and_tutorial_start_time,
     );
 
     display_tryitout_notes(
         common_context,
-        game_ui_resources,
         stick,
         match stick {
             JangguStick::궁채 => JangguFace::열편,

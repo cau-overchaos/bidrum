@@ -5,7 +5,6 @@ mod learn_stick_note;
 use std::{path::Path, time::Instant};
 
 use bidrum_data_struct_lib::janggu::{JangguFace, JangguStick};
-use ffmpeg_next::format::Input;
 use kira::sound::static_sound::StaticSoundData;
 use num_rational::Rational64;
 use sdl2::{rect::Rect, render::Texture};
@@ -21,11 +20,7 @@ use super::{
     common::{event_loop_common, render_common},
     game_common_context::GameCommonContext,
     game_player::{
-        self,
-        draw_gameplay_ui::{
-            self, DisapreaingNoteEffect, GamePlayUIResources, InputEffect, UIContent,
-        },
-        is_input_effect_needed,
+        chart_player_ui::ChartPlayerUI,
         janggu_state_with_tick::{self, JangguStateWithTick},
     },
     render_video::VideoFileRenderer,
@@ -257,9 +252,6 @@ fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
 }
 
 fn do_tutorial(common_context: &mut GameCommonContext) {
-    let texture_creator = common_context.canvas.texture_creator();
-    let mut gameplay_ui_resources =
-        game_player::draw_gameplay_ui::GamePlayUIResources::new(&texture_creator);
     let mut janggu_state = janggu_state_with_tick::JangguStateWithTick::new();
     let started = std::time::Instant::now();
 
@@ -273,36 +265,25 @@ fn do_tutorial(common_context: &mut GameCommonContext) {
 
     let mut janggu_state_and_start_time = (&mut janggu_state, started);
 
-    do_tutorial_greetings(
-        common_context,
-        &mut gameplay_ui_resources,
-        &mut janggu_state_and_start_time,
-    );
+    do_tutorial_greetings(common_context, &mut janggu_state_and_start_time);
 
     do_learn_stick_note(
         common_context,
-        &mut gameplay_ui_resources,
         &mut janggu_state_and_start_time,
         JangguStick::궁채,
     );
 
     do_learn_stick_note(
         common_context,
-        &mut gameplay_ui_resources,
         &mut janggu_state_and_start_time,
         JangguStick::열채,
     );
 
-    do_tutorial_ending(
-        common_context,
-        &mut gameplay_ui_resources,
-        &mut janggu_state_and_start_time,
-    );
+    do_tutorial_ending(common_context, &mut janggu_state_and_start_time);
 }
 
 pub(self) fn display_tutorial_messages(
     common_context: &mut GameCommonContext,
-    game_ui_resources: &mut GamePlayUIResources,
     messages: &[(Texture, StaticSoundData)],
     janggu_state_and_tutorial_start_time: &mut (&mut JangguStateWithTick, Instant),
 ) {
@@ -311,6 +292,8 @@ pub(self) fn display_tutorial_messages(
     let mut message_index = 0;
     let mut message_started_at = started_at.clone();
     let message_gap = std::time::Duration::from_secs(1);
+    let texture_creator = common_context.canvas.texture_creator();
+    let mut chart_player_ui = ChartPlayerUI::new(&texture_creator);
     loop {
         let tick = janggu_state_and_tutorial_start_time.1.elapsed().as_millis() as i128;
         for event in common_context.event_pump.poll_iter() {
@@ -322,18 +305,7 @@ pub(self) fn display_tutorial_messages(
             .update(common_context.read_janggu_state(), tick);
 
         common_context.canvas.clear();
-        draw_gameplay_ui::draw_gameplay_ui(
-            &mut common_context.canvas,
-            vec![],
-            UIContent {
-                accuracy: None,
-                accuracy_time_progress: None,
-                input_effect: InputEffect::new(),
-                overall_effect_tick: common_context.game_initialized_at.elapsed().as_millis(),
-                disappearing_note_effects: DisapreaingNoteEffect::new(),
-            },
-            game_ui_resources,
-        );
+        chart_player_ui.draw(&mut common_context.canvas);
 
         if message_index >= messages.len() {
             return;

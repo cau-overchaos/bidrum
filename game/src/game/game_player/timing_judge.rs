@@ -52,6 +52,7 @@ pub(crate) struct TimingJudge {
     max_health: u64,
 }
 
+#[derive(Clone)]
 pub(crate) struct JudgeResult {
     pub accuracy: NoteAccuracy,
     pub note_id: u64,
