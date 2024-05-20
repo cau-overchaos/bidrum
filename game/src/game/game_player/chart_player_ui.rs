@@ -92,25 +92,31 @@ impl ChartPlayerUI<'_> {
         // calc janggu icon size
         let janggu_width = janggu_width_min
             + ((janggu_width_max - janggu_width_min) as f64 * {
-                // animation duration
-                let animation_duration = 250;
-
-                // last keydown timing
-                let last_keydown_timing = self
-                    .input_effect
-                    .left_face
-                    .keydown_timing
-                    .unwrap_or(0)
-                    .max(self.input_effect.right_face.keydown_timing.unwrap_or(0));
-
-                // elapsed time since last keydown timing
-                let delta = self.input_effect.base_tick - last_keydown_timing;
-
-                // return easing value
-                if delta < animation_duration {
-                    1.0 - ezing::bounce_inout(delta as f64 / animation_duration as f64)
-                } else {
+                if self.input_effect.left_face.keydown_timing.is_none()
+                    && self.input_effect.left_face.keydown_timing.is_none()
+                {
                     0.0
+                } else {
+                    // animation duration
+                    let animation_duration = 250;
+
+                    // last keydown timing
+                    let last_keydown_timing = self
+                        .input_effect
+                        .left_face
+                        .keydown_timing
+                        .unwrap_or(0)
+                        .max(self.input_effect.right_face.keydown_timing.unwrap_or(0));
+
+                    // elapsed time since last keydown timing
+                    let delta = self.input_effect.base_tick - last_keydown_timing;
+
+                    // return easing value
+                    if delta < animation_duration {
+                        1.0 - ezing::bounce_inout(delta as f64 / animation_duration as f64)
+                    } else {
+                        0.0
+                    }
                 }
             }) as u32;
         let janggu_height = ((janggu_texture.query().height as f32
