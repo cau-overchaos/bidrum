@@ -6,17 +6,19 @@ use kira::{
     },
 };
 
+use crate::constants::DEFAULT_SOUND_PATH as SOUND_PATH;
+
 use super::janggu_state_with_tick::JangguStateWithTick;
 
 fn load_hit_sounds() -> [StaticSoundData; 2] {
     [
         StaticSoundData::from_file(
-            "assets/sound/janggu_hit/kung.wav",
+            SOUND_PATH.to_owned() + "janggu_hit/kung.wav",
             StaticSoundSettings::default(),
         )
         .expect("Failed to load kung sound"),
         StaticSoundData::from_file(
-            "assets/sound/janggu_hit/deok.wav",
+            SOUND_PATH.to_owned() + "janggu_hit/deok.wav",
             StaticSoundSettings::default(),
         )
         .expect("Failed to load deok sound"),

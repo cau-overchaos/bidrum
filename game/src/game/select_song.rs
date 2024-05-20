@@ -5,6 +5,9 @@ use sdl2::{
     event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect, render::Texture,
 };
 
+use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
+use crate::constants::DEFAULT_IMG_PATH as IMG_PATH;
+
 use super::{
     common::{event_loop_common, render_common},
     game_common_context::GameCommonContext,
@@ -37,7 +40,7 @@ pub(crate) fn select_song(
     let texture_creator = common_context.canvas.texture_creator();
 
     // font information
-    let font_path = "assets/sans.ttf";
+    let font_path = &(FONT_PATH.to_owned() + "sans.ttf");
     let title_font_size = 30;
     let artist_font_size = 20;
 
@@ -58,7 +61,8 @@ pub(crate) fn select_song(
     };
 
     // background of select song screen information
-    let background_img_path = Path::new("assets/img/select_song_ui/select_song_background.png");
+    let binding = IMG_PATH.to_owned() + "select_song_ui/select_song_background.png";
+    let background_img_path = Path::new(&binding);
     let background_img_texture = texture_creator
         .load_texture(background_img_path)
         .expect("failed to find ackground image file");
@@ -71,7 +75,7 @@ pub(crate) fn select_song(
 
     // song item image information
     let song_item_texture = texture_creator
-        .load_texture("assets/img/select_song_ui/song_item_scroll.png")
+        .load_texture(IMG_PATH.to_owned() + "select_song_ui/song_item_scroll.png")
         .expect("failed to load song item image");
     let song_item_texture_original_width = song_item_texture.query().width;
     let song_item_texture_original_height = song_item_texture.query().height;

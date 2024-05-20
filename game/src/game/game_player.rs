@@ -15,6 +15,8 @@ use kira::{
 use num_rational::Rational64;
 use sdl2::{image::LoadTexture, pixels::PixelFormatEnum};
 
+use crate::constants::DEFAULT_IMG_PATH as IMG_PATH;
+
 use crate::game::{
     common::{event_loop_common, render_common},
     game_common_context,
@@ -137,7 +139,7 @@ pub(crate) fn play_song(
     }
 
     let play_background_texture = texture_creator
-        .load_texture("assets/img/play_ui/play_background.jpeg")
+        .load_texture(IMG_PATH.to_owned() + "play_ui/play_background.jpeg")
         .expect("Failed to load play background image.");
 
     // variables for displaying accuracy

@@ -4,6 +4,7 @@ use super::{
     game_common_context::GameCommonContext,
     util::create_outlined_font_texture::create_outlined_font_texture,
 };
+use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
 
 pub(crate) fn event_loop_common(event: &Event, coins: &mut u32) -> bool {
     match event {
@@ -32,7 +33,10 @@ pub(crate) fn render_common(context: &mut GameCommonContext) {
 
     // Load a font
     let mut font = ttf_context
-        .load_font("assets/coin.ttf", (context.dpi.0 / 6.0) as u16)
+        .load_font(
+            FONT_PATH.to_owned() + "coin.ttf",
+            (context.dpi.0 / 6.0) as u16,
+        )
         .expect("Unable to load font");
 
     // render a surface, and convert it to a texture bound to the canvas

@@ -3,6 +3,9 @@ use std::{path, time::Instant};
 use kira::sound::static_sound::StaticSoundSettings;
 use sdl2::image::LoadTexture;
 
+use crate::constants::DEFAULT_AUDIO_PATH as AUDIO_PATH;
+use crate::constants::DEFAULT_IMG_PATH as IMG_PATH;
+
 use crate::game::{game_common_context::GameCommonContext, game_player::janggu_state_with_tick};
 
 use super::display_tutorial_messages;
@@ -18,10 +21,10 @@ pub(crate) fn do_tutorial_ending(
     let texture_creator = common_context.canvas.texture_creator();
     let message = (
         texture_creator
-            .load_texture("assets/img/tutorial/ending.png")
+            .load_texture(&(IMG_PATH.to_owned() + "tutorial/ending.png"))
             .expect("Tutorial ending image asset load failure"),
         kira::sound::static_sound::StaticSoundData::from_file(
-            path::Path::new("assets/audio/tutorial/ending.mp3"),
+            path::Path::new(&(AUDIO_PATH.to_owned() + "tutorial/ending.mp3")),
             StaticSoundSettings::default(),
         )
         .expect("Tutorial ending audio load failure"),

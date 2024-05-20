@@ -6,6 +6,10 @@ use sdl2::{
     video::Window,
 };
 
+use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
+use crate::constants::DEFAULT_IMG_PATH as IMG_PATH;
+use crate::constants::DEFAULT_VIDEO_PATH as VIDEO_PATH;
+
 use crate::create_streaming_iyuv_texture;
 
 use super::{
@@ -27,7 +31,8 @@ fn get_logo_rect(rect: Rect, w: u32, h: u32) -> Rect {
 /// Renders logo at center of the given canvas
 fn render_logo(canvas: &mut Canvas<Window>) {
     // Load logo
-    let path = Path::new("assets/img/logo.png");
+    let binding = IMG_PATH.to_owned() + "logo.png";
+    let path = Path::new(&binding);
     let texture_creator = canvas.texture_creator();
     let texture = texture_creator
         .load_texture(path)
@@ -56,7 +61,11 @@ fn render_text(common_context: &mut GameCommonContext) {
     let texture_creator = common_context.canvas.texture_creator();
     let mut font = common_context
         .ttf_context
-        .load_font_at_index("assets/sans.ttf", 262144 /* Regular */, 35)
+        .load_font_at_index(
+            FONT_PATH.to_owned() + "sans.ttf",
+            262144, /* Regular */
+            35,
+        )
         .expect("Failed to load sans");
 
     let mut texture = create_outlined_font_texture(
@@ -112,7 +121,7 @@ pub(crate) enum TitleResult {
 pub(crate) fn render_title(common_context: &mut GameCommonContext) -> TitleResult {
     let texture_creator = common_context.canvas.texture_creator();
     let mut background_video =
-        VideoFileRenderer::new(Path::new("assets/video/title_bga.mkv"), true);
+        VideoFileRenderer::new(Path::new(&(VIDEO_PATH.to_owned() + "title_bga.mkv")), true);
     let background_video_size = background_video.get_size();
     let mut background_video_texture = create_streaming_iyuv_texture!(
         texture_creator,

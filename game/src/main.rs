@@ -1,3 +1,4 @@
+mod constants;
 mod game;
 mod janggu_keyboard;
 mod serial;
