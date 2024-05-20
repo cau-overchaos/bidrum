@@ -114,36 +114,34 @@ impl ChartPlayer<'_> {
 
     fn get_display_notes(&self, tick_now: u64) -> Vec<DisplayedSongNote> {
         let mut display_notes = Vec::<DisplayedSongNote>::new();
-        if tick_now >= 0 {
-            // get positions of the notes
-            for i in &self.chart.left_face {
-                if !self.processed_note_ids().contains(&i.id) {
-                    display_notes.push(DisplayedSongNote {
-                        face: JangguFace::궁편,
-                        stick: i.stick,
-                        distance: i.get_position(
-                            self.chart.bpm,
-                            self.chart.delay,
-                            self.chart.bpm * 2,
-                            tick_now,
-                        ),
-                    });
-                }
+        // get positions of the notes
+        for i in &self.chart.left_face {
+            if !self.processed_note_ids().contains(&i.id) {
+                display_notes.push(DisplayedSongNote {
+                    face: JangguFace::궁편,
+                    stick: i.stick,
+                    distance: i.get_position(
+                        self.chart.bpm,
+                        self.chart.delay,
+                        self.chart.bpm * 2,
+                        tick_now,
+                    ),
+                });
             }
+        }
 
-            for i in &self.chart.right_face {
-                if !self.processed_note_ids().contains(&i.id) {
-                    display_notes.push(DisplayedSongNote {
-                        face: JangguFace::열편,
-                        stick: i.stick,
-                        distance: i.get_position(
-                            self.chart.bpm,
-                            self.chart.delay,
-                            self.chart.bpm * 2,
-                            tick_now,
-                        ),
-                    });
-                }
+        for i in &self.chart.right_face {
+            if !self.processed_note_ids().contains(&i.id) {
+                display_notes.push(DisplayedSongNote {
+                    face: JangguFace::열편,
+                    stick: i.stick,
+                    distance: i.get_position(
+                        self.chart.bpm,
+                        self.chart.delay,
+                        self.chart.bpm * 2,
+                        tick_now,
+                    ),
+                });
             }
         }
 
