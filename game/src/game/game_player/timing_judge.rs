@@ -221,7 +221,7 @@ impl TimingJudge {
                 NoteAccuracy::Overchaos => {
                     if OVERCHAOS_COMBO == 0 {
                         self.max_combo = self.max_combo.max(self.combo);
-                        self.combo = OVERCHAOS_COMBO;
+                        self.combo = 0;
                     } else {
                         self.combo += OVERCHAOS_COMBO;
                     }
@@ -231,7 +231,7 @@ impl TimingJudge {
                 NoteAccuracy::Perfect => {
                     if PERFECT_COMBO == 0 {
                         self.max_combo = self.max_combo.max(self.combo);
-                        self.combo = PERFECT_COMBO;
+                        self.combo = 0;
                     } else {
                         self.combo += PERFECT_COMBO;
                     }
@@ -241,7 +241,7 @@ impl TimingJudge {
                 NoteAccuracy::Great => {
                     if GREAT_COMBO == 0 {
                         self.max_combo = self.max_combo.max(self.combo);
-                        self.combo = GREAT_COMBO;
+                        self.combo = 0;
                     } else {
                         self.combo += GREAT_COMBO;
                     }
@@ -251,32 +251,31 @@ impl TimingJudge {
                 NoteAccuracy::Good => {
                     if GOOD_COMBO == 0 {
                         self.max_combo = self.max_combo.max(self.combo);
-                        self.combo = GOOD_COMBO;
+                        self.combo = 0;
                     } else {
                         self.combo += GOOD_COMBO;
                     }
-                    self.health -= GOOD_HEALTH;
+                    self.health += GOOD_HEALTH;
                     self.good_count += 1;
                 }
                 NoteAccuracy::Bad => {
                     if BAD_COMBO == 0 {
                         self.max_combo = self.max_combo.max(self.combo);
-                        self.combo = BAD_COMBO;
+                        self.combo = 0;
                     } else {
                         self.combo += BAD_COMBO;
                     }
-                    self.health -= BAD_HEALTH;
+                    self.health += BAD_HEALTH;
                     self.bad_count += 1;
                 }
                 NoteAccuracy::Miss => {
-                    // miss breaks the combo
                     if MISS_COMBO == 0 {
                         self.max_combo = self.max_combo.max(self.combo);
-                        self.combo = MISS_COMBO;
+                        self.combo = 0;
                     } else {
                         self.combo += MISS_COMBO;
                     }
-                    self.health -= MISS_HEALTH;
+                    self.health += MISS_HEALTH;
                     self.miss_count += 1;
                 }
             }

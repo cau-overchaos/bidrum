@@ -38,8 +38,7 @@ fn load_accuracy_textures(
     texture_creator: &TextureCreator<WindowContext>,
 ) -> Result<AccuracyTextures, String> {
     Ok(AccuracyTextures {
-        overchaos: texture_creator
-            .load_texture(&(IMG_PATH.to_owned() + "accuracy/overchaos.png"))?,
+        overchaos: texture_creator.load_texture(IMG_PATH.to_owned() + "accuracy/overchaos.png")?,
         perfect: texture_creator.load_texture(IMG_PATH.to_owned() + "accuracy/perfect.png")?,
         great: texture_creator.load_texture(IMG_PATH.to_owned() + "accuracy/great.png")?,
         good: texture_creator.load_texture(IMG_PATH.to_owned() + "accuracy/good.png")?,

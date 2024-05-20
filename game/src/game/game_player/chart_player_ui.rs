@@ -12,6 +12,8 @@ use sdl2::{
     video::{Window, WindowContext},
 };
 
+use crate::constants::{NOTE_ACCURACY_WIDTH, NOTE_HEIGHT};
+
 use bidrum_data_struct_lib::janggu::{JangguFace, JangguStick};
 
 use self::{
@@ -64,7 +66,7 @@ impl ChartPlayerUI<'_> {
         let janggu_texture = &self.resources.janggu_texture;
 
         // get note size
-        let right_stick_note_height = 90;
+        let right_stick_note_height = NOTE_HEIGHT;
         let right_stick_note_width = (note_textures.right_stick.query().width as f32
             / note_textures.right_stick.query().height as f32
             * right_stick_note_height as f32) as u32;
@@ -89,7 +91,7 @@ impl ChartPlayerUI<'_> {
             * background_height_with_border as f32) as u32;
         let janggu_width_max = janggu_width_min + 20;
 
-        // calc janggu icon size
+        // calculate janggu icon size
         let janggu_width = janggu_width_min
             + ((janggu_width_max - janggu_width_min) as f64 * {
                 // animation duration
@@ -354,7 +356,7 @@ impl ChartPlayerUI<'_> {
                 NoteAccuracy::Miss => &mut accuracy_textures.miss,
             };
 
-            let width = 120;
+            let width = NOTE_ACCURACY_WIDTH;
             let height = (Rational32::new(
                 accuracy_texture.query().height as i32 * width as i32,
                 accuracy_texture.query().width as i32,

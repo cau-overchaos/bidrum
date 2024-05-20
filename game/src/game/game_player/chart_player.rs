@@ -4,6 +4,8 @@ use bidrum_data_struct_lib::{
 };
 use sdl2::{render::Canvas, video::Window};
 
+use crate::constants::{ACCURACY_DISPLAY_DURATION, DEFAULT_BPM};
+
 use crate::game::game_player::{
     chart_player_ui::displayed_song_note::DisplayedSongNote, timing_judge::NoteAccuracy,
 };
@@ -99,7 +101,7 @@ impl ChartPlayer<'_> {
             distance: note.get_position(
                 self.chart.bpm,
                 self.chart.delay,
-                self.chart.bpm * 2,
+                self.chart.bpm * DEFAULT_BPM,
                 tick as u64,
             ),
         }
@@ -123,7 +125,7 @@ impl ChartPlayer<'_> {
                     distance: i.get_position(
                         self.chart.bpm,
                         self.chart.delay,
-                        self.chart.bpm * 2,
+                        self.chart.bpm * DEFAULT_BPM,
                         tick_now,
                     ),
                 });
@@ -138,7 +140,7 @@ impl ChartPlayer<'_> {
                     distance: i.get_position(
                         self.chart.bpm,
                         self.chart.delay,
-                        self.chart.bpm * 2,
+                        self.chart.bpm * DEFAULT_BPM,
                         tick_now,
                     ),
                 });
@@ -155,9 +157,6 @@ impl ChartPlayer<'_> {
         overall_tick: u128,
         janggu_state_with_tick: &JangguStateWithTick,
     ) {
-        // judgement is visible for only 800 ms
-        const ACCURACY_DISPLAY_DURATION: u32 = 800;
-
         // set ui accuracy effect
         self.ui.accuracy = None;
         self.ui.accuracy_time_progress = None;
