@@ -174,9 +174,11 @@ impl ChartPlayer<'_> {
         }
 
         // draw game play ui
-        self.ui.disappearing_note_effects.update_base_tick(tick);
-        self.ui.input_effect.update(janggu_state_with_tick, tick);
-        self.ui.notes = self.get_display_notes(tick as u64);
+        if tick >= 0 {
+            self.ui.disappearing_note_effects.update_base_tick(tick);
+            self.ui.input_effect.update(janggu_state_with_tick, tick);
+            self.ui.notes = self.get_display_notes(tick as u64);
+        }
         self.ui.overall_effect_tick = overall_tick;
         self.ui.draw(canvas);
     }
