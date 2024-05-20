@@ -310,7 +310,6 @@ impl ChartPlayerUI<'_> {
             if (matches!(i.note.stick, JangguStick::열채)
                 && tick_delta < note_disappearing_duration)
             {
-                println!("drawing disappearing note at {}", i.note.distance);
                 draw_note(
                     &i.note,
                     Some(tick_delta as f32 / note_disappearing_duration as f32),
