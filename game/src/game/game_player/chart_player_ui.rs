@@ -89,7 +89,7 @@ impl ChartPlayerUI<'_> {
             * background_height_with_border as f32) as u32;
         let janggu_width_max = janggu_width_min + 20;
 
-        // calc janggu icon size
+        // calculate janggu icon size
         let janggu_width = janggu_width_min
             + ((janggu_width_max - janggu_width_min) as f64 * {
                 if self.input_effect.left_face.keydown_timing.is_none()
