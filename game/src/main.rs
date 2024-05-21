@@ -34,11 +34,30 @@ struct Args {
     #[arg(long)]
     vsync: Option<bool>,
     /// Price
+    #[cfg(not(feature = "uncommercial"))]
     #[arg(long, default_value_t = 2)]
     price: u32,
 }
 
+#[cfg(feature = "uncommercial")]
+macro_rules! price {
+    ($args: expr) => {
+        0
+    };
+}
+
+#[cfg(not(feature = "uncommercial"))]
+macro_rules! price {
+    ($args: expr) => {
+        $args.price
+    };
+}
+
 fn main() {
+    if cfg!(feature = "uncommercial") {
+        println!("This is uncommercial version, only free play is available.");
+    }
+
     let args = Args::parse();
     let bits = AtomicU8::new(0);
     let bits_arc = Arc::new(bits);
@@ -82,7 +101,7 @@ fn main() {
             } else {
                 false
             }),
-            price: args.price,
+            price: price!(args),
         },
     );
 }

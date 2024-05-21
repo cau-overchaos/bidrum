@@ -36,7 +36,11 @@ pub(crate) fn render_common(context: &mut GameCommonContext) {
 
     // render a surface, and convert it to a texture bound to the canvas
     let text = if context.price == 0 {
-        "FREE PLAY".to_string()
+        if cfg!(feature = "uncommercial") {
+            "FREE PLAY (UNCOMMERCIAL)".to_string()
+        } else {
+            "FREE PLAY".to_string()
+        }
     } else if context.price == 1 {
         format!("CREDIT: {}", context.coins.load(Ordering::Relaxed))
     } else {
