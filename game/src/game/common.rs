@@ -39,7 +39,9 @@ pub(crate) fn render_common(context: &mut GameCommonContext) {
         .expect("Unable to load font");
 
     // render a surface, and convert it to a texture bound to the canvas
-    let text = if context.price == 1 {
+    let text = if context.price == 0 {
+        "FREE PLAY".to_string()
+    } else if context.price == 1 {
         format!("CREDIT: {}", context.coins)
     } else {
         format!(
