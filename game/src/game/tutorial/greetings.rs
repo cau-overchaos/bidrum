@@ -48,7 +48,7 @@ pub(crate) fn do_tutorial_greetings(
         }
         let tick = janggu_state_and_tutorial_start_time.1.elapsed().as_millis() as i128;
         for event in common_context.event_pump.poll_iter() {
-            event_loop_common(&event, &mut common_context.coins);
+            event_loop_common(&event);
         }
 
         janggu_state_and_tutorial_start_time

@@ -1,5 +1,8 @@
 use std::{
-    sync::{atomic::AtomicU8, Arc},
+    sync::{
+        atomic::{AtomicU32, AtomicU8},
+        Arc,
+    },
     time::Instant,
 };
 
@@ -10,7 +13,7 @@ use crate::serial::parse_janggu_bits;
 use bidrum_data_struct_lib::janggu::JangguInputState;
 
 pub(crate) struct GameCommonContext {
-    pub(crate) coins: u32,
+    pub(crate) coins: Arc<AtomicU32>,
     pub(crate) price: u32,
     pub(crate) sdl_context: sdl2::Sdl,
     pub(crate) audio_manager: AudioManager,

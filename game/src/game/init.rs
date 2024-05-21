@@ -1,5 +1,8 @@
 use std::{
-    sync::{atomic::AtomicU8, Arc},
+    sync::{
+        atomic::{AtomicU32, AtomicU8},
+        Arc,
+    },
     time::Instant,
 };
 
@@ -93,9 +96,12 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
     // create freetype library
     let freetype_library = cairo::freetype::Library::init().expect("Failed to init FreeType");
 
+    // create coin variable
+    let coins = Arc::new(AtomicU32::new(0));
+
     // create GameCommonContext object
     let mut context = GameCommonContext {
-        coins: 0,
+        coins: coins,
         price: 2,
         canvas: canvas,
         dpi: dpi,

@@ -115,7 +115,7 @@ pub(crate) fn select_song(
     'running: loop {
         // waiting user input
         for event in common_context.event_pump.poll_iter() {
-            if event_loop_common(&event, &mut common_context.coins) {
+            if event_loop_common(&event) {
                 break 'running;
             }
 

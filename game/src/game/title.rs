@@ -1,3 +1,4 @@
+use std::sync::atomic::Ordering;
 use std::{path::Path, time::Duration};
 
 use num_rational::Rational64;
@@ -71,7 +72,7 @@ fn render_text(common_context: &mut GameCommonContext) {
     let mut texture = create_font_texture(
         &texture_creator,
         &mut font,
-        if common_context.coins >= common_context.price {
+        if common_context.coins.load(Ordering::Relaxed) >= common_context.price {
             "장구를 쳐서 시작하세요!"
         } else {
             "동전을 넣어주세요"
@@ -132,7 +133,7 @@ pub(crate) fn render_title(common_context: &mut GameCommonContext) -> TitleResul
     .expect("Failed to create texture for title background video");
     loop {
         for event in common_context.event_pump.poll_iter() {
-            if event_loop_common(&event, &mut common_context.coins) {
+            if event_loop_common(&event) {
                 return TitleResult::Exit;
             }
             match event {
@@ -140,8 +141,10 @@ pub(crate) fn render_title(common_context: &mut GameCommonContext) -> TitleResul
                     keycode: Some(Keycode::Return),
                     ..
                 } => {
-                    if common_context.coins >= common_context.price {
-                        common_context.coins -= common_context.price;
+                    if common_context.coins.load(Ordering::Relaxed) >= common_context.price {
+                        common_context
+                            .coins
+                            .fetch_sub(common_context.price, Ordering::Relaxed);
                         return TitleResult::StartGame;
                     }
                 }
