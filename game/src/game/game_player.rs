@@ -197,7 +197,11 @@ pub(crate) fn play_song(
 
         // display notes and accuracy
         if tick_now >= 0 {
-            chart_player.judge(&janggu_state_with_tick, tick_now);
+            chart_player.judge(
+                &janggu_state_with_tick,
+                common_context.hat.spinning(),
+                tick_now,
+            );
             chart_player.draw(
                 tick_now,
                 &mut common_context.canvas,

@@ -145,6 +145,7 @@ name = "bidrum"
 version = "0.1.0"
 dependencies = [
  "bidrum-data-struct-lib",
+ "bidrum-hat",
  "clap",
  "const_format",
  "device_query",

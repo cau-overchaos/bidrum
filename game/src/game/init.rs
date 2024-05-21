@@ -3,6 +3,7 @@ use std::{
     time::Instant,
 };
 
+use bidrum_hat::BidrumHat;
 use kira::manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings};
 
 use super::{game_common_context::GameCommonContext, start::start_game, title::render_title};
@@ -93,6 +94,9 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
     // create ttf context
     let ttf_context = sdl2::ttf::init().expect("Failed to init ttf context");
 
+    // create hat
+    let hat = BidrumHat::new();
+
     // create GameCommonContext object
     let mut context = GameCommonContext {
         coins: 0,
@@ -106,6 +110,7 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
         janggu_bits_ptr: janggu_bits,
         ttf_context: ttf_context,
         game_initialized_at: Instant::now(),
+        hat: hat,
     };
 
     // enter game loop

@@ -246,7 +246,7 @@ fn display_tryitout_notes(
         effect_sound_player.play_janggu_sound(&janggu_state, &mut common_context.audio_manager);
 
         // Judge and display UI
-        chart_player.judge(&janggu_state, tick.into());
+        chart_player.judge(&janggu_state, common_context.hat.spinning(), tick.into());
         chart_player.draw(
             tick.into(),
             &mut common_context.canvas,

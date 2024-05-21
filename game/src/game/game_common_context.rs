@@ -3,6 +3,7 @@ use std::{
     time::Instant,
 };
 
+use bidrum_hat::BidrumHat;
 use kira::manager::AudioManager;
 use sdl2::{render::Canvas, video::Window, EventPump};
 
@@ -21,6 +22,7 @@ pub(crate) struct GameCommonContext {
     pub(crate) dpi: (f32, f32, f32),
     pub(crate) ttf_context: sdl2::ttf::Sdl2TtfContext,
     pub(crate) game_initialized_at: Instant,
+    pub(crate) hat: BidrumHat,
 }
 
 impl GameCommonContext {
