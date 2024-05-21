@@ -21,11 +21,14 @@ pub(crate) enum NoteAccuracy {
 
 // timings for accuracy judgement
 // e.g. 10 means -10ms ~ +10ms
-const OVERCHAOS_TIMING: i64 = 10;
-const PERFECT_TIMING: i64 = 40;
-const GREAT_TIMING: i64 = 60;
-const GOOD_TIMING: i64 = 80;
-const BAD_TIMING: i64 = 160;
+use crate::constants::{
+    BAD_COMBO, GOOD_COMBO, GREAT_COMBO, MISS_COMBO, OVERCHAOS_COMBO, PERFECT_COMBO,
+};
+use crate::constants::{
+    BAD_HEALTH, DEFAULT_HEALTH, GOOD_HEALTH, GREAT_HEALTH, MISS_HEALTH, OVERCHAOS_HEALTH,
+    PERFECT_HEALTH,
+};
+use crate::constants::{BAD_TIMING, GOOD_TIMING, GREAT_TIMING, OVERCHAOS_TIMING, PERFECT_TIMING};
 
 // Combination of GameNoteTrack and GameNote
 struct NoteForProcessing {
@@ -105,9 +108,6 @@ impl TimingJudge {
                 .cmp(&b.note.timing_in_ms(b.bpm, b.delay))
         });
 
-        let all_note_count = chart.left_face.len() + chart.right_face.len();
-        let max_health = all_note_count as u64 * 100;
-
         return TimingJudge {
             notes: notes,
             overchaos_count: 0,
@@ -119,8 +119,8 @@ impl TimingJudge {
             combo: 0,
             max_combo: 0,
             score: 0,
-            health: max_health as i64,
-            max_health: max_health,
+            health: DEFAULT_HEALTH as i64,
+            max_health: DEFAULT_HEALTH,
         };
     }
 
@@ -217,36 +217,64 @@ impl TimingJudge {
             // increase or set combo and count
             match i.accuracy {
                 NoteAccuracy::Overchaos => {
-                    self.combo += 1;
+                    if OVERCHAOS_COMBO == 0 {
+                        self.max_combo = self.max_combo.max(self.combo);
+                        self.combo = 0;
+                    } else {
+                        self.combo += OVERCHAOS_COMBO;
+                    }
+                    self.health += OVERCHAOS_HEALTH;
                     self.overchaos_count += 1;
-                    self.health += 400;
                 }
                 NoteAccuracy::Perfect => {
-                    self.combo += 1;
+                    if PERFECT_COMBO == 0 {
+                        self.max_combo = self.max_combo.max(self.combo);
+                        self.combo = 0;
+                    } else {
+                        self.combo += PERFECT_COMBO;
+                    }
+                    self.health += PERFECT_HEALTH;
                     self.perfect_count += 1;
-                    self.health += 200;
                 }
                 NoteAccuracy::Great => {
-                    self.combo += 1;
+                    if GREAT_COMBO == 0 {
+                        self.max_combo = self.max_combo.max(self.combo);
+                        self.combo = 0;
+                    } else {
+                        self.combo += GREAT_COMBO;
+                    }
+                    self.health += GREAT_HEALTH;
                     self.great_count += 1;
-                    self.health += 100;
                 }
                 NoteAccuracy::Good => {
-                    self.combo += 1;
+                    if GOOD_COMBO == 0 {
+                        self.max_combo = self.max_combo.max(self.combo);
+                        self.combo = 0;
+                    } else {
+                        self.combo += GOOD_COMBO;
+                    }
+                    self.health += GOOD_HEALTH;
                     self.good_count += 1;
                 }
                 NoteAccuracy::Bad => {
-                    self.max_combo = self.max_combo.max(self.combo);
-                    self.combo = 0;
+                    if BAD_COMBO == 0 {
+                        self.max_combo = self.max_combo.max(self.combo);
+                        self.combo = 0;
+                    } else {
+                        self.combo += BAD_COMBO;
+                    }
+                    self.health += BAD_HEALTH;
                     self.bad_count += 1;
-                    self.health -= 100;
                 }
                 NoteAccuracy::Miss => {
-                    // miss breaks the combo
-                    self.max_combo = self.max_combo.max(self.combo);
-                    self.combo = 0;
+                    if MISS_COMBO == 0 {
+                        self.max_combo = self.max_combo.max(self.combo);
+                        self.combo = 0;
+                    } else {
+                        self.combo += MISS_COMBO;
+                    }
+                    self.health += MISS_HEALTH;
                     self.miss_count += 1;
-                    self.health -= 200;
                 }
             }
 

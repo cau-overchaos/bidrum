@@ -5,6 +5,9 @@ use sdl2::{
     render::Texture,
 };
 
+use crate::constants::DEFAULT_DIALOG_PATH as DIALOG_PATH;
+use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
+
 use crate::game::game_common_context::GameCommonContext;
 
 macro_rules! render_font_texture {
@@ -37,7 +40,7 @@ macro_rules! create_button_texture {
         let button_text_font_texture_height = font_size.1;
 
         // load button background texture
-        let button_background_filename = format!("assets/dialog/{}_button.png", $button_type);
+        let button_background_filename = format!("{}/{}_button.png", DIALOG_PATH, $button_type);
         let button_size = {
             let tmp = $texture_creator
                 .load_texture(button_background_filename.clone())
@@ -114,12 +117,16 @@ pub fn render_confirm_dialog(
     let line_height = 40;
     let font = common_context
         .ttf_context
-        .load_font_at_index("assets/sans.ttf", 327680 /* Medium */, font_size)
+        .load_font_at_index(
+            FONT_PATH.to_owned() + "/sans.ttf",
+            327680, /* Medium */
+            font_size,
+        )
         .expect("Failed to load font");
     let button_font = common_context
         .ttf_context
         .load_font_at_index(
-            "assets/sans.ttf",
+            FONT_PATH.to_owned() + "/sans.ttf",
             327680, /* Medium */
             button_font_size,
         )
@@ -157,7 +164,7 @@ pub fn render_confirm_dialog(
 
     // Load janggu icon
     let janggu_icon = texture_creator
-        .load_texture("assets/dialog/janggu.png")
+        .load_texture(DIALOG_PATH.to_owned() + "/janggu.png")
         .expect("Failed to load janggu image");
 
     // Declare button gap
@@ -216,7 +223,7 @@ pub fn render_confirm_dialog(
             )
             .expect("Failed to render yes button texture");
             let janggu_icon = texture_creator
-                .load_texture("assets/dialog/janggu.png")
+                .load_texture(DIALOG_PATH.to_owned() + "/janggu.png")
                 .expect("Failed to load janggu image");
 
             // Copy
@@ -305,7 +312,7 @@ pub fn render_confirm_dialog(
 
     // Copy background
     let mut background = texture_creator
-        .load_texture("assets/dialog/bg.png")
+        .load_texture(DIALOG_PATH.to_owned() + "/bg.png")
         .expect("Failed to load background texture");
     background.set_alpha_mod(alpha.unwrap_or(255));
     common_context

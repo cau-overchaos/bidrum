@@ -11,6 +11,9 @@ use bidrum_data_struct_lib::{
 use kira::sound::static_sound::{StaticSoundData, StaticSoundSettings};
 use sdl2::{image::LoadTexture, rect::Rect, render::Texture};
 
+use crate::constants::DEFAULT_AUDIO_PATH as AUDIO_PATH;
+use crate::constants::DEFAULT_IMG_PATH as IMG_PATH;
+
 use crate::game::{
     common::event_loop_common,
     game_common_context::GameCommonContext,
@@ -35,7 +38,8 @@ fn display_animated_example_note(
     let animation_frames = [1, 2, 3, 4, 5, 6].map(|idx| -> Texture {
         return texture_creator
             .load_texture(format!(
-                "assets/img/tutorial/{}_stick/{}_pane_hit_animation/{}.png",
+                "{}/tutorial/{}_stick/{}_pane_hit_animation/{}.png",
+                IMG_PATH,
                 match stick {
                     JangguStick::궁채 => "left",
                     JangguStick::열채 => "right",
@@ -67,7 +71,10 @@ fn display_animated_example_note(
     let note_count = 3;
     let note_duration = std::cmp::max(Duration::from_secs(2), message.1.duration() / 3);
     let total_note_duration = note_duration * note_count;
-    common_context.audio_manager.play(message.1.clone());
+    common_context
+        .audio_manager
+        .play(message.1.clone())
+        .expect("Failed to play tutorial message");
     let voice_started_at = Instant::now();
 
     let mut chart_player_ui = ChartPlayerUI::new(&texture_creator);
@@ -167,7 +174,8 @@ fn display_tryitout_notes(
     let animation_frames = [1, 2, 3, 4, 5, 6].map(|idx| -> Texture {
         return texture_creator
             .load_texture(format!(
-                "assets/img/tutorial/{}_stick/{}_pane_hit_animation/{}.png",
+                "{}/tutorial/{}_stick/{}_pane_hit_animation/{}.png",
+                IMG_PATH,
                 match stick {
                     JangguStick::궁채 => "left",
                     JangguStick::열채 => "right",
@@ -290,13 +298,13 @@ pub(crate) fn do_learn_stick_note(
         return (
             texture_creator
                 .load_texture(format!(
-                    "assets/img/tutorial/{}/{}.png",
-                    sub_directory_name, idx
+                    "{}/tutorial/{}/{}.png",
+                    IMG_PATH, sub_directory_name, idx
                 ))
                 .expect("Stick tutorial image asset load failure"),
             kira::sound::static_sound::StaticSoundData::from_file(
                 path::Path::new(
-                    format!("assets/audio/tutorial/{}/{}.mp3", sub_directory_name, idx).as_str(),
+                    format!("{}/tutorial/{}/{}.mp3", AUDIO_PATH, sub_directory_name, idx).as_str(),
                 ),
                 StaticSoundSettings::default(),
             )

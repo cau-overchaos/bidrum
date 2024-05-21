@@ -6,6 +6,9 @@ use std::{
 use kira::sound::static_sound::{StaticSoundData, StaticSoundSettings};
 use sdl2::{image::LoadTexture, render::Texture};
 
+use crate::constants::DEFAULT_AUDIO_PATH as AUDIO_PATH;
+use crate::constants::DEFAULT_IMG_PATH as IMG_PATH;
+
 use crate::game::{
     common::{event_loop_common, render_common},
     game_common_context::GameCommonContext,
@@ -26,10 +29,10 @@ pub(crate) fn do_tutorial_greetings(
     let messages = [1, 2, 3, 4].map(|idx| -> (Texture, StaticSoundData) {
         return (
             texture_creator
-                .load_texture(format!("assets/img/tutorial/greeting{}.png", idx))
+                .load_texture(format!("{}/tutorial/greeting{}.png", IMG_PATH, idx))
                 .expect("Greeting tutorial image asset load failure"),
             kira::sound::static_sound::StaticSoundData::from_file(
-                path::Path::new(format!("assets/audio/tutorial/greeting{}.mp3", idx).as_str()),
+                path::Path::new(format!("{}/tutorial/greeting{}.mp3", AUDIO_PATH, idx).as_str()),
                 StaticSoundSettings::default(),
             )
             .expect("Greeting tutorial audio load failure"),

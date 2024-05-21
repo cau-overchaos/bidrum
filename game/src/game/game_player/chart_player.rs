@@ -4,6 +4,8 @@ use bidrum_data_struct_lib::{
 };
 use sdl2::{render::Canvas, video::Window};
 
+use crate::constants::{ACCURACY_DISPLAY_DURATION, DEFAULT_BPM};
+
 use crate::game::game_player::{
     chart_player_ui::displayed_song_note::DisplayedSongNote, timing_judge::NoteAccuracy,
 };
@@ -99,7 +101,7 @@ impl ChartPlayer<'_> {
             distance: note.get_position(
                 self.chart.bpm,
                 self.chart.delay,
-                self.chart.bpm * 2,
+                self.chart.bpm * DEFAULT_BPM,
                 tick as u64,
             ),
         }
@@ -114,36 +116,34 @@ impl ChartPlayer<'_> {
 
     fn get_display_notes(&self, tick_now: u64) -> Vec<DisplayedSongNote> {
         let mut display_notes = Vec::<DisplayedSongNote>::new();
-        if tick_now >= 0 {
-            // get positions of the notes
-            for i in &self.chart.left_face {
-                if !self.processed_note_ids().contains(&i.id) {
-                    display_notes.push(DisplayedSongNote {
-                        face: JangguFace::궁편,
-                        stick: i.stick,
-                        distance: i.get_position(
-                            self.chart.bpm,
-                            self.chart.delay,
-                            self.chart.bpm * 2,
-                            tick_now,
-                        ),
-                    });
-                }
+        // get positions of the notes
+        for i in &self.chart.left_face {
+            if !self.processed_note_ids().contains(&i.id) {
+                display_notes.push(DisplayedSongNote {
+                    face: JangguFace::궁편,
+                    stick: i.stick,
+                    distance: i.get_position(
+                        self.chart.bpm,
+                        self.chart.delay,
+                        self.chart.bpm * DEFAULT_BPM,
+                        tick_now,
+                    ),
+                });
             }
+        }
 
-            for i in &self.chart.right_face {
-                if !self.processed_note_ids().contains(&i.id) {
-                    display_notes.push(DisplayedSongNote {
-                        face: JangguFace::열편,
-                        stick: i.stick,
-                        distance: i.get_position(
-                            self.chart.bpm,
-                            self.chart.delay,
-                            self.chart.bpm * 2,
-                            tick_now,
-                        ),
-                    });
-                }
+        for i in &self.chart.right_face {
+            if !self.processed_note_ids().contains(&i.id) {
+                display_notes.push(DisplayedSongNote {
+                    face: JangguFace::열편,
+                    stick: i.stick,
+                    distance: i.get_position(
+                        self.chart.bpm,
+                        self.chart.delay,
+                        self.chart.bpm * DEFAULT_BPM,
+                        tick_now,
+                    ),
+                });
             }
         }
 
@@ -157,9 +157,6 @@ impl ChartPlayer<'_> {
         overall_tick: u128,
         janggu_state_with_tick: &JangguStateWithTick,
     ) {
-        // judgement is visible for only 800 ms
-        const ACCURACY_DISPLAY_DURATION: u32 = 800;
-
         // set ui accuracy effect
         self.ui.accuracy = None;
         self.ui.accuracy_time_progress = None;

@@ -10,6 +10,8 @@ use sdl2::{
     video::Window,
 };
 
+use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
+
 use super::{
     common::{event_loop_common, render_common},
     game_common_context::GameCommonContext,
@@ -28,7 +30,7 @@ fn render_game_result(
     let texture_creator = canvas.texture_creator();
 
     let mut font = ttf_context
-        .load_font("assets/coin.ttf", 40)
+        .load_font(FONT_PATH.to_owned() + "/coin.ttf", 40)
         .expect("Font loading failure");
 
     let texts =
