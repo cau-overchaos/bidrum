@@ -33,6 +33,9 @@ struct Args {
     /// Enables vsync or not? (Default: enabled in macos, disabled otherwise)
     #[arg(long)]
     vsync: Option<bool>,
+    /// Price
+    #[arg(long, default_value_t = 2)]
+    price: u32,
 }
 
 fn main() {
@@ -79,6 +82,7 @@ fn main() {
             } else {
                 false
             }),
+            price: args.price,
         },
     );
 }

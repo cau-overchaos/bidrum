@@ -16,6 +16,7 @@ pub struct InitGameOptions {
     pub height: Option<u32>,
     pub fullscreen: bool,
     pub vsync: bool,
+    pub price: u32,
 }
 
 pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
@@ -121,7 +122,7 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
     // create GameCommonContext object
     let mut context = GameCommonContext {
         coins: coins,
-        price: 2,
+        price: options.price,
         canvas: canvas,
         dpi: dpi,
         sdl_context: sdl_context,
