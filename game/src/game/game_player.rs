@@ -1,59 +1,33 @@
-pub mod draw_gameplay_ui;
+pub mod chart_player;
+pub mod chart_player_ui;
+pub mod effect_sound_player;
 pub mod game_result;
 pub mod janggu_state_with_tick;
-pub mod judge_and_display_notes;
-pub mod load_hit_sounds;
 pub mod timing_judge;
 
 use std::{path::Path, thread};
 
 use kira::{
     clock::ClockSpeed,
-    manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings},
     sound::static_sound::{StaticSoundData, StaticSoundSettings},
     tween::Tween,
 };
 use num_rational::Rational64;
 use sdl2::{image::LoadTexture, pixels::PixelFormatEnum};
 
-use crate::{
-    create_streaming_iyuv_texture,
-    game::{
-        common::{event_loop_common, render_common},
-        game_common_context,
-        game_player::judge_and_display_notes::display_notes_and_judge,
-    },
+use crate::game::{
+    common::{event_loop_common, render_common},
+    game_common_context,
 };
 
 use self::{
-    draw_gameplay_ui::{DisplayedSongNote, UIContent},
-    game_result::GameResult,
+    chart_player::ChartPlayer, effect_sound_player::EffectSoundPlayer, game_result::GameResult,
     janggu_state_with_tick::JangguStateWithTick,
-    judge_and_display_notes::EffectSoundHandles,
-    load_hit_sounds::load_hit_sounds,
-    timing_judge::{NoteAccuracy, TimingJudge},
 };
 
-use bidrum_data_struct_lib::{janggu::JangguFace, song::GameSong};
+use bidrum_data_struct_lib::song::GameSong;
 
 use super::render_video::VideoFileRenderer;
-
-pub fn is_input_effect_needed(state: &JangguStateWithTick, tick: i128) -> [Option<JangguFace>; 2] {
-    const TIME_DELTA: i128 = 150;
-    let mut faces = [None, None];
-    if let Some(_) = state.궁채.face {
-        if state.궁채.keydown_timing - tick < TIME_DELTA {
-            faces[0] = state.궁채.face;
-        }
-    }
-    if let Some(_) = state.열채.face {
-        if state.열채.keydown_timing - tick < TIME_DELTA {
-            faces[1] = state.열채.face;
-        }
-    }
-
-    faces
-}
 
 pub(crate) fn play_song(
     common_context: &mut game_common_context::GameCommonContext,
@@ -77,8 +51,7 @@ pub(crate) fn play_song(
     let song_path_string = song.audio_filename.clone();
 
     // Load hit sound data
-    let hit_sounds = load_hit_sounds();
-    let mut effect_sound_handles = EffectSoundHandles::new();
+    let mut effect_sounds = EffectSoundPlayer::new();
 
     // to receive coin input while loading the audio file,
     // loading should be done in separated thread.
@@ -129,7 +102,6 @@ pub(crate) fn play_song(
 
     // get judge and create timing judge
     let chart = song.get_chart(level).unwrap();
-    let mut timing_judge = TimingJudge::new(&chart);
 
     // start the clock.
     clock.start().expect("Failed to start clock");
@@ -169,13 +141,10 @@ pub(crate) fn play_song(
         .expect("Failed to load play background image.");
 
     // variables for displaying accuracy
-    let mut accuracy: Option<NoteAccuracy> = None;
-    let mut accuracy_tick: Option<i128> = None;
 
     let mut janggu_state_with_tick = JangguStateWithTick::new();
-    let mut processed_note_ids = Vec::<u64>::new();
 
-    let mut gameplay_ui_resources = draw_gameplay_ui::GamePlayUIResources::new(&texture_creator);
+    let mut chart_player = ChartPlayer::new(chart, &texture_creator);
 
     'running: loop {
         let tick_now = clock.time().ticks as i128 - start_tick.ticks as i128;
@@ -222,20 +191,16 @@ pub(crate) fn play_song(
         let input_now = common_context.read_janggu_state();
         janggu_state_with_tick.update(input_now, tick_now);
 
+        effect_sounds.play_janggu_sound(&janggu_state_with_tick, &mut common_context.audio_manager);
+
         // display notes and accuracy
         if tick_now >= 0 {
-            display_notes_and_judge(
-                common_context,
-                &chart,
-                &mut timing_judge,
-                &janggu_state_with_tick,
-                &mut gameplay_ui_resources,
-                &mut processed_note_ids,
-                &mut accuracy,
-                &mut accuracy_tick,
-                &hit_sounds,
-                &mut effect_sound_handles,
+            chart_player.judge(&janggu_state_with_tick, tick_now);
+            chart_player.draw(
                 tick_now,
+                &mut common_context.canvas,
+                common_context.game_initialized_at.elapsed().as_millis(),
+                &janggu_state_with_tick,
             );
         }
 
@@ -258,5 +223,5 @@ pub(crate) fn play_song(
         // If video_file_renderer is not None, stop playing video
         video_file_renderer.stop_decoding();
     }
-    return Some(timing_judge.get_game_result());
+    return Some(chart_player.game_result());
 }
