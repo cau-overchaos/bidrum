@@ -16,6 +16,10 @@ pub const PERFECT_TIMING: i64 = 44;
 pub const GREAT_TIMING: i64 = 70;
 pub const GOOD_TIMING: i64 = 95;
 pub const BAD_TIMING: i64 = 160;
+pub const HAT_TIMING: i64 = 1500;
+
+// hat score value
+pub const HAT_SCORE: u64 = 1500;
 
 // add combo value
 pub const OVERCHAOS_COMBO: u64 = 1;

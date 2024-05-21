@@ -66,7 +66,7 @@ impl ChartPlayer<'_> {
     }
 
     pub fn judge(&mut self, janggu: &JangguStateWithTick, tick: i128) {
-        let new_accuracies = self.timing_judge.judge(janggu, tick as u64);
+        let new_accuracies = self.timing_judge.judge(janggu, false, tick as u64);
 
         if !new_accuracies.is_empty() {
             self.accuracy = Some((

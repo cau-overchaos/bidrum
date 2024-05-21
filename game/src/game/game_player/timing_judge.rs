@@ -1,4 +1,8 @@
+mod hat_timing_judge;
+
 use bidrum_data_struct_lib::{janggu::JangguStick, song::GameChart};
+
+use self::hat_timing_judge::HatTimingJudge;
 
 use super::{game_result::GameResult, janggu_state_with_tick::JangguStateWithTick};
 use bidrum_data_struct_lib::song::GameNote;
@@ -22,7 +26,7 @@ pub(crate) enum NoteAccuracy {
 // timings for accuracy judgement
 // e.g. 10 means -10ms ~ +10ms
 use crate::constants::{
-    BAD_COMBO, GOOD_COMBO, GREAT_COMBO, MISS_COMBO, OVERCHAOS_COMBO, PERFECT_COMBO,
+    BAD_COMBO, GOOD_COMBO, GREAT_COMBO, HAT_SCORE, MISS_COMBO, OVERCHAOS_COMBO, PERFECT_COMBO,
 };
 use crate::constants::{
     BAD_HEALTH, DEFAULT_HEALTH, GOOD_HEALTH, GREAT_HEALTH, MISS_HEALTH, OVERCHAOS_HEALTH,
@@ -42,6 +46,7 @@ struct NoteForProcessing {
 /// Judges timing accuracy
 pub(crate) struct TimingJudge {
     notes: Vec<NoteForProcessing>,
+    hat_judge: HatTimingJudge,
     overchaos_count: u64,
     perfect_count: u64,
     great_count: u64,
@@ -108,6 +113,8 @@ impl TimingJudge {
                 .cmp(&b.note.timing_in_ms(b.bpm, b.delay))
         });
 
+        let hat_judge = HatTimingJudge::new(chart);
+
         return TimingJudge {
             notes: notes,
             overchaos_count: 0,
@@ -121,6 +128,7 @@ impl TimingJudge {
             score: 0,
             health: DEFAULT_HEALTH as i64,
             max_health: DEFAULT_HEALTH,
+            hat_judge: hat_judge,
         };
     }
 
@@ -134,9 +142,19 @@ impl TimingJudge {
     pub fn judge(
         &mut self,
         keydown: &JangguStateWithTick,
+        spinning: bool,
         tick_in_milliseconds: u64,
     ) -> Vec<JudgeResult> {
         let mut judged_notes = vec![];
+
+        // process hat notes first
+        let hat_judge_result = self.hat_judge.judge(spinning, tick_in_milliseconds);
+        for i in hat_judge_result
+            .iter()
+            .filter(|x| !matches!(x.accuracy, NoteAccuracy::Miss))
+        {
+            self.score += HAT_SCORE;
+        }
 
         // if sticks are not keydown, there's no need to process the stick
         let mut proceseed_left_stick = false;
