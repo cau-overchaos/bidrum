@@ -21,10 +21,10 @@ pub(crate) fn do_tutorial_ending(
     let texture_creator = common_context.canvas.texture_creator();
     let message = (
         texture_creator
-            .load_texture(&(IMG_PATH.to_owned() + "tutorial/ending.png"))
+            .load_texture(&(IMG_PATH.to_owned() + "/tutorial/ending.png"))
             .expect("Tutorial ending image asset load failure"),
         kira::sound::static_sound::StaticSoundData::from_file(
-            path::Path::new(&(AUDIO_PATH.to_owned() + "tutorial/ending.mp3")),
+            path::Path::new(&(AUDIO_PATH.to_owned() + "/tutorial/ending.mp3")),
             StaticSoundSettings::default(),
         )
         .expect("Tutorial ending audio load failure"),

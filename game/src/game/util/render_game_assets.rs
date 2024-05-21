@@ -33,7 +33,7 @@ pub fn render_level_image_at(
     let texture_creator = canvas.texture_creator();
     let level_img_texture = texture_creator
         .load_texture(Path::new(&format!(
-            "{}level/{}.png",
+            "{}/level/{}.png",
             IMG_PATH, level_image_num
         )))
         .expect("Level image file not found");

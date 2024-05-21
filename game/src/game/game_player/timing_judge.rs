@@ -25,7 +25,8 @@ use crate::constants::{
     BAD_COMBO, GOOD_COMBO, GREAT_COMBO, MISS_COMBO, OVERCHAOS_COMBO, PERFECT_COMBO,
 };
 use crate::constants::{
-    BAD_HEALTH, GOOD_HEALTH, GREAT_HEALTH, MISS_HEALTH, OVERCHAOS_HEALTH, PERFECT_HEALTH,
+    BAD_HEALTH, DEFAULT_HEALTH, GOOD_HEALTH, GREAT_HEALTH, MISS_HEALTH, OVERCHAOS_HEALTH,
+    PERFECT_HEALTH,
 };
 use crate::constants::{BAD_TIMING, GOOD_TIMING, GREAT_TIMING, OVERCHAOS_TIMING, PERFECT_TIMING};
 
@@ -107,9 +108,6 @@ impl TimingJudge {
                 .cmp(&b.note.timing_in_ms(b.bpm, b.delay))
         });
 
-        let all_note_count = chart.left_face.len() + chart.right_face.len();
-        let max_health = all_note_count as u64 * 100;
-
         return TimingJudge {
             notes: notes,
             overchaos_count: 0,
@@ -121,8 +119,8 @@ impl TimingJudge {
             combo: 0,
             max_combo: 0,
             score: 0,
-            health: max_health as i64,
-            max_health: max_health,
+            health: DEFAULT_HEALTH as i64,
+            max_health: DEFAULT_HEALTH,
         };
     }
 

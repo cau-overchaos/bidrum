@@ -30,7 +30,7 @@ fn render_game_result(
     let texture_creator = canvas.texture_creator();
 
     let mut font = ttf_context
-        .load_font(FONT_PATH.to_owned() + "coin.ttf", 40)
+        .load_font(FONT_PATH.to_owned() + "/coin.ttf", 40)
         .expect("Font loading failure");
 
     let texts =

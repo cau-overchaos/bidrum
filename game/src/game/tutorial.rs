@@ -36,7 +36,7 @@ fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
     // Create background video renderer and its texture
     let texture_creator = common_context.canvas.texture_creator();
     let mut background_video =
-        VideoFileRenderer::new(Path::new(&(VIDEO_PATH.to_owned() + "title_bga.mkv")), true);
+        VideoFileRenderer::new(Path::new(&(VIDEO_PATH.to_owned() + "/title_bga.mkv")), true);
     let background_video_size = background_video.get_size();
     let mut background_video_texture = create_streaming_iyuv_texture!(
         texture_creator,

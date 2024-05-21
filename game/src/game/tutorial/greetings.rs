@@ -29,10 +29,10 @@ pub(crate) fn do_tutorial_greetings(
     let messages = [1, 2, 3, 4].map(|idx| -> (Texture, StaticSoundData) {
         return (
             texture_creator
-                .load_texture(format!("{}tutorial/greeting{}.png", IMG_PATH, idx))
+                .load_texture(format!("{}/tutorial/greeting{}.png", IMG_PATH, idx))
                 .expect("Greeting tutorial image asset load failure"),
             kira::sound::static_sound::StaticSoundData::from_file(
-                path::Path::new(format!("{}tutorial/greeting{}.mp3", AUDIO_PATH, idx).as_str()),
+                path::Path::new(format!("{}/tutorial/greeting{}.mp3", AUDIO_PATH, idx).as_str()),
                 StaticSoundSettings::default(),
             )
             .expect("Greeting tutorial audio load failure"),

@@ -34,7 +34,7 @@ pub(crate) fn render_common(context: &mut GameCommonContext) {
     // Load a font
     let mut font = ttf_context
         .load_font(
-            FONT_PATH.to_owned() + "coin.ttf",
+            FONT_PATH.to_owned() + "/coin.ttf",
             (context.dpi.0 / 6.0) as u16,
         )
         .expect("Unable to load font");

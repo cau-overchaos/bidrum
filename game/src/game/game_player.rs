@@ -139,7 +139,7 @@ pub(crate) fn play_song(
     }
 
     let play_background_texture = texture_creator
-        .load_texture(IMG_PATH.to_owned() + "play_ui/play_background.jpeg")
+        .load_texture(IMG_PATH.to_owned() + "/play_ui/play_background.jpeg")
         .expect("Failed to load play background image.");
 
     // variables for displaying accuracy
