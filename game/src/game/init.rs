@@ -3,9 +3,10 @@ use std::{
         atomic::{AtomicU32, AtomicU8},
         Arc,
     },
-    time::Instant,
+    time::{Duration, Instant},
 };
 
+use device_query::{DeviceQuery, DeviceState, Keycode};
 use kira::manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings};
 
 use super::{game_common_context::GameCommonContext, start::start_game, title::render_title};
@@ -98,6 +99,24 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
 
     // create coin variable
     let coins = Arc::new(AtomicU32::new(0));
+    {
+        let coins_for_thread = coins.clone();
+
+        std::thread::spawn(move || {
+            let device_state = DeviceState::new();
+            let mut pressed = false;
+            loop {
+                let new_pressed = device_state.get_keys().contains(&Keycode::C);
+                if new_pressed && !pressed {
+                    // increase one on keydown
+                    coins_for_thread.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                }
+
+                pressed = new_pressed;
+                std::thread::sleep(Duration::from_millis(10));
+            }
+        });
+    }
 
     // create GameCommonContext object
     let mut context = GameCommonContext {
