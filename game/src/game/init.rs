@@ -100,7 +100,7 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
 
     // create coin variable
     let coins = Arc::new(AtomicU32::new(0));
-    {
+    if options.price != 0 {
         let coins_for_thread = coins.clone();
 
         std::thread::spawn(move || {
