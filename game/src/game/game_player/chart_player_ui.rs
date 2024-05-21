@@ -93,7 +93,7 @@ impl ChartPlayerUI<'_> {
         let janggu_width = janggu_width_min
             + ((janggu_width_max - janggu_width_min) as f64 * {
                 if self.input_effect.left_face.keydown_timing.is_none()
-                    && self.input_effect.left_face.keydown_timing.is_none()
+                    && self.input_effect.right_face.keydown_timing.is_none()
                 {
                     0.0
                 } else {
