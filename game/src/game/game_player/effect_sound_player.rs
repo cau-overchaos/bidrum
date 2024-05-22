@@ -5,6 +5,7 @@ use kira::{
         PlaybackState,
     },
 };
+use rand::seq::SliceRandom;
 
 use crate::{constants::DEFAULT_SOUND_PATH as SOUND_PATH, game};
 
@@ -29,52 +30,52 @@ fn load_combo_sounds() -> [StaticSoundData; 10] {
     [
         StaticSoundData::from_file(
             SOUND_PATH.to_owned() + "/combo/Chu-imsaebyAnSukseon_5.wav",
-            StaticSoundSettings::default(),
+            StaticSoundSettings::default().volume(50.0),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
             SOUND_PATH.to_owned() + "/combo/Chu-imsaebyJeongSunim_2.wav",
-            StaticSoundSettings::default(),
+            StaticSoundSettings::default().volume(50.0),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
             SOUND_PATH.to_owned() + "/combo/Chu-imsaebyJungHoeseok_1.wav",
-            StaticSoundSettings::default(),
+            StaticSoundSettings::default().volume(50.0),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
             SOUND_PATH.to_owned() + "/combo/Chu-imsaebyJungHoeseok_2.wav",
-            StaticSoundSettings::default(),
+            StaticSoundSettings::default().volume(50.0),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
             SOUND_PATH.to_owned() + "/combo/Chu-imsaebyJungHoeseok_5.wav",
-            StaticSoundSettings::default(),
+            StaticSoundSettings::default().volume(50.0),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
             SOUND_PATH.to_owned() + "/combo/Chu-imsaebyJungHoeseok_6.wav",
-            StaticSoundSettings::default(),
+            StaticSoundSettings::default().volume(50.0),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
             SOUND_PATH.to_owned() + "/combo/Chu-imsaebyLeeChunhui_1.wav",
-            StaticSoundSettings::default(),
+            StaticSoundSettings::default().volume(50.0),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
             SOUND_PATH.to_owned() + "/combo/Chu-imsaebyLeeChunhui_3.wav",
-            StaticSoundSettings::default(),
+            StaticSoundSettings::default().volume(50.0),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
             SOUND_PATH.to_owned() + "/combo/Chu-imsaebyLeeChunhui_6.wav",
-            StaticSoundSettings::default(),
+            StaticSoundSettings::default().volume(50.0),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
             SOUND_PATH.to_owned() + "/combo/Chu-imsaebyLeeChunhui_7.wav",
-            StaticSoundSettings::default(),
+            StaticSoundSettings::default().volume(50.0),
         )
         .expect("Failed to load combo sound"),
     ]
@@ -148,14 +149,14 @@ impl EffectSoundPlayer {
     }
 
     pub fn play_combo_sound(&mut self, game_result: &GameResult, audio_manager: &mut AudioManager) {
-        let combo_sound = self.combo_sounds[0].clone();
-
         if game_result.combo > 0 && (game_result.combo % 10 == 0) {
             if !self.combo_sound_played {
-                let new_handle = audio_manager
-                    .play(combo_sound.clone())
-                    .expect("Failed to play combo sound");
-                self.combo_sound_played = true;
+                if let Some(combo_sound) = self.combo_sounds.choose(&mut rand::thread_rng()) {
+                    audio_manager
+                        .play(combo_sound.clone())
+                        .expect("Failed to play combo sound");
+                    self.combo_sound_played = true;
+                }
             }
         } else {
             self.combo_sound_played = false;
