@@ -3,6 +3,7 @@
 
 ## How to build?
 ### Linux
+1. Install `git-lfs` before you clone
 1. Install rust
 1. Install ffmpeg 7.*, sdl2, sdl2_mixer, sdl2_image, sdl2_ttf.
     - For instructions on sdl2 installation, see [rust-sdl2 README](https://github.com/Rust-SDL2/rust-sdl2).
