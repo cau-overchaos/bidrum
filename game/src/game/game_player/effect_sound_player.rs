@@ -6,9 +6,9 @@ use kira::{
     },
 };
 
-use crate::constants::DEFAULT_SOUND_PATH as SOUND_PATH;
+use crate::{constants::DEFAULT_SOUND_PATH as SOUND_PATH, game};
 
-use super::janggu_state_with_tick::JangguStateWithTick;
+use super::{game_result::GameResult, janggu_state_with_tick::JangguStateWithTick};
 
 fn load_hit_sounds() -> [StaticSoundData; 2] {
     [
@@ -97,6 +97,7 @@ pub struct EffectSoundPlayer {
     effect_sound_play_handles: EffectSoundHandles,
     hit_sounds: [StaticSoundData; 2],
     combo_sounds: [StaticSoundData; 10],
+    combo_sound_played: bool,
 }
 
 impl EffectSoundPlayer {
@@ -105,6 +106,7 @@ impl EffectSoundPlayer {
             effect_sound_play_handles: EffectSoundHandles::new(),
             hit_sounds: load_hit_sounds(),
             combo_sounds: load_combo_sounds(),
+            combo_sound_played: false,
         }
     }
 
@@ -142,6 +144,21 @@ impl EffectSoundPlayer {
                     .expect("Failed to play deok sound");
                 self.effect_sound_play_handles.right_stick = Some(new_handle);
             }
+        }
+    }
+
+    pub fn play_combo_sound(&mut self, game_result: &GameResult, audio_manager: &mut AudioManager) {
+        let combo_sound = self.combo_sounds[0].clone();
+
+        if game_result.combo > 0 && (game_result.combo % 10 == 0) {
+            if !self.combo_sound_played {
+                let new_handle = audio_manager
+                    .play(combo_sound.clone())
+                    .expect("Failed to play combo sound");
+                self.combo_sound_played = true;
+            }
+        } else {
+            self.combo_sound_played = false;
         }
     }
 }
