@@ -25,6 +25,61 @@ fn load_hit_sounds() -> [StaticSoundData; 2] {
     ]
 }
 
+fn load_combo_sounds() -> [StaticSoundData; 10] {
+    [
+        StaticSoundData::from_file(
+            SOUND_PATH.to_owned() + "/janggu_hit/Chu-imsaebyAnSukseon_5.wav",
+            StaticSoundSettings::default(),
+        )
+        .expect("Failed to load combo sound"),
+        StaticSoundData::from_file(
+            SOUND_PATH.to_owned() + "/janggu_hit/Chu-imsaebyJeongSunim_2.wav",
+            StaticSoundSettings::default(),
+        )
+        .expect("Failed to load combo sound"),
+        StaticSoundData::from_file(
+            SOUND_PATH.to_owned() + "/janggu_hit/Chu-imsaebyJungHoeseok_1.wav",
+            StaticSoundSettings::default(),
+        )
+        .expect("Failed to load combo sound"),
+        StaticSoundData::from_file(
+            SOUND_PATH.to_owned() + "/janggu_hit/Chu-imsaebyJungHoeseok_2.wav",
+            StaticSoundSettings::default(),
+        )
+        .expect("Failed to load combo sound"),
+        StaticSoundData::from_file(
+            SOUND_PATH.to_owned() + "/janggu_hit/Chu-imsaebyJungHoeseok_5.wav",
+            StaticSoundSettings::default(),
+        )
+        .expect("Failed to load combo sound"),
+        StaticSoundData::from_file(
+            SOUND_PATH.to_owned() + "/janggu_hit/Chu-imsaebyJungHoeseok_6.wav",
+            StaticSoundSettings::default(),
+        )
+        .expect("Failed to load combo sound"),
+        StaticSoundData::from_file(
+            SOUND_PATH.to_owned() + "/janggu_hit/Chu-imsaebyLeeChunhui_1.wav",
+            StaticSoundSettings::default(),
+        )
+        .expect("Failed to load combo sound"),
+        StaticSoundData::from_file(
+            SOUND_PATH.to_owned() + "/janggu_hit/Chu-imsaebyLeeChunhui_3.wav",
+            StaticSoundSettings::default(),
+        )
+        .expect("Failed to load combo sound"),
+        StaticSoundData::from_file(
+            SOUND_PATH.to_owned() + "/janggu_hit/Chu-imsaebyLeeChunhui_6.wav",
+            StaticSoundSettings::default(),
+        )
+        .expect("Failed to load combo sound"),
+        StaticSoundData::from_file(
+            SOUND_PATH.to_owned() + "/janggu_hit/Chu-imsaebyLeeChunhui_7.wav",
+            StaticSoundSettings::default(),
+        )
+        .expect("Failed to load combo sound"),
+    ]
+}
+
 struct EffectSoundHandles {
     left_stick: Option<StaticSoundHandle>,
     right_stick: Option<StaticSoundHandle>,
@@ -39,8 +94,9 @@ impl EffectSoundHandles {
     }
 }
 pub struct EffectSoundPlayer {
-    hit_sounds: [StaticSoundData; 2],
     effect_sound_play_handles: EffectSoundHandles,
+    hit_sounds: [StaticSoundData; 2],
+    combo_sounds: [StaticSoundData; 10],
 }
 
 impl EffectSoundPlayer {
@@ -48,6 +104,7 @@ impl EffectSoundPlayer {
         EffectSoundPlayer {
             effect_sound_play_handles: EffectSoundHandles::new(),
             hit_sounds: load_hit_sounds(),
+            combo_sounds: load_combo_sounds(),
         }
     }
 
