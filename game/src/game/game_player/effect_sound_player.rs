@@ -156,7 +156,7 @@ impl EffectSoundPlayer {
                         .play(
                             combo_sound
                                 .clone()
-                                .with_settings(StaticSoundSettings::default().volume(50.0)),
+                                .with_settings(StaticSoundSettings::default().volume(20.0)),
                         )
                         .expect("Failed to play combo sound");
                     self.combo_sound_played = true;
