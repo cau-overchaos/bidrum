@@ -30,52 +30,52 @@ fn load_combo_sounds() -> [StaticSoundData; 10] {
     [
         StaticSoundData::from_file(
             SOUND_PATH.to_owned() + "/combo/Chu-imsaebyAnSukseon_5.wav",
-            StaticSoundSettings::default().volume(50.0),
+            StaticSoundSettings::default(),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
             SOUND_PATH.to_owned() + "/combo/Chu-imsaebyJeongSunim_2.wav",
-            StaticSoundSettings::default().volume(50.0),
+            StaticSoundSettings::default(),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
             SOUND_PATH.to_owned() + "/combo/Chu-imsaebyJungHoeseok_1.wav",
-            StaticSoundSettings::default().volume(50.0),
+            StaticSoundSettings::default(),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
             SOUND_PATH.to_owned() + "/combo/Chu-imsaebyJungHoeseok_2.wav",
-            StaticSoundSettings::default().volume(50.0),
+            StaticSoundSettings::default(),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
             SOUND_PATH.to_owned() + "/combo/Chu-imsaebyJungHoeseok_5.wav",
-            StaticSoundSettings::default().volume(50.0),
+            StaticSoundSettings::default(),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
             SOUND_PATH.to_owned() + "/combo/Chu-imsaebyJungHoeseok_6.wav",
-            StaticSoundSettings::default().volume(50.0),
+            StaticSoundSettings::default(),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
             SOUND_PATH.to_owned() + "/combo/Chu-imsaebyLeeChunhui_1.wav",
-            StaticSoundSettings::default().volume(50.0),
+            StaticSoundSettings::default(),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
             SOUND_PATH.to_owned() + "/combo/Chu-imsaebyLeeChunhui_3.wav",
-            StaticSoundSettings::default().volume(50.0),
+            StaticSoundSettings::default(),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
             SOUND_PATH.to_owned() + "/combo/Chu-imsaebyLeeChunhui_6.wav",
-            StaticSoundSettings::default().volume(50.0),
+            StaticSoundSettings::default(),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
             SOUND_PATH.to_owned() + "/combo/Chu-imsaebyLeeChunhui_7.wav",
-            StaticSoundSettings::default().volume(50.0),
+            StaticSoundSettings::default(),
         )
         .expect("Failed to load combo sound"),
     ]
@@ -153,7 +153,11 @@ impl EffectSoundPlayer {
             if !self.combo_sound_played {
                 if let Some(combo_sound) = self.combo_sounds.choose(&mut rand::thread_rng()) {
                     audio_manager
-                        .play(combo_sound.clone())
+                        .play(
+                            combo_sound
+                                .clone()
+                                .with_settings(StaticSoundSettings::default().volume(50.0)),
+                        )
                         .expect("Failed to play combo sound");
                     self.combo_sound_played = true;
                 }
