@@ -29,52 +29,52 @@ fn load_hit_sounds() -> [StaticSoundData; 2] {
 fn load_combo_sounds() -> [StaticSoundData; 10] {
     [
         StaticSoundData::from_file(
-            SOUND_PATH.to_owned() + "/combo/Chu-imsaebyAnSukseon_5.wav",
+            SOUND_PATH.to_owned() + "/combo/chu-imsae-by-AnSukseon-5.wav",
             StaticSoundSettings::default(),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
-            SOUND_PATH.to_owned() + "/combo/Chu-imsaebyJeongSunim_2.wav",
+            SOUND_PATH.to_owned() + "/combo/chu-imsae-by-JeongSunim-2.wav",
             StaticSoundSettings::default(),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
-            SOUND_PATH.to_owned() + "/combo/Chu-imsaebyJungHoeseok_1.wav",
+            SOUND_PATH.to_owned() + "/combo/chu-imsae-by-JungHoeseok-1.wav",
             StaticSoundSettings::default(),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
-            SOUND_PATH.to_owned() + "/combo/Chu-imsaebyJungHoeseok_2.wav",
+            SOUND_PATH.to_owned() + "/combo/chu-imsae-by-JungHoeseok-2.wav",
             StaticSoundSettings::default(),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
-            SOUND_PATH.to_owned() + "/combo/Chu-imsaebyJungHoeseok_5.wav",
+            SOUND_PATH.to_owned() + "/combo/chu-imsae-by-JungHoeseok-5.wav",
             StaticSoundSettings::default(),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
-            SOUND_PATH.to_owned() + "/combo/Chu-imsaebyJungHoeseok_6.wav",
+            SOUND_PATH.to_owned() + "/combo/chu-imsae-by-JungHoeseok-6.wav",
             StaticSoundSettings::default(),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
-            SOUND_PATH.to_owned() + "/combo/Chu-imsaebyLeeChunhui_1.wav",
+            SOUND_PATH.to_owned() + "/combo/chu-imsae-by-LeeChunhui-1.wav",
             StaticSoundSettings::default(),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
-            SOUND_PATH.to_owned() + "/combo/Chu-imsaebyLeeChunhui_3.wav",
+            SOUND_PATH.to_owned() + "/combo/chu-imsae-by-LeeChunhui-3.wav",
             StaticSoundSettings::default(),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
-            SOUND_PATH.to_owned() + "/combo/Chu-imsaebyLeeChunhui_6.wav",
+            SOUND_PATH.to_owned() + "/combo/chu-imsae-by-LeeChunhui-6.wav",
             StaticSoundSettings::default(),
         )
         .expect("Failed to load combo sound"),
         StaticSoundData::from_file(
-            SOUND_PATH.to_owned() + "/combo/Chu-imsaebyLeeChunhui_7.wav",
+            SOUND_PATH.to_owned() + "/combo/chu-imsae-by-LeeChunhui-7.wav",
             StaticSoundSettings::default(),
         )
         .expect("Failed to load combo sound"),
