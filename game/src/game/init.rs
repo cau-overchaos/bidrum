@@ -90,8 +90,8 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
         .event_pump()
         .expect("event pump initialization fail");
 
-    // create ttf context
-    let ttf_context = sdl2::ttf::init().expect("Failed to init ttf context");
+    // create freetype library
+    let freetype_library = cairo::freetype::Library::init().expect("Failed to init FreeType");
 
     // create GameCommonContext object
     let mut context = GameCommonContext {
@@ -104,8 +104,8 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
         audio_manager: AudioManager::<DefaultBackend>::new(AudioManagerSettings::default())
             .expect("AudioManager initialization failure"),
         janggu_bits_ptr: janggu_bits,
-        ttf_context: ttf_context,
         game_initialized_at: Instant::now(),
+        freetype_library: freetype_library,
     };
 
     // enter game loop

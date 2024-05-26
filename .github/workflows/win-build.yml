@@ -20,9 +20,9 @@ jobs:
       run: |
         Invoke-WebRequest "https://repo.msys2.org/distrib/msys2-x86_64-latest.exe" -OutFile msys2-installer.exe
         .\msys2-installer.exe in --confirm-command --accept-messages --root C:/msys64-bidrum
-    - name: Install FFmpeg and SDL2
+    - name: Install dependencies
       run: |
-        C:\msys64-bidrum\usr\bin\bash.exe -l -c "pacman --noconfirm -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-ffmpeg mingw-w64-x86_64-clang mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_ttf mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-pkg-config"
+        C:\msys64-bidrum\usr\bin\bash.exe -l -c "pacman --noconfirm -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-ffmpeg mingw-w64-x86_64-clang mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-pkg-config mingw-w64-x86_64-gtk4 mingw-w64-x86_64-gettext mingw-w64-x86_64-libxml2 mingw-w64-x86_64-librsvg mingw-w64-x86_64-pkgconf mingw-w64-x86_64-gcc"
     - name: Prepare GNU toolchain for rust
       run: |
         rustup toolchain install stable-gnu
@@ -38,7 +38,7 @@ jobs:
         echo "ar = `"C:`\`\msys64-bidrum`\`\mingw64`\`\bin`\`\ar.exe`"" >> .cargo/config.toml
     - name: Build
       run: |
-        $env:PATH += ";C:\msys64-bidrum\mingw64\bin;"
+        $env:PATH += ";C:\msys64-bidrum\mingw64\bin;C:\msys64-bidrum\mingw64\include;C:\msys64-bidrum\mingw64\lib;"
         cargo build --verbose --target x86_64-pc-windows-gnu
         cargo build --release --verbose --target x86_64-pc-windows-gnu
     - name: Upload compiled binaries

@@ -8,6 +8,7 @@ use sdl2::{
 use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
 use crate::constants::DEFAULT_IMG_PATH as IMG_PATH;
 
+use super::util::create_outlined_font_texture::create_font_texture;
 use super::{
     common::{event_loop_common, render_common},
     game_common_context::GameCommonContext,
@@ -272,31 +273,29 @@ pub(crate) fn select_song(
                 .expect("failed to render cover image");
 
             // font information
-            let ttf_context = &common_context.ttf_context;
-            let title_font = ttf_context
-                .load_font(
-                    font_path,
-                    (title_font_size as f32 * (item_rect.w as f32 / song_item_width as f32)) as u16,
-                )
+            let font = common_context
+                .freetype_library
+                .new_face(font_path, 0)
                 .expect("failed to load font"); // change font size according to the item_rect size
-            let artist_font = ttf_context
-                .load_font(
-                    font_path,
-                    (artist_font_size as f32 * (item_rect.w as f32 / song_item_width as f32))
-                        as u16,
-                )
-                .expect("failed to load font"); // change font size according to the item_rect size
+            let title_font_size =
+                (title_font_size as f32 * (item_rect.w as f32 / song_item_width as f32)) as u16;
+            let artist_font_size =
+                (artist_font_size as f32 * (item_rect.w as f32 / song_item_width as f32)) as u16;
 
             // draw title font
             let title_str_center_x = item_center_x;
             let title_str_center_y = song_item_center_y + item_rect.h / 4;
-            let surface = title_font
-                .render(&song_selection_items[real_song_selection_idx as usize].title)
-                .blended(Color::BLACK)
-                .unwrap();
-            let texture = texture_creator
-                .create_texture_from_surface(&surface)
-                .unwrap();
+            //
+            let texture = create_font_texture(
+                &texture_creator,
+                &font,
+                &song_selection_items[real_song_selection_idx as usize].title,
+                title_font_size,
+                0,
+                Color::BLACK,
+                None,
+            )
+            .unwrap();
             let texture_query = texture.query();
             let mut title_str_rect: Rect =
                 Rect::new(-1, -1, texture_query.width, texture_query.height);
@@ -312,13 +311,16 @@ pub(crate) fn select_song(
             let artist_str_center_y = title_str_center_y
                 + (title_str_center_y as f32 * (item_rect.w as f32 / song_item_width as f32)
                     / 25_f32) as i32; // change interval between title and artist fort according to the item_rect size
-            let surface = artist_font
-                .render(&song_selection_items[real_song_selection_idx as usize].artist)
-                .blended(Color::BLACK)
-                .unwrap();
-            let texture = texture_creator
-                .create_texture_from_surface(&surface)
-                .unwrap();
+            let texture = create_font_texture(
+                &texture_creator,
+                &font,
+                &song_selection_items[real_song_selection_idx as usize].artist,
+                artist_font_size,
+                0,
+                Color::BLACK,
+                None,
+            )
+            .unwrap();
             let texture_query = texture.query();
             let mut artist_str_rect: Rect =
                 Rect::new(-1, -1, texture_query.width, texture_query.height);

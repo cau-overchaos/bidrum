@@ -5,23 +5,14 @@ use sdl2::{
     render::Texture,
 };
 
-use crate::constants::DEFAULT_DIALOG_PATH as DIALOG_PATH;
 use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
+use crate::game::util::create_outlined_font_texture::measure_text_size;
+use crate::{
+    constants::DEFAULT_DIALOG_PATH as DIALOG_PATH,
+    game::util::create_outlined_font_texture::create_font_texture,
+};
 
 use crate::game::game_common_context::GameCommonContext;
-
-macro_rules! render_font_texture {
-    ($texture_creator:expr, $font:expr, $color:expr, $text:expr) => {
-        $texture_creator
-            .create_texture_from_surface(
-                $font
-                    .render($text)
-                    .blended($color)
-                    .expect("Font rendering failure"),
-            )
-            .unwrap()
-    };
-}
 
 macro_rules! create_button_texture {
     (
@@ -29,15 +20,16 @@ macro_rules! create_button_texture {
         $texture_creator: expr,
         $button_text: expr,
         $button_font: expr,
+        $button_font_size: expr,
         $selected: expr) => {{
         if $button_type != "left" && $button_type != "right" {
             panic!("button type should be \"left\" or \"right\"");
         }
 
         // get text size
-        let font_size = $button_font.size_of($button_text).unwrap();
-        let button_text_font_texture_width = font_size.0;
-        let button_text_font_texture_height = font_size.1;
+        let font_size = measure_text_size($button_font, $button_font_size, $button_text);
+        let button_text_font_texture_width = font_size.0 as u32;
+        let button_text_font_texture_height = font_size.1 as u32;
 
         // load button background texture
         let button_background_filename = format!("{}/{}_button.png", DIALOG_PATH, $button_type);
@@ -71,12 +63,16 @@ macro_rules! create_button_texture {
             .unwrap();
 
         // Render font
-        let button_text_font_texture = render_font_texture!(
-            surface_texture_creator,
-            $button_font,
+        let button_text_font_texture = create_font_texture(
+            &surface_texture_creator,
+            &$button_font,
+            $button_text,
+            $button_font_size,
+            0,
             Color::WHITE,
-            $button_text
-        );
+            None,
+        )
+        .expect("Failed to render font");
 
         // make button texture
         let font_rect = Rect::new(
@@ -116,27 +112,22 @@ pub fn render_confirm_dialog(
     let font_color = Color::WHITE;
     let line_height = 40;
     let font = common_context
-        .ttf_context
-        .load_font_at_index(
-            FONT_PATH.to_owned() + "/sans.ttf",
-            327680, /* Medium */
-            font_size,
-        )
+        .freetype_library
+        .new_face(FONT_PATH.to_owned() + "/sans.ttf", 327680 /* Medium */)
         .expect("Failed to load font");
     let button_font = common_context
-        .ttf_context
-        .load_font_at_index(
-            FONT_PATH.to_owned() + "/sans.ttf",
-            327680, /* Medium */
-            button_font_size,
-        )
+        .freetype_library
+        .new_face(FONT_PATH.to_owned() + "/sans.ttf", 327680 /* Medium */)
         .expect("Failed to load font");
 
     let texture_creator = common_context.canvas.texture_creator();
     let mut font_textures: Vec<Texture> = message
         .split('\n')
         .into_iter()
-        .map(|x| render_font_texture!(texture_creator, font, font_color, x))
+        .map(|x| {
+            create_font_texture(&texture_creator, &font, x, font_size, 0, font_color, None)
+                .expect("Failed to render text")
+        })
         .collect();
 
     // Set blending mode
@@ -150,6 +141,7 @@ pub fn render_confirm_dialog(
         &texture_creator,
         yes_button_text.unwrap_or("네"),
         &button_font,
+        button_font_size,
         matches!(selected_button, Some(DialogButton::Yes))
     )
     .expect("Failed to render yes button texture");
@@ -158,6 +150,7 @@ pub fn render_confirm_dialog(
         &texture_creator,
         no_button_text.unwrap_or("아니요"),
         &button_font,
+        button_font_size,
         matches!(selected_button, Some(DialogButton::No))
     )
     .expect("Failed to render yes button texture");
@@ -211,6 +204,7 @@ pub fn render_confirm_dialog(
                 &texture_creator,
                 yes_button_text.unwrap_or("네"),
                 &button_font,
+                button_font_size,
                 matches!(selected_button, Some(DialogButton::Yes))
             )
             .expect("Failed to render yes button texture");
@@ -219,6 +213,7 @@ pub fn render_confirm_dialog(
                 &texture_creator,
                 no_button_text.unwrap_or("아니요"),
                 &button_font,
+                button_font_size,
                 matches!(selected_button, Some(DialogButton::No))
             )
             .expect("Failed to render yes button texture");

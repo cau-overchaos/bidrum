@@ -16,7 +16,7 @@ use super::{
     common::{event_loop_common, render_common},
     game_common_context::GameCommonContext,
     render_video::VideoFileRenderer,
-    util::create_outlined_font_texture::create_outlined_font_texture,
+    util::create_outlined_font_texture::create_font_texture,
 };
 
 fn get_logo_rect(rect: Rect, w: u32, h: u32) -> Rect {
@@ -60,15 +60,14 @@ fn render_logo(canvas: &mut Canvas<Window>) {
 fn render_text(common_context: &mut GameCommonContext) {
     let texture_creator = common_context.canvas.texture_creator();
     let mut font = common_context
-        .ttf_context
-        .load_font_at_index(
+        .freetype_library
+        .new_face(
             FONT_PATH.to_owned() + "/sans.ttf",
             262144, /* Regular */
-            35,
         )
         .expect("Failed to load sans");
 
-    let mut texture = create_outlined_font_texture(
+    let mut texture = create_font_texture(
         &texture_creator,
         &mut font,
         if common_context.coins >= common_context.price {
@@ -76,9 +75,10 @@ fn render_text(common_context: &mut GameCommonContext) {
         } else {
             "동전을 넣어주세요"
         },
+        35,
         2,
         Color::WHITE,
-        Color::RGB(160, 160, 160),
+        Some(Color::RGB(160, 160, 160)),
     )
     .expect("Font rendering failure");
     let animation_progress =
