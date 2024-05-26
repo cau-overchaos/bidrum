@@ -20,6 +20,7 @@ bidrum-data-struct-lib = { path = "../data-struct-lib" }
 device_query = "2.0.0"
 ezing = "0.2.1"
 const_format = "0.2.32"
+rand = "0.8"
 
 [profile.dev.package.kira]
 opt-level = 3

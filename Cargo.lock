@@ -111,6 +111,7 @@ dependencies = [
  "ffmpeg-next",
  "kira",
  "num-rational",
+ "rand",
  "sdl2",
  "serde",
  "serde_json",
