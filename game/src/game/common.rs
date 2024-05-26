@@ -1,8 +1,7 @@
 use sdl2::{event::Event, keyboard::Keycode, pixels::Color, rect::Rect, render::TextureQuery};
 
 use super::{
-    game_common_context::GameCommonContext,
-    util::create_outlined_font_texture::create_outlined_font_texture,
+    game_common_context::GameCommonContext, util::create_outlined_font_texture::create_font_texture,
 };
 use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
 
@@ -26,17 +25,14 @@ pub(crate) fn event_loop_common(event: &Event, coins: &mut u32) -> bool {
 }
 
 pub(crate) fn render_common(context: &mut GameCommonContext) {
-    let ttf_context = &context.ttf_context;
-
     let canvas = &mut context.canvas;
     let texture_creator = canvas.texture_creator();
 
     // Load a font
-    let mut font = ttf_context
-        .load_font(
-            FONT_PATH.to_owned() + "/coin.ttf",
-            (context.dpi.0 / 6.0) as u16,
-        )
+    let _font_size = (context.dpi.0 / 6.0) as u16;
+    let mut font = context
+        .freetype_library
+        .new_face(FONT_PATH.to_owned() + "/coin.ttf", 0)
         .expect("Unable to load font");
 
     // render a surface, and convert it to a texture bound to the canvas
@@ -51,13 +47,14 @@ pub(crate) fn render_common(context: &mut GameCommonContext) {
         )
     };
 
-    let texture = create_outlined_font_texture(
+    let texture = create_font_texture(
         &texture_creator,
         &mut font,
         text.as_str(),
         2,
+        0,
         Color::WHITE,
-        Color::GRAY,
+        Some(Color::GRAY),
     )
     .unwrap();
 

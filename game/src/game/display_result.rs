@@ -6,7 +6,6 @@ use sdl2::{
     pixels::Color,
     rect::Rect,
     render::{Canvas, TextureQuery},
-    ttf::Sdl2TtfContext,
     video::Window,
 };
 
@@ -16,22 +15,18 @@ use super::{
     common::{event_loop_common, render_common},
     game_common_context::GameCommonContext,
     game_player::game_result::GameResult,
-    util::create_outlined_font_texture::create_outlined_font_texture,
+    util::create_outlined_font_texture::create_font_texture,
     util::render_game_assets::{render_cover_image_at, render_level_image_at},
 };
 
 use bidrum_data_struct_lib::song::GameSong;
 
 fn render_game_result(
-    ttf_context: &Sdl2TtfContext,
+    font: &cairo::freetype::face::Face,
     canvas: &mut Canvas<Window>,
     result: &GameResult,
 ) {
     let texture_creator = canvas.texture_creator();
-
-    let mut font = ttf_context
-        .load_font(FONT_PATH.to_owned() + "/coin.ttf", 40)
-        .expect("Font loading failure");
 
     let texts =
         format!(
@@ -48,13 +43,14 @@ fn render_game_result(
     );
 
     for (idx, text) in texts.split("\n").enumerate() {
-        let texture = create_outlined_font_texture(
+        let texture = create_font_texture(
             &texture_creator,
-            &mut font,
+            &font,
             text,
+            35,
             2,
             Color::WHITE,
-            Color::GRAY,
+            Some(Color::GRAY),
         )
         .unwrap();
 
@@ -76,6 +72,10 @@ pub(crate) fn display_result(
     song_data: &GameSong,
     selected_level: u32,
 ) {
+    let font = common_context
+        .freetype_library
+        .new_face(FONT_PATH.to_owned() + "/coin.ttf", 0)
+        .unwrap();
     loop {
         for event in common_context.event_pump.poll_iter() {
             if event_loop_common(&event, &mut common_context.coins) {
@@ -115,7 +115,7 @@ pub(crate) fn display_result(
             canvas_difficulty_image_ratio as u32,
             canvas_difficulty_image_ratio as u32,
         );
-        render_game_result(&common_context.ttf_context, canvas, &result);
+        render_game_result(&font, canvas, &result);
         render_common(common_context);
         common_context.canvas.present();
     }
