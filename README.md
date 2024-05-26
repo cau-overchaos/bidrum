@@ -5,7 +5,7 @@
 ### Linux
 1. Install `git-lfs` before you clone
 1. Install rust
-1. Install ffmpeg 7.*, sdl2, sdl2_mixer, sdl2_image, sdl2_ttf.
+1. Install ffmpeg 7.*, sdl2, sdl2_mixer, sdl2_image.
     - For instructions on sdl2 installation, see [rust-sdl2 README](https://github.com/Rust-SDL2/rust-sdl2).
 1. Run `cargo build`
     - If there's an error related to FFmpeg library building, try installing EVERY libraries related to libclang, INCLUDING development libraries. this may fix the problem.
@@ -14,7 +14,7 @@
 ### Mac OS
 1. Install `git-lfs` before you clone
 1. Install rust
-1. Install ffmpeg 7.*, sdl2, sdl2_mixer, sdl2_image, sdl2_ttf.
+1. Install ffmpeg 7.*, sdl2, sdl2_mixer, sdl2_image.
     - For instructions on sdl2 installation, see [rust-sdl2 README](https://github.com/Rust-SDL2/rust-sdl2).
 1. Type `export LIBRARY_PATH="$LIBRARY_PATH:$(brew --prefix)/lib"` to your terminal.
 1. Run `cargo build`
@@ -31,7 +31,7 @@ Due to difficulties on building Rust FFmpeg library on Windows, The GNU toolchai
 1. Run following command on **MSYS2 SHELL**. (**NOT POWERSHELL / CMD / GIT BASH**)
     - Append `--noconfirm` parameter if you want to say "yes" to all the questions automatically
     ```bash
-    pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-ffmpeg mingw-w64-x86_64-clang mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_ttf mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-SDL2_mixer
+    pacman -S mingw-w64-x86_64-toolchain mingw-w64-x86_64-ffmpeg mingw-w64-x86_64-clang mingw-w64-x86_64-SDL2 mingw-w64-x86_64-SDL2_image mingw-w64-x86_64-SDL2_mixer
     ```
 1. (Optional) Run the following commands in PowerShell or cmd and remember default host and default toolchain.
     - You can use the default host and default toolchain remembered here after building bidrum, with `rustup set default-host` and `rustup default` commands.
