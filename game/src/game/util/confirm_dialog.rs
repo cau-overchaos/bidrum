@@ -5,7 +5,9 @@ use sdl2::{
     render::Texture,
 };
 
+use crate::constants::DEFAULT_FONT_COLOR;
 use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
+
 use crate::game::util::create_outlined_font_texture::measure_text_size;
 use crate::{
     constants::DEFAULT_DIALOG_PATH as DIALOG_PATH,
@@ -69,7 +71,7 @@ macro_rules! create_button_texture {
             $button_text,
             $button_font_size,
             0,
-            Color::WHITE,
+            DEFAULT_FONT_COLOR,
             None,
         )
         .expect("Failed to render font");
@@ -109,7 +111,6 @@ pub fn render_confirm_dialog(
     // Set font-size, line-height and load font
     let font_size = 38;
     let button_font_size = 32;
-    let font_color = Color::WHITE;
     let line_height = 40;
     let font = common_context
         .freetype_library
@@ -125,8 +126,16 @@ pub fn render_confirm_dialog(
         .split('\n')
         .into_iter()
         .map(|x| {
-            create_font_texture(&texture_creator, &font, x, font_size, 0, font_color, None)
-                .expect("Failed to render text")
+            create_font_texture(
+                &texture_creator,
+                &font,
+                x,
+                font_size,
+                0,
+                DEFAULT_FONT_COLOR,
+                None,
+            )
+            .expect("Failed to render text")
         })
         .collect();
 

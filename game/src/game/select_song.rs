@@ -7,6 +7,7 @@ use sdl2::{
 
 use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
 use crate::constants::DEFAULT_IMG_PATH as IMG_PATH;
+use crate::constants::SELECT_SONG_FONT_COLOR;
 
 use super::util::create_outlined_font_texture::create_font_texture;
 use super::{
@@ -292,7 +293,7 @@ pub(crate) fn select_song(
                 &song_selection_items[real_song_selection_idx as usize].title,
                 title_font_size,
                 0,
-                Color::BLACK,
+                SELECT_SONG_FONT_COLOR,
                 None,
             )
             .unwrap();
@@ -317,7 +318,7 @@ pub(crate) fn select_song(
                 &song_selection_items[real_song_selection_idx as usize].artist,
                 artist_font_size,
                 0,
-                Color::BLACK,
+                SELECT_SONG_FONT_COLOR,
                 None,
             )
             .unwrap();

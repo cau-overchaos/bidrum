@@ -29,6 +29,7 @@ pub struct ChartPlayer<'a> {
     ui: ChartPlayerUI<'a>,
     processed_notes: Vec<ProcessedNote>,
     accuracy: Option<(NoteAccuracy, i128)>,
+    combo: Option<u64>,
 }
 
 impl ChartPlayer<'_> {
@@ -42,6 +43,7 @@ impl ChartPlayer<'_> {
             ui: ChartPlayerUI::new(texture_creator),
             processed_notes: vec![],
             accuracy: None,
+            combo: None,
         }
     }
 
@@ -157,15 +159,18 @@ impl ChartPlayer<'_> {
         overall_tick: u128,
         janggu_state_with_tick: &JangguStateWithTick,
     ) {
-        // set ui accuracy effect
+        // set ui accuracy and combo effect
         self.ui.accuracy = None;
-        self.ui.accuracy_time_progress = None;
+        self.ui.combo = None;
+        self.ui.accuracy_and_combo_time_progress = None;
         if let Some(accuracy) = self.accuracy {
             if accuracy.1.abs_diff(tick) > ACCURACY_DISPLAY_DURATION.into() {
                 self.accuracy = None;
+                self.combo = None;
             } else {
                 self.ui.accuracy = Some(accuracy.0);
-                self.ui.accuracy_time_progress =
+                self.ui.combo = Some(self.timing_judge.get_game_result().combo);
+                self.ui.accuracy_and_combo_time_progress =
                     Some(accuracy.1.abs_diff(tick) as f32 / ACCURACY_DISPLAY_DURATION as f32)
             }
         }
