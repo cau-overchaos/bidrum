@@ -10,6 +10,7 @@ use sdl2::{
 };
 
 use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
+use crate::constants::{DEFAULT_FONT_OUTLINE_SIZE, GAME_RESULT_FONT_SIZE};
 
 use super::{
     common::{event_loop_common, render_common},
@@ -47,8 +48,8 @@ fn render_game_result(
             &texture_creator,
             &font,
             text,
-            35,
-            2,
+            GAME_RESULT_FONT_SIZE,
+            DEFAULT_FONT_OUTLINE_SIZE,
             Color::WHITE,
             Some(Color::GRAY),
         )

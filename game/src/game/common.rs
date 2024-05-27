@@ -4,6 +4,7 @@ use super::{
     game_common_context::GameCommonContext, util::create_outlined_font_texture::create_font_texture,
 };
 use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
+use crate::constants::{CREDIT_FONT_SIZE, DEFAULT_FONT_OUTLINE_SIZE};
 
 pub(crate) fn event_loop_common(event: &Event, coins: &mut u32) -> bool {
     match event {
@@ -51,8 +52,8 @@ pub(crate) fn render_common(context: &mut GameCommonContext) {
         &texture_creator,
         &mut font,
         text.as_str(),
-        2,
-        0,
+        CREDIT_FONT_SIZE,
+        DEFAULT_FONT_OUTLINE_SIZE,
         Color::WHITE,
         Some(Color::GRAY),
     )

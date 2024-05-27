@@ -44,3 +44,12 @@ pub const ACCURACY_DISPLAY_DURATION: u32 = 800;
 
 // default bpm
 pub const DEFAULT_BPM: u32 = 4;
+
+// font size
+pub const DEFAULT_FONT_SIZE: u16 = 20;
+pub const CREDIT_FONT_SIZE: u16 = 30;
+pub const GAME_RESULT_FONT_SIZE: u16 = 35;
+pub const COMBO_FONT_SIZE: u16 = 40;
+
+// font outline size
+pub const DEFAULT_FONT_OUTLINE_SIZE: u16 = 6;
