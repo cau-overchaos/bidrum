@@ -6,6 +6,7 @@ use sdl2::{
     video::Window,
 };
 
+use crate::constants::DEFAULT_FONT_COLOR;
 use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
 use crate::constants::DEFAULT_IMG_PATH as IMG_PATH;
 use crate::constants::DEFAULT_VIDEO_PATH as VIDEO_PATH;
@@ -77,7 +78,7 @@ fn render_text(common_context: &mut GameCommonContext) {
         },
         35,
         2,
-        Color::WHITE,
+        DEFAULT_FONT_COLOR,
         Some(Color::RGB(160, 160, 160)),
     )
     .expect("Font rendering failure");

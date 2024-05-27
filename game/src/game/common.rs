@@ -3,8 +3,10 @@ use sdl2::{event::Event, keyboard::Keycode, pixels::Color, rect::Rect, render::T
 use super::{
     game_common_context::GameCommonContext, util::create_outlined_font_texture::create_font_texture,
 };
-use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
 use crate::constants::{CREDIT_FONT_SIZE, DEFAULT_FONT_OUTLINE_SIZE};
+use crate::constants::{
+    DEFAULT_FONT_COLOR, DEFAULT_FONT_OUTLINE_COLOR, DEFAULT_FONT_PATH as FONT_PATH,
+};
 
 pub(crate) fn event_loop_common(event: &Event, coins: &mut u32) -> bool {
     match event {
@@ -54,8 +56,8 @@ pub(crate) fn render_common(context: &mut GameCommonContext) {
         text.as_str(),
         CREDIT_FONT_SIZE,
         DEFAULT_FONT_OUTLINE_SIZE,
-        Color::WHITE,
-        Some(Color::GRAY),
+        DEFAULT_FONT_COLOR,
+        Some(DEFAULT_FONT_OUTLINE_COLOR),
     )
     .unwrap();
 

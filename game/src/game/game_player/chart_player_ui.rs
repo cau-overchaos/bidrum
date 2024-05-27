@@ -13,7 +13,10 @@ use sdl2::{
 };
 
 use crate::{
-    constants::{COMBO_FONT_SIZE, DEFAULT_FONT_OUTLINE_SIZE, NOTE_ACCURACY_WIDTH, NOTE_HEIGHT},
+    constants::{
+        COMBO_FONT_SIZE, DEFAULT_FONT_COLOR, DEFAULT_FONT_OUTLINE_COLOR, DEFAULT_FONT_OUTLINE_SIZE,
+        NOTE_ACCURACY_WIDTH, NOTE_HEIGHT,
+    },
     game::util::create_outlined_font_texture::create_font_texture,
 };
 
@@ -403,8 +406,8 @@ impl ChartPlayerUI<'_> {
                 &format!("COMBO: {}", combo),
                 COMBO_FONT_SIZE,
                 DEFAULT_FONT_OUTLINE_SIZE,
-                Color::WHITE,
-                Some(Color::GRAY),
+                DEFAULT_FONT_COLOR,
+                Some(DEFAULT_FONT_OUTLINE_COLOR),
             )
             .unwrap();
 

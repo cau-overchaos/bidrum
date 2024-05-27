@@ -1,4 +1,5 @@
 use const_format::concatcp;
+use sdl2::pixels::Color;
 
 // file path
 // asset path
@@ -52,4 +53,11 @@ pub const GAME_RESULT_FONT_SIZE: u16 = 35;
 pub const COMBO_FONT_SIZE: u16 = 40;
 
 // font outline size
-pub const DEFAULT_FONT_OUTLINE_SIZE: u16 = 6;
+pub const DEFAULT_FONT_OUTLINE_SIZE: u16 = 4;
+
+// font color
+pub const DEFAULT_FONT_COLOR: Color = Color::WHITE;
+pub const SELECT_SONG_FONT_COLOR: Color = Color::BLACK;
+
+// font outline color
+pub const DEFAULT_FONT_OUTLINE_COLOR: Color = Color::BLACK;

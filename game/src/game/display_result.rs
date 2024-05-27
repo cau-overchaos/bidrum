@@ -9,7 +9,9 @@ use sdl2::{
     video::Window,
 };
 
-use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
+use crate::constants::{
+    DEFAULT_FONT_COLOR, DEFAULT_FONT_OUTLINE_COLOR, DEFAULT_FONT_PATH as FONT_PATH,
+};
 use crate::constants::{DEFAULT_FONT_OUTLINE_SIZE, GAME_RESULT_FONT_SIZE};
 
 use super::{
@@ -50,8 +52,8 @@ fn render_game_result(
             text,
             GAME_RESULT_FONT_SIZE,
             DEFAULT_FONT_OUTLINE_SIZE,
-            Color::WHITE,
-            Some(Color::GRAY),
+            DEFAULT_FONT_COLOR,
+            Some(DEFAULT_FONT_OUTLINE_COLOR),
         )
         .unwrap();
 
