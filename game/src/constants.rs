@@ -38,7 +38,7 @@ pub const MISS_HEALTH: i64 = -50;
 // note height
 pub const NOTE_HEIGHT: u32 = 120;
 // note accuracy width
-pub const NOTE_ACCURACY_WIDTH: u32 = 200;
+pub const NOTE_ACCURACY_HEIGHT: u32 = 75;
 
 // judgement is visible time
 pub const ACCURACY_DISPLAY_DURATION: u32 = 800;
