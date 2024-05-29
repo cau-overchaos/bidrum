@@ -15,7 +15,7 @@ use sdl2::{
 use crate::{
     constants::{
         COMBO_FONT_SIZE, DEFAULT_FONT_COLOR, DEFAULT_FONT_OUTLINE_COLOR, DEFAULT_FONT_OUTLINE_SIZE,
-        NOTE_ACCURACY_WIDTH, NOTE_HEIGHT,
+        NOTE_ACCURACY_HEIGHT, NOTE_HEIGHT,
     },
     game::util::create_outlined_font_texture::create_font_texture,
 };
@@ -369,12 +369,12 @@ impl ChartPlayerUI<'_> {
                 NoteAccuracy::Miss => &mut accuracy_textures.miss,
             };
 
-            let width = NOTE_ACCURACY_WIDTH;
-            let height = (Rational32::new(
-                accuracy_texture.query().height as i32 * width as i32,
-                accuracy_texture.query().width as i32,
+            let height = NOTE_ACCURACY_HEIGHT as i32;
+            let width = (Rational32::new(
+                accuracy_texture.query().width as i32 * height as i32,
+                accuracy_texture.query().height as i32,
             ))
-            .to_integer();
+            .to_integer() as u32;
             let x = (viewport.width() - width) as i32 / 2;
             let y_start =
                 (viewport.height() - background_height_with_border) as i32 / 2 - (height / 2);
