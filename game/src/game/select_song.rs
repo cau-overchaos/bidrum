@@ -1,14 +1,14 @@
 use std::{path::Path, time::Instant};
 
+use bidrum_data_struct_lib::janggu::JangguFace;
 use bidrum_data_struct_lib::song::GameSong;
-use sdl2::{
-    event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect, render::Texture,
-};
+use sdl2::{event::Event, image::LoadTexture, keyboard::Keycode, rect::Rect, render::Texture};
 
 use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
 use crate::constants::DEFAULT_IMG_PATH as IMG_PATH;
 use crate::constants::SELECT_SONG_FONT_COLOR;
 
+use super::game_player::janggu_state_with_tick::JangguStateWithTick;
 use super::util::create_outlined_font_texture::create_font_texture;
 use super::{
     common::{event_loop_common, render_common},
@@ -40,6 +40,7 @@ pub(crate) fn select_song(
     songs: &Vec<GameSong>,
 ) -> SongSelectionResult {
     let texture_creator = common_context.canvas.texture_creator();
+    let mut janggu_state = JangguStateWithTick::new();
 
     // font information
     let font_path = &(FONT_PATH.to_owned() + "/sans.ttf");
@@ -108,12 +109,15 @@ pub(crate) fn select_song(
 
     let mut selected_song_item_moving_center_x = selected_song_item_center_x; // x position of center of moving selected song item
 
+    let selecting_song_started_at = Instant::now();
     // enable alpha blending
     common_context
         .canvas
         .set_blend_mode(sdl2::render::BlendMode::Blend);
     'running: loop {
-        // waiting user input
+        let tick = selecting_song_started_at.elapsed().as_millis();
+
+        // waiting keyboard input
         for event in common_context.event_pump.poll_iter() {
             if event_loop_common(&event, &mut common_context.coins) {
                 break 'running;
@@ -154,6 +158,38 @@ pub(crate) fn select_song(
                     }
                 }
                 _ => {}
+            }
+        }
+
+        // process janggu input
+        janggu_state.update(common_context.read_janggu_state(), tick as i128);
+        if (janggu_state.궁채.is_keydown_now
+            && matches!(janggu_state.궁채.face, Some(JangguFace::궁편)))
+            || (janggu_state.열채.is_keydown_now
+                && matches!(janggu_state.열채.face, Some(JangguFace::궁편)))
+        {
+            if moving_direction == MovingDirection::Stop {
+                // to prevent changing direction when moving
+                moving_direction = MovingDirection::Left;
+                last_key_press_time = Instant::now();
+            }
+        } else if (janggu_state.궁채.is_keydown_now
+            && matches!(janggu_state.궁채.face, Some(JangguFace::열편)))
+            || (janggu_state.열채.is_keydown_now
+                && matches!(janggu_state.열채.face, Some(JangguFace::열편)))
+        {
+            if moving_direction == MovingDirection::Stop {
+                // to prevent changing direction when moving
+                moving_direction = MovingDirection::Right;
+                last_key_press_time = Instant::now();
+            }
+        } else if (janggu_state.궁채.is_keydown_now
+            && matches!(janggu_state.궁채.face, Some(JangguFace::궁편)))
+            && (janggu_state.열채.is_keydown_now
+                && matches!(janggu_state.열채.face, Some(JangguFace::열편)))
+        {
+            if moving_direction == MovingDirection::Stop {
+                break 'running;
             }
         }
 
