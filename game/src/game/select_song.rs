@@ -3,7 +3,7 @@ use std::{path::Path, time::Instant};
 
 use bidrum_data_struct_lib::janggu::JangguFace;
 use bidrum_data_struct_lib::song::GameSong;
-use sdl2::{event::Event, image::LoadTexture, keyboard::Keycode, rect::Rect, render::Texture};
+use sdl2::{image::LoadTexture, rect::Rect, render::Texture};
 
 use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
 use crate::constants::DEFAULT_IMG_PATH as IMG_PATH;
@@ -47,7 +47,7 @@ pub(crate) fn select_song(
     let mut hit_right = false;
     let mut last_left_hit_time = Instant::now();
     let mut last_right_hit_time = Instant::now();
-    let hit_both_side_time_delay = 5; // ms
+    let hit_both_side_time_delay = 100; // ms
 
     // font information
     let font_path = &(FONT_PATH.to_owned() + "/sans.ttf");
@@ -128,40 +128,6 @@ pub(crate) fn select_song(
         for event in common_context.event_pump.poll_iter() {
             if event_loop_common(&event, &mut common_context.coins) {
                 break 'running;
-            }
-
-            match event {
-                Event::KeyDown {
-                    // if user press right key, then song menu moves to left for specific distance
-                    keycode: Some(Keycode::L),
-                    repeat: false,
-                    ..
-                } => {
-                    // to prevent changing direction when moving
-                    if moving_direction == MovingDirection::Stop {
-                        // If hitting left side, don't react directly. Just assign false to hit_left
-                        if hit_left == false {
-                            hit_left = true;
-                            last_left_hit_time = Instant::now();
-                        }
-                    }
-                }
-                Event::KeyDown {
-                    // if user press right key, then song menu moves to right for specific distance
-                    keycode: Some(Keycode::K),
-                    repeat: false,
-                    ..
-                } => {
-                    // to prevent changing direction when moving
-                    if moving_direction == MovingDirection::Stop {
-                        // If hitting right side, don't react directly. Just assign false to hit_right
-                        if hit_right == false {
-                            hit_right = true;
-                            last_right_hit_time = Instant::now();
-                        }
-                    }
-                }
-                _ => {}
             }
         }
 
