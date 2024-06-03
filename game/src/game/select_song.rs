@@ -1,3 +1,4 @@
+use std::time::Duration;
 use std::{path::Path, time::Instant};
 
 use bidrum_data_struct_lib::janggu::JangguFace;
@@ -41,6 +42,12 @@ pub(crate) fn select_song(
 ) -> SongSelectionResult {
     let texture_creator = common_context.canvas.texture_creator();
     let mut janggu_state = JangguStateWithTick::new();
+
+    let mut hit_left = false;
+    let mut hit_right = false;
+    let mut last_left_hit_time = Instant::now();
+    let mut last_right_hit_time = Instant::now();
+    let hit_both_side_time_delay = 5; // ms
 
     // font information
     let font_path = &(FONT_PATH.to_owned() + "/sans.ttf");
@@ -125,36 +132,33 @@ pub(crate) fn select_song(
 
             match event {
                 Event::KeyDown {
-                    // if user press right key, then song menu moves to right for specific distance
-                    keycode: Some(Keycode::Right),
-                    repeat: false,
-                    ..
-                } => {
-                    if moving_direction == MovingDirection::Stop {
-                        // to prevent changing direction when moving
-                        moving_direction = MovingDirection::Right;
-                        last_key_press_time = Instant::now();
-                    }
-                }
-                Event::KeyDown {
                     // if user press right key, then song menu moves to left for specific distance
-                    keycode: Some(Keycode::Left),
+                    keycode: Some(Keycode::L),
                     repeat: false,
                     ..
                 } => {
+                    // to prevent changing direction when moving
                     if moving_direction == MovingDirection::Stop {
-                        // to prevent changing direction when moving
-                        moving_direction = MovingDirection::Left;
-                        last_key_press_time = Instant::now();
+                        // If hitting left side, don't react directly. Just assign false to hit_left
+                        if hit_left == false {
+                            hit_left = true;
+                            last_left_hit_time = Instant::now();
+                        }
                     }
                 }
                 Event::KeyDown {
-                    // if user press enter key, then song is selected
-                    keycode: Some(Keycode::Return),
+                    // if user press right key, then song menu moves to right for specific distance
+                    keycode: Some(Keycode::K),
+                    repeat: false,
                     ..
                 } => {
+                    // to prevent changing direction when moving
                     if moving_direction == MovingDirection::Stop {
-                        break 'running;
+                        // If hitting right side, don't react directly. Just assign false to hit_right
+                        if hit_right == false {
+                            hit_right = true;
+                            last_right_hit_time = Instant::now();
+                        }
                     }
                 }
                 _ => {}
@@ -176,22 +180,49 @@ pub(crate) fn select_song(
             || (janggu_state.열채.is_keydown_now
                 && matches!(janggu_state.열채.face, Some(JangguFace::궁편)))
         {
+            // to prevent changing direction when moving
             if moving_direction == MovingDirection::Stop {
-                // to prevent changing direction when moving
-                moving_direction = MovingDirection::Left;
-                last_key_press_time = Instant::now();
+                if hit_left == false {
+                    // If hitting left side, don't react directly. Just assign false to hit_left
+                    hit_left = true;
+                    last_left_hit_time = Instant::now();
+                }
             }
         } else if (janggu_state.궁채.is_keydown_now
             && matches!(janggu_state.궁채.face, Some(JangguFace::열편)))
             || (janggu_state.열채.is_keydown_now
                 && matches!(janggu_state.열채.face, Some(JangguFace::열편)))
         {
+            // to prevent changing direction when moving
             if moving_direction == MovingDirection::Stop {
-                // to prevent changing direction when moving
-                moving_direction = MovingDirection::Right;
-                last_key_press_time = Instant::now();
+                if hit_right == false {
+                    // If hitting right side, don't react directly. Just assign false to hit_right
+                    hit_right = true;
+                    last_right_hit_time = Instant::now();
+                }
             }
         }
+
+        // to detect delay for hitting both side
+        if hit_left && hit_right {
+            // detect hitting both side
+            break 'running;
+        } else if hit_left {
+            if last_left_hit_time.elapsed() > Duration::from_millis(hit_both_side_time_delay) {
+                // after the limit, regard as going to left song
+                moving_direction = MovingDirection::Left;
+                last_key_press_time = Instant::now();
+                hit_left = false;
+            }
+        } else if hit_right {
+            if last_right_hit_time.elapsed() > Duration::from_millis(hit_both_side_time_delay) {
+                // after the limit, regard as going to right song
+                moving_direction = MovingDirection::Right;
+                last_key_press_time = Instant::now();
+                hit_right = false;
+            }
+        }
+
         let elapsed_time = last_key_press_time.elapsed().as_millis() as f32;
         if moving_direction == MovingDirection::Left {
             // if user press right key, then song items move to right for specific distance
