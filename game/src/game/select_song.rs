@@ -165,6 +165,14 @@ pub(crate) fn select_song(
         janggu_state.update(common_context.read_janggu_state(), tick as i128);
         if (janggu_state.궁채.is_keydown_now
             && matches!(janggu_state.궁채.face, Some(JangguFace::궁편)))
+            && (janggu_state.열채.is_keydown_now
+                && matches!(janggu_state.열채.face, Some(JangguFace::열편)))
+        {
+            if moving_direction == MovingDirection::Stop {
+                break 'running;
+            }
+        } else if (janggu_state.궁채.is_keydown_now
+            && matches!(janggu_state.궁채.face, Some(JangguFace::궁편)))
             || (janggu_state.열채.is_keydown_now
                 && matches!(janggu_state.열채.face, Some(JangguFace::궁편)))
         {
@@ -183,16 +191,7 @@ pub(crate) fn select_song(
                 moving_direction = MovingDirection::Right;
                 last_key_press_time = Instant::now();
             }
-        } else if (janggu_state.궁채.is_keydown_now
-            && matches!(janggu_state.궁채.face, Some(JangguFace::궁편)))
-            && (janggu_state.열채.is_keydown_now
-                && matches!(janggu_state.열채.face, Some(JangguFace::열편)))
-        {
-            if moving_direction == MovingDirection::Stop {
-                break 'running;
-            }
         }
-
         let elapsed_time = last_key_press_time.elapsed().as_millis() as f32;
         if moving_direction == MovingDirection::Left {
             // if user press right key, then song items move to right for specific distance
