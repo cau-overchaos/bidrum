@@ -1,9 +1,7 @@
 use std::{path::Path, time::Instant};
 
 use bidrum_data_struct_lib::song::GameSong;
-use sdl2::{
-    event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect, render::Texture,
-};
+use sdl2::{event::Event, image::LoadTexture, keyboard::Keycode, rect::Rect, render::Texture};
 
 use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
 use crate::constants::DEFAULT_IMG_PATH as IMG_PATH;

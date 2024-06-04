@@ -3,7 +3,6 @@ use std::path::Path;
 use sdl2::{
     event::Event,
     keyboard::Keycode,
-    pixels::Color,
     rect::Rect,
     render::{Canvas, TextureQuery},
     video::Window,

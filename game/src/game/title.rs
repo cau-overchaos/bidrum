@@ -1,4 +1,3 @@
-use std::sync::atomic::Ordering;
 use std::{path::Path, time::Duration};
 
 use num_rational::Rational64;
@@ -72,7 +71,7 @@ fn render_text(common_context: &mut GameCommonContext) {
     let mut texture = create_font_texture(
         &texture_creator,
         &mut font,
-        if common_context.coins.load(Ordering::Relaxed) >= common_context.price {
+        if common_context.coin_and_janggu.get_coins() >= common_context.price {
             "장구를 쳐서 시작하세요!"
         } else {
             "동전을 넣어주세요"
@@ -141,10 +140,10 @@ pub(crate) fn render_title(common_context: &mut GameCommonContext) -> TitleResul
                     keycode: Some(Keycode::Return),
                     ..
                 } => {
-                    if common_context.coins.load(Ordering::Relaxed) >= common_context.price {
+                    if common_context.coin_and_janggu.get_coins() >= common_context.price {
                         common_context
-                            .coins
-                            .fetch_sub(common_context.price, Ordering::Relaxed);
+                            .coin_and_janggu
+                            .consume_coins(common_context.price);
                         return TitleResult::StartGame;
                     }
                 }

@@ -1,13 +1,8 @@
-use std::{
-    sync::{
-        atomic::{AtomicU32, AtomicU8},
-        Arc,
-    },
-    time::{Duration, Instant},
-};
+use std::time::Instant;
 
-use device_query::{DeviceQuery, DeviceState, Keycode};
 use kira::manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings};
+
+use crate::controller_wrapper::ControllerWrapper;
 
 use super::{game_common_context::GameCommonContext, start::start_game, title::render_title};
 
@@ -19,7 +14,7 @@ pub struct InitGameOptions {
     pub price: u32,
 }
 
-pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
+pub(crate) fn init_game(controller_wrapper: ControllerWrapper, options: InitGameOptions) {
     // init sdl
     let sdl_context = sdl2::init().expect("sdl context initialization Fail");
 
@@ -98,30 +93,9 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
     // create freetype library
     let freetype_library = cairo::freetype::Library::init().expect("Failed to init FreeType");
 
-    // create coin variable
-    let coins = Arc::new(AtomicU32::new(0));
-    if options.price != 0 {
-        let coins_for_thread = coins.clone();
-
-        std::thread::spawn(move || {
-            let device_state = DeviceState::new();
-            let mut pressed = false;
-            loop {
-                let new_pressed = device_state.get_keys().contains(&Keycode::C);
-                if new_pressed && !pressed {
-                    // increase one on keydown
-                    coins_for_thread.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-                }
-
-                pressed = new_pressed;
-                std::thread::sleep(Duration::from_millis(10));
-            }
-        });
-    }
-
     // create GameCommonContext object
     let mut context = GameCommonContext {
-        coins: coins,
+        coin_and_janggu: controller_wrapper,
         price: options.price,
         canvas: canvas,
         dpi: dpi,
@@ -129,7 +103,6 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
         event_pump: event_pump,
         audio_manager: AudioManager::<DefaultBackend>::new(AudioManagerSettings::default())
             .expect("AudioManager initialization failure"),
-        janggu_bits_ptr: janggu_bits,
         game_initialized_at: Instant::now(),
         freetype_library: freetype_library,
     };

@@ -1,19 +1,10 @@
 mod constants;
+mod controller_wrapper;
 mod game;
-mod janggu_keyboard;
-mod serial;
-
-use std::{
-    sync::{atomic::AtomicU8, Arc},
-    thread::{self, sleep},
-    time::Duration,
-};
 
 use clap::Parser;
+use controller_wrapper::ControllerWrapper;
 use game::init::{init_game, InitGameOptions};
-use janggu_keyboard::read_janggu_key_loop;
-
-use crate::serial::read_serial_loop;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -59,49 +50,21 @@ fn main() {
     }
 
     let args = Args::parse();
-    let bits = AtomicU8::new(0);
-    let bits_arc = Arc::new(bits);
-    match args.controller_port {
-        Some(controller_port) => {
-            println!("Openning serial port {}", controller_port);
+    let options = InitGameOptions {
+        fullscreen: !args.windowed,
+        height: args.window_height,
+        width: args.window_width,
+        vsync: args.vsync.unwrap_or(if cfg!(target_os = "macos") {
+            true
+        } else {
+            false
+        }),
+        price: price!(args),
+    };
 
-            let port = serialport::new(controller_port, 9600)
-                .timeout(Duration::from_millis(20))
-                .open()
-                .expect("Failed to open port");
-
-            println!("Waiting 3 seconds (Arduino needs time for serial initialization)");
-            sleep(Duration::from_millis(3000));
-            println!("Waited 3 seconds!");
-
-            let ptr = bits_arc.clone();
-            thread::spawn(move || {
-                read_serial_loop(port, ptr);
-            });
-        }
-        _ => {
-            println!("Controller port not provided! Reading keyboard....");
-
-            let ptr = bits_arc.clone();
-            thread::spawn(move || {
-                read_janggu_key_loop(ptr);
-            });
-        }
-    }
-
-    let ptr = bits_arc.clone();
-    init_game(
-        ptr,
-        InitGameOptions {
-            fullscreen: !args.windowed,
-            height: args.window_height,
-            width: args.window_width,
-            vsync: args.vsync.unwrap_or(if cfg!(target_os = "macos") {
-                true
-            } else {
-                false
-            }),
-            price: price!(args),
-        },
-    );
+    let controller_wrapper = match args.controller_port {
+        Some(controller_port) => ControllerWrapper::serial(controller_port),
+        _ => ControllerWrapper::keyboard(),
+    };
+    init_game(controller_wrapper, options);
 }

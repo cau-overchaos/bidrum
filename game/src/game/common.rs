@@ -1,5 +1,3 @@
-use std::sync::atomic::Ordering;
-
 use sdl2::{event::Event, keyboard::Keycode, pixels::Color, rect::Rect, render::TextureQuery};
 
 use super::{
@@ -42,12 +40,12 @@ pub(crate) fn render_common(context: &mut GameCommonContext) {
             "FREE PLAY".to_string()
         }
     } else if context.price == 1 {
-        format!("CREDIT: {}", context.coins.load(Ordering::Relaxed))
+        format!("CREDIT: {}", context.coin_and_janggu.get_coins())
     } else {
         format!(
             "CREDIT: {} ({}/{})",
-            context.coins.load(Ordering::Relaxed) / context.price,
-            context.coins.load(Ordering::Relaxed) % context.price,
+            context.coin_and_janggu.get_coins() / context.price,
+            context.coin_and_janggu.get_coins() % context.price,
             context.price
         )
     };
