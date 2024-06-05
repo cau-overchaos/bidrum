@@ -1,35 +1,48 @@
-#include <Keyboard.h>
-#define OUTPUT_PIN_1 4 // 궁채
-#define OUTPUT_PIN_2 5 // 열채
-#define INPUT_PIN_1 8 // 궁편
-#define INPUT_PIN_2 9 // 열편
-#define RELAY_DELAY 50
-#define PROCESS_KEYBOARD_INPUT(shifts, key) \
-        if (prevKeyState & (1 << (shifts)) != newKeyState & (1 << (shifts))) { \
-            if (newKeyState & (1 << (shifts)) != 0) { \
-              Keyboard.press(key); \
-            } else { \
-              Keyboard.release(key); \
-            } \
-        } 1+1
+#define BILL_PIN 2      // 지폐기
+#define COIN_PIN 3      // 코인기
+#define INPUT_PIN_2 4   // 열편
+#define OUTPUT_PIN_2 5  // 열채
+#define INPUT_PIN_1 6   // 궁편
+#define OUTPUT_PIN_1 7  // 궁채
+#define RELAY_DELAY 50  // 딜레이 50ms
 
 int step;
 int pin1ConnectedTo, pin2ConnectedTo;
 unsigned int lastTimestamp;
-uint8_t prevKeyState;
+unsigned int coin_cnt;
+
 void setup()
 {
   step = 0;
-  prevKeyState = 0;
+  coin_cnt = 0;
   pinMode(OUTPUT_PIN_1, OUTPUT);
   pinMode(OUTPUT_PIN_2, OUTPUT);
   pinMode(INPUT_PIN_1, INPUT_PULLUP);
   pinMode(INPUT_PIN_2, INPUT_PULLUP);
   
+  // 열채, 궁채
   digitalWrite(OUTPUT_PIN_1, LOW);
   digitalWrite(OUTPUT_PIN_2, LOW);
   
-  Keyboard.begin();
+  // 지폐, 코인기 인터럽트
+  attachInterrupt(digitalPinToInterrupt(BILL_PIN), bill, FALLING);
+  attachInterrupt(digitalPinToInterrupt(COIN_PIN), coin, FALLING);
+
+  // 시리얼 셋
+  Serial.begin(9600);
+  while (!Serial) {
+    ; // wait for serial port to connect. Needed for native USB
+  }
+}
+
+void bill()
+{
+  coin_cnt++;
+}
+
+void coin()
+{
+  coin_cnt++;
 }
 
 void loop()
@@ -45,7 +58,6 @@ void loop()
     	digitalWrite(OUTPUT_PIN_1, LOW);
     	digitalWrite(OUTPUT_PIN_2, HIGH);
       delayMicroseconds(RELAY_DELAY);
-    	//delay(RELAY_DELAY);
         if(digitalRead(INPUT_PIN_1) == LOW) {
 			pin2ConnectedTo = INPUT_PIN_1;
         } else if (digitalRead(INPUT_PIN_2) == LOW) {
@@ -58,7 +70,6 @@ void loop()
     	digitalWrite(OUTPUT_PIN_2, LOW);
     	digitalWrite(OUTPUT_PIN_1, HIGH);
       delayMicroseconds(RELAY_DELAY);
-    	//delay(RELAY_DELAY);
         if(digitalRead(INPUT_PIN_1) == LOW) {
 			pin1ConnectedTo = INPUT_PIN_1;
         } else if (digitalRead(INPUT_PIN_2) == LOW) {
@@ -71,22 +82,20 @@ void loop()
     	digitalWrite(OUTPUT_PIN_1, LOW);
     	digitalWrite(OUTPUT_PIN_2, LOW);
       delayMicroseconds(RELAY_DELAY);
-      uint8_t newKeyState = 0;
+      uint8_t bits = 0;
       if (pin1ConnectedTo == INPUT_PIN_1)
-        newKeyState |= (uint8_t)1;
+        bits |= (uint8_t)1;
       if (pin1ConnectedTo == INPUT_PIN_2)
-        newKeyState |= (uint8_t)2;
+        bits |= (uint8_t)2;
       if (pin2ConnectedTo == INPUT_PIN_1)
-        newKeyState |= (uint8_t)4;
+        bits |= (uint8_t)4;
       if (pin2ConnectedTo == INPUT_PIN_2)
-        newKeyState |= (uint8_t)8;
-
-      PROCESS_KEYBOARD_INPUT(0, 'd');
-      PROCESS_KEYBOARD_INPUT(1, 'f');
-      PROCESS_KEYBOARD_INPUT(2, 'j');
-      PROCESS_KEYBOARD_INPUT(3, 'k');
-
-      prevKeyState = newKeyState;
+        bits |= (uint8_t)8;
+      if (coin_cnt>0){
+        bits |= (uint8_t)16;
+        coin_cnt--;
+      }
+      Serial.write(bits);
     break;
   }
 }
