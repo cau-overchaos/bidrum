@@ -188,7 +188,6 @@ impl ChartPlayer<'_> {
             *position_ratio.numer() as f64 / *position_ratio.denom() as f64
         };
 
-        println!("beat_guideline: len = {}, pos = {}", length, position);
         Some(BeatGuideline { length, position })
     }
 

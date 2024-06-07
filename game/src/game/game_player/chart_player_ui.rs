@@ -254,7 +254,6 @@ impl ChartPlayerUI<'_> {
                             background_height_without_border,
                         ))
                         .unwrap();
-                    println!("Drawing at {}", line_x)
                 }
 
                 position += beat_guideline.length;
