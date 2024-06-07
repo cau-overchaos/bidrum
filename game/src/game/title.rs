@@ -1,10 +1,8 @@
+use std::time::Instant;
 use std::{path::Path, time::Duration};
 
 use num_rational::Rational64;
-use sdl2::{
-    event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect, render::Canvas,
-    video::Window,
-};
+use sdl2::{image::LoadTexture, pixels::Color, rect::Rect, render::Canvas, video::Window};
 
 use crate::constants::DEFAULT_FONT_COLOR;
 use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
@@ -12,6 +10,8 @@ use crate::constants::DEFAULT_IMG_PATH as IMG_PATH;
 use crate::constants::DEFAULT_VIDEO_PATH as VIDEO_PATH;
 
 use crate::create_streaming_iyuv_texture;
+
+use super::game_player::janggu_state_with_tick::JangguStateWithTick;
 
 use super::{
     common::{event_loop_common, render_common},
@@ -130,24 +130,29 @@ pub(crate) fn render_title(common_context: &mut GameCommonContext) -> TitleResul
         background_video_size.1
     )
     .expect("Failed to create texture for title background video");
+    let mut janggu_state = JangguStateWithTick::new();
+    let title_started_at = Instant::now();
+    janggu_state.update(
+        common_context.read_janggu_state(),
+        title_started_at.elapsed().as_millis() as i128,
+    );
     loop {
         for event in common_context.event_pump.poll_iter() {
             if event_loop_common(&event) {
                 return TitleResult::Exit;
             }
-            match event {
-                Event::KeyDown {
-                    keycode: Some(Keycode::Return),
-                    ..
-                } => {
-                    if common_context.coin_and_janggu.get_coins() >= common_context.price {
-                        common_context
-                            .coin_and_janggu
-                            .consume_coins(common_context.price);
-                        return TitleResult::StartGame;
-                    }
-                }
-                _ => {}
+        }
+
+        janggu_state.update(
+            common_context.read_janggu_state(),
+            title_started_at.elapsed().as_millis() as i128,
+        );
+        if janggu_state.궁채.is_keydown_now || janggu_state.열채.is_keydown_now {
+            if common_context.coin_and_janggu.get_coins() >= common_context.price {
+                common_context
+                    .coin_and_janggu
+                    .consume_coins(common_context.price);
+                return TitleResult::StartGame;
             }
         }
 
