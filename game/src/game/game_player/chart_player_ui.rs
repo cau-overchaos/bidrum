@@ -245,7 +245,7 @@ impl ChartPlayerUI<'_> {
                         + distance_between_centers
                         + (judgement_line_width / 2 - thickness / 2) as i32,
                 ] {
-                    canvas.set_draw_color(Color::RGBA(200, 200, 200, 200));
+                    canvas.set_draw_color(Color::RGBA(255, 255, 255, 220));
                     canvas
                         .fill_rect(Rect::new(
                             line_x,
