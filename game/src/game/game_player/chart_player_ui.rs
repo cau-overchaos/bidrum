@@ -29,6 +29,11 @@ use self::{
 
 use super::timing_judge::NoteAccuracy;
 
+pub struct BeatGuideline {
+    pub position: f64,
+    pub length: f64,
+}
+
 pub struct ChartPlayerUI<'a> {
     pub notes: Vec<DisplayedSongNote>,
     pub accuracy: Option<NoteAccuracy>,
@@ -37,6 +42,7 @@ pub struct ChartPlayerUI<'a> {
     pub input_effect: InputEffect,
     pub overall_effect_tick: u128,
     pub disappearing_note_effects: DisapearingNoteEffect,
+    pub beat_guideline: Option<BeatGuideline>,
     resources: ChartPlayerUIResources<'a>,
 }
 
@@ -56,6 +62,7 @@ impl ChartPlayerUI<'_> {
             input_effect: InputEffect::new(),
             overall_effect_tick: 0,
             disappearing_note_effects: DisapearingNoteEffect::new(),
+            beat_guideline: None,
             resources: resources,
         };
     }
@@ -140,10 +147,11 @@ impl ChartPlayerUI<'_> {
         let background_width = (viewport.width() - janggu_width_min) / 2;
         let background_y =
             (canvas.viewport().height() as i32 - (background_height_without_border as i32)) / 2;
-        for background_x in [
+        let background_x = [
             0,                                                 /* x coordinate of left background */
             background_width as i32 + janggu_width_min as i32, /* x coordinate of right background */
-        ] {
+        ];
+        for background_x in background_x {
             let background_alpha = {
                 // is the face hitted?
                 let hitting = if background_x == 0 {
@@ -203,7 +211,7 @@ impl ChartPlayerUI<'_> {
                 .unwrap();
         }
 
-        // draw judgement line
+        // judgement line info / max note width is required for beat guideline
         let judgement_line_height = max_stick_note_height;
         let judgement_line_padding_px = 20;
         let judgement_line_width = ((judgement_line_texture.query().width as f32
@@ -214,6 +222,46 @@ impl ChartPlayerUI<'_> {
             background_width as i32 - judgement_line_width as i32 - judgement_line_padding_px, /* left judgement line */
             background_width as i32 + janggu_width_min as i32 + judgement_line_padding_px, /* right judgement line */
         ];
+        let note_width_max = std::cmp::max(left_stick_note_width, right_stick_note_width);
+
+        // draw beat guideline
+        if let Some(beat_guideline) = &self.beat_guideline {
+            let mut position = beat_guideline.position % beat_guideline.length;
+            while position < 0.0 {
+                position += beat_guideline.length;
+            }
+            let thickness: u32 = 2;
+            loop {
+                let distance_between_centers = (position * note_width_max as f64) as i32;
+                if distance_between_centers
+                    > (background_width + (judgement_line_width + thickness) / 2) as i32
+                {
+                    break;
+                }
+                for line_x in [
+                    judgement_line_xposes[0] - distance_between_centers
+                        + (judgement_line_width / 2 + thickness / 2) as i32,
+                    judgement_line_xposes[1]
+                        + distance_between_centers
+                        + (judgement_line_width / 2 - thickness / 2) as i32,
+                ] {
+                    canvas.set_draw_color(Color::RGBA(200, 200, 200, 200));
+                    canvas
+                        .fill_rect(Rect::new(
+                            line_x,
+                            background_y,
+                            thickness,
+                            background_height_without_border,
+                        ))
+                        .unwrap();
+                    println!("Drawing at {}", line_x)
+                }
+
+                position += beat_guideline.length;
+            }
+        }
+
+        // draw judgement line
         for judgement_line_xpos in judgement_line_xposes {
             canvas
                 .copy(
@@ -228,9 +276,6 @@ impl ChartPlayerUI<'_> {
                 )
                 .unwrap();
         }
-
-        // load textures for the notes and accuracy
-        let note_width_max = std::cmp::max(left_stick_note_width, right_stick_note_width);
 
         // draw note
         let mut draw_note = |i: &DisplayedSongNote, disappearing_effect: Option<f32>| {
