@@ -172,22 +172,20 @@ impl ChartPlayer<'_> {
         // speed = 1 / millisecond_per_beat
         let speed_ratio = Rational64::new((self.chart.bpm * DEFAULT_BPM) as i64, 60000);
 
-        // convert the ratio into floating value
-        let speed = *speed_ratio.numer() as f64 / *speed_ratio.denom() as f64;
-
-        let length =
-            (*timing_of_one_beat.numer() as f64 / *timing_of_one_beat.denom() as f64) * speed;
+        let length_ratio = timing_of_one_beat * speed_ratio;
+        let length = *length_ratio.numer() as f64 / *length_ratio.denom() as f64;
 
         let position = {
-            let timing_of_one_beat =
-                *timing_of_one_beat.numer() as f64 / *timing_of_one_beat.denom() as f64;
-            let mut position = tick % timing_of_one_beat as i128;
-            while position < 0 {
-                position += timing_of_one_beat as i128;
-            }
+            //position_ratio = tick % timing_of_one_beat as i128;
+            let mut position_ratio = Rational64::new(
+                (*timing_of_one_beat.denom() * tick as i64) % *timing_of_one_beat.numer(),
+                *timing_of_one_beat.denom(),
+            );
 
-            position = length as i128 - position;
-            length as f64 * (position as f64 / timing_of_one_beat)
+            position_ratio = length_ratio - position_ratio;
+            position_ratio = position_ratio / timing_of_one_beat;
+            position_ratio *= length_ratio;
+            *position_ratio.numer() as f64 / *position_ratio.denom() as f64
         };
 
         println!("beat_guideline: len = {}, pos = {}", length, position);
