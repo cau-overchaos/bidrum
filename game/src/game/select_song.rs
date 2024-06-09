@@ -1,13 +1,16 @@
+use std::time::Duration;
 use std::{path::Path, time::Instant};
 
+use bidrum_data_struct_lib::janggu::JangguFace;
 use bidrum_data_struct_lib::song::GameSong;
-use sdl2::{
-    event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect, render::Texture,
-};
+use sdl2::{image::LoadTexture, rect::Rect, render::Texture};
 
 use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
 use crate::constants::DEFAULT_IMG_PATH as IMG_PATH;
+use crate::constants::SELECT_SONG_FONT_COLOR;
 
+use super::game_player::janggu_state_with_tick::JangguStateWithTick;
+use super::util::create_outlined_font_texture::create_font_texture;
 use super::{
     common::{event_loop_common, render_common},
     game_common_context::GameCommonContext,
@@ -38,6 +41,13 @@ pub(crate) fn select_song(
     songs: &Vec<GameSong>,
 ) -> SongSelectionResult {
     let texture_creator = common_context.canvas.texture_creator();
+    let mut janggu_state = JangguStateWithTick::new();
+
+    let mut hit_left = false;
+    let mut hit_right = false;
+    let mut last_left_hit_time = Instant::now();
+    let mut last_right_hit_time = Instant::now();
+    let hit_both_side_time_delay = 100; // ms
 
     // font information
     let font_path = &(FONT_PATH.to_owned() + "/sans.ttf");
@@ -106,52 +116,76 @@ pub(crate) fn select_song(
 
     let mut selected_song_item_moving_center_x = selected_song_item_center_x; // x position of center of moving selected song item
 
+    let selecting_song_started_at = Instant::now();
     // enable alpha blending
     common_context
         .canvas
         .set_blend_mode(sdl2::render::BlendMode::Blend);
     'running: loop {
-        // waiting user input
+        let tick = selecting_song_started_at.elapsed().as_millis();
+
+        // waiting keyboard input
         for event in common_context.event_pump.poll_iter() {
             if event_loop_common(&event, &mut common_context.coins) {
                 break 'running;
             }
+        }
 
-            match event {
-                Event::KeyDown {
-                    // if user press right key, then song menu moves to right for specific distance
-                    keycode: Some(Keycode::Right),
-                    repeat: false,
-                    ..
-                } => {
-                    if moving_direction == MovingDirection::Stop {
-                        // to prevent changing direction when moving
-                        moving_direction = MovingDirection::Right;
-                        last_key_press_time = Instant::now();
-                    }
+        // process janggu input
+        janggu_state.update(common_context.read_janggu_state(), tick as i128);
+        if (janggu_state.궁채.is_keydown_now
+            && matches!(janggu_state.궁채.face, Some(JangguFace::궁편)))
+            && (janggu_state.열채.is_keydown_now
+                && matches!(janggu_state.열채.face, Some(JangguFace::열편)))
+        {
+            if moving_direction == MovingDirection::Stop {
+                break 'running;
+            }
+        } else if (janggu_state.궁채.is_keydown_now
+            && matches!(janggu_state.궁채.face, Some(JangguFace::궁편)))
+            || (janggu_state.열채.is_keydown_now
+                && matches!(janggu_state.열채.face, Some(JangguFace::궁편)))
+        {
+            // to prevent changing direction when moving
+            if moving_direction == MovingDirection::Stop {
+                if hit_left == false {
+                    // If hitting left side, don't react directly. Just assign false to hit_left
+                    hit_left = true;
+                    last_left_hit_time = Instant::now();
                 }
-                Event::KeyDown {
-                    // if user press right key, then song menu moves to left for specific distance
-                    keycode: Some(Keycode::Left),
-                    repeat: false,
-                    ..
-                } => {
-                    if moving_direction == MovingDirection::Stop {
-                        // to prevent changing direction when moving
-                        moving_direction = MovingDirection::Left;
-                        last_key_press_time = Instant::now();
-                    }
+            }
+        } else if (janggu_state.궁채.is_keydown_now
+            && matches!(janggu_state.궁채.face, Some(JangguFace::열편)))
+            || (janggu_state.열채.is_keydown_now
+                && matches!(janggu_state.열채.face, Some(JangguFace::열편)))
+        {
+            // to prevent changing direction when moving
+            if moving_direction == MovingDirection::Stop {
+                if hit_right == false {
+                    // If hitting right side, don't react directly. Just assign false to hit_right
+                    hit_right = true;
+                    last_right_hit_time = Instant::now();
                 }
-                Event::KeyDown {
-                    // if user press enter key, then song is selected
-                    keycode: Some(Keycode::Return),
-                    ..
-                } => {
-                    if moving_direction == MovingDirection::Stop {
-                        break 'running;
-                    }
-                }
-                _ => {}
+            }
+        }
+
+        // to detect delay for hitting both side
+        if hit_left && hit_right {
+            // detect hitting both side
+            break 'running;
+        } else if hit_left {
+            if last_left_hit_time.elapsed() > Duration::from_millis(hit_both_side_time_delay) {
+                // after the limit, regard as going to left song
+                moving_direction = MovingDirection::Left;
+                last_key_press_time = Instant::now();
+                hit_left = false;
+            }
+        } else if hit_right {
+            if last_right_hit_time.elapsed() > Duration::from_millis(hit_both_side_time_delay) {
+                // after the limit, regard as going to right song
+                moving_direction = MovingDirection::Right;
+                last_key_press_time = Instant::now();
+                hit_right = false;
             }
         }
 
@@ -272,31 +306,29 @@ pub(crate) fn select_song(
                 .expect("failed to render cover image");
 
             // font information
-            let ttf_context = &common_context.ttf_context;
-            let title_font = ttf_context
-                .load_font(
-                    font_path,
-                    (title_font_size as f32 * (item_rect.w as f32 / song_item_width as f32)) as u16,
-                )
+            let font = common_context
+                .freetype_library
+                .new_face(font_path, 0)
                 .expect("failed to load font"); // change font size according to the item_rect size
-            let artist_font = ttf_context
-                .load_font(
-                    font_path,
-                    (artist_font_size as f32 * (item_rect.w as f32 / song_item_width as f32))
-                        as u16,
-                )
-                .expect("failed to load font"); // change font size according to the item_rect size
+            let title_font_size =
+                (title_font_size as f32 * (item_rect.w as f32 / song_item_width as f32)) as u16;
+            let artist_font_size =
+                (artist_font_size as f32 * (item_rect.w as f32 / song_item_width as f32)) as u16;
 
             // draw title font
             let title_str_center_x = item_center_x;
             let title_str_center_y = song_item_center_y + item_rect.h / 4;
-            let surface = title_font
-                .render(&song_selection_items[real_song_selection_idx as usize].title)
-                .blended(Color::BLACK)
-                .unwrap();
-            let texture = texture_creator
-                .create_texture_from_surface(&surface)
-                .unwrap();
+            //
+            let texture = create_font_texture(
+                &texture_creator,
+                &font,
+                &song_selection_items[real_song_selection_idx as usize].title,
+                title_font_size,
+                0,
+                SELECT_SONG_FONT_COLOR,
+                None,
+            )
+            .unwrap();
             let texture_query = texture.query();
             let mut title_str_rect: Rect =
                 Rect::new(-1, -1, texture_query.width, texture_query.height);
@@ -312,13 +344,16 @@ pub(crate) fn select_song(
             let artist_str_center_y = title_str_center_y
                 + (title_str_center_y as f32 * (item_rect.w as f32 / song_item_width as f32)
                     / 25_f32) as i32; // change interval between title and artist fort according to the item_rect size
-            let surface = artist_font
-                .render(&song_selection_items[real_song_selection_idx as usize].artist)
-                .blended(Color::BLACK)
-                .unwrap();
-            let texture = texture_creator
-                .create_texture_from_surface(&surface)
-                .unwrap();
+            let texture = create_font_texture(
+                &texture_creator,
+                &font,
+                &song_selection_items[real_song_selection_idx as usize].artist,
+                artist_font_size,
+                0,
+                SELECT_SONG_FONT_COLOR,
+                None,
+            )
+            .unwrap();
             let texture_query = texture.query();
             let mut artist_str_rect: Rect =
                 Rect::new(-1, -1, texture_query.width, texture_query.height);

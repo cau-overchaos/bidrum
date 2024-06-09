@@ -157,11 +157,11 @@ impl TimingJudge {
         }
 
         // if sticks are not keydown, there's no need to process the stick
-        let mut proceseed_left_stick = false;
-        let mut proceseed_right_stick = false;
+        let mut processed_left_stick = false;
+        let mut processed_right_stick = false;
         for i in &mut self.notes {
             // continue if two sticks are processed
-            if proceseed_left_stick && proceseed_right_stick {
+            if processed_left_stick && processed_right_stick {
                 break;
             }
 
@@ -190,15 +190,15 @@ impl TimingJudge {
             i.hit_timing = if keydown.get_by_stick(i.note.stick).is_keydown_now
                 && keydown_data.face.is_some_and(|x| x == i.note.face)
                 && !(match i.note.stick {
-                    JangguStick::궁채 => proceseed_left_stick,
-                    JangguStick::열채 => proceseed_right_stick,
+                    JangguStick::궁채 => processed_left_stick,
+                    JangguStick::열채 => processed_right_stick,
                 }) {
                 match i.note.stick {
                     JangguStick::궁채 => {
-                        proceseed_left_stick = true;
+                        processed_left_stick = true;
                     }
                     JangguStick::열채 => {
-                        proceseed_right_stick = true;
+                        processed_right_stick = true;
                     }
                 }
                 Some(keydown_data.keydown_timing as u64)

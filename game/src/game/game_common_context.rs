@@ -20,9 +20,9 @@ pub(crate) struct GameCommonContext {
     pub(crate) janggu_bits_ptr: Arc<AtomicU8>,
     /// ddpi, hdpi, vdpi
     pub(crate) dpi: (f32, f32, f32),
-    pub(crate) ttf_context: sdl2::ttf::Sdl2TtfContext,
     pub(crate) game_initialized_at: Instant,
     pub(crate) hat: BidrumHat,
+    pub(crate) freetype_library: cairo::freetype::Library,
 }
 
 impl GameCommonContext {

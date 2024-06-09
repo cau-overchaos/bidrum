@@ -1,9 +1,11 @@
+use cairo::freetype::Face;
 use sdl2::{
     image::LoadTexture,
     render::{Texture, TextureCreator},
     video::WindowContext,
 };
 
+use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
 use crate::constants::DEFAULT_IMG_PATH as IMG_PATH;
 
 pub struct NoteTextures<'a> {
@@ -21,8 +23,9 @@ pub struct AccuracyTextures<'a> {
 pub struct ChartPlayerUIResources<'a> {
     pub judgement_line_texture: Texture<'a>,
     pub note_textures: NoteTextures<'a>,
-    pub accuray_textures: AccuracyTextures<'a>,
     pub janggu_texture: Texture<'a>,
+    pub accuray_textures: AccuracyTextures<'a>,
+    pub combo_font: Face,
 }
 
 fn load_note_textures(
@@ -57,12 +60,18 @@ impl ChartPlayerUIResources<'_> {
             .load_texture(IMG_PATH.to_owned() + "/play_ui/janggu.png")
             .expect("Failed to load janggu image");
         let accuray_textures = load_accuracy_textures(texture_creator).unwrap();
+        let library =
+            cairo::freetype::Library::init().expect("Failed to initialize FreeType library");
+        let combo_font = library
+            .new_face(FONT_PATH.to_owned() + "/coin.ttf", 0)
+            .expect("Failed to load combo font");
 
         return ChartPlayerUIResources {
             judgement_line_texture: judgement_line_texture,
             note_textures: note_textures,
             janggu_texture: janggu_texture,
             accuray_textures: accuray_textures,
+            combo_font: combo_font,
         };
     }
 }

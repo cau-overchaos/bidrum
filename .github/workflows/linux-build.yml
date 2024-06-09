@@ -17,7 +17,7 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Install dependencies
-      run: sudo apt-get update && sudo apt-get install -y libasound2 libsdl2-dev libsdl2-ttf-dev libsdl2-mixer-dev libsdl2-image-dev ffmpeg libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev libavutil-dev libpostproc-dev libswresample-dev libswscale-dev pkg-config build-essential
+      run: sudo apt-get update && sudo apt-get install -y libasound2 libsdl2-dev libsdl2-image-dev ffmpeg libavcodec-dev libavdevice-dev libavfilter-dev libavformat-dev libavutil-dev libpostproc-dev libswresample-dev libswscale-dev pkg-config build-essential libgtk-4-dev build-essential
     - name: Build
       run: cargo build --verbose
     #- name: Run tests

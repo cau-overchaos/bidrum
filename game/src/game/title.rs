@@ -1,22 +1,23 @@
+use std::time::Instant;
 use std::{path::Path, time::Duration};
 
 use num_rational::Rational64;
-use sdl2::{
-    event::Event, image::LoadTexture, keyboard::Keycode, pixels::Color, rect::Rect, render::Canvas,
-    video::Window,
-};
+use sdl2::{image::LoadTexture, pixels::Color, rect::Rect, render::Canvas, video::Window};
 
+use crate::constants::DEFAULT_FONT_COLOR;
 use crate::constants::DEFAULT_FONT_PATH as FONT_PATH;
 use crate::constants::DEFAULT_IMG_PATH as IMG_PATH;
 use crate::constants::DEFAULT_VIDEO_PATH as VIDEO_PATH;
 
 use crate::create_streaming_iyuv_texture;
 
+use super::game_player::janggu_state_with_tick::JangguStateWithTick;
+
 use super::{
     common::{event_loop_common, render_common},
     game_common_context::GameCommonContext,
     render_video::VideoFileRenderer,
-    util::create_outlined_font_texture::create_outlined_font_texture,
+    util::create_outlined_font_texture::create_font_texture,
 };
 
 fn get_logo_rect(rect: Rect, w: u32, h: u32) -> Rect {
@@ -60,15 +61,14 @@ fn render_logo(canvas: &mut Canvas<Window>) {
 fn render_text(common_context: &mut GameCommonContext) {
     let texture_creator = common_context.canvas.texture_creator();
     let mut font = common_context
-        .ttf_context
-        .load_font_at_index(
+        .freetype_library
+        .new_face(
             FONT_PATH.to_owned() + "/sans.ttf",
             262144, /* Regular */
-            35,
         )
         .expect("Failed to load sans");
 
-    let mut texture = create_outlined_font_texture(
+    let mut texture = create_font_texture(
         &texture_creator,
         &mut font,
         if common_context.coins >= common_context.price {
@@ -76,9 +76,10 @@ fn render_text(common_context: &mut GameCommonContext) {
         } else {
             "동전을 넣어주세요"
         },
+        35,
         2,
-        Color::WHITE,
-        Color::RGB(160, 160, 160),
+        DEFAULT_FONT_COLOR,
+        Some(Color::RGB(160, 160, 160)),
     )
     .expect("Font rendering failure");
     let animation_progress =
@@ -129,22 +130,27 @@ pub(crate) fn render_title(common_context: &mut GameCommonContext) -> TitleResul
         background_video_size.1
     )
     .expect("Failed to create texture for title background video");
+    let mut janggu_state = JangguStateWithTick::new();
+    let title_started_at = Instant::now();
+    janggu_state.update(
+        common_context.read_janggu_state(),
+        title_started_at.elapsed().as_millis() as i128,
+    );
     loop {
         for event in common_context.event_pump.poll_iter() {
             if event_loop_common(&event, &mut common_context.coins) {
                 return TitleResult::Exit;
             }
-            match event {
-                Event::KeyDown {
-                    keycode: Some(Keycode::Return),
-                    ..
-                } => {
-                    if common_context.coins >= common_context.price {
-                        common_context.coins -= common_context.price;
-                        return TitleResult::StartGame;
-                    }
-                }
-                _ => {}
+        }
+
+        janggu_state.update(
+            common_context.read_janggu_state(),
+            title_started_at.elapsed().as_millis() as i128,
+        );
+        if janggu_state.궁채.is_keydown_now || janggu_state.열채.is_keydown_now {
+            if common_context.coins >= common_context.price {
+                common_context.coins -= common_context.price;
+                return TitleResult::StartGame;
             }
         }
 

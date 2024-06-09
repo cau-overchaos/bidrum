@@ -8,11 +8,17 @@ use num_rational::Rational32;
 use sdl2::{
     pixels::Color,
     rect::Rect,
-    render::{Canvas, TextureCreator},
+    render::{Canvas, TextureCreator, TextureQuery},
     video::{Window, WindowContext},
 };
 
-use crate::constants::{NOTE_ACCURACY_WIDTH, NOTE_HEIGHT};
+use crate::{
+    constants::{
+        COMBO_FONT_SIZE, DEFAULT_FONT_COLOR, DEFAULT_FONT_OUTLINE_COLOR, DEFAULT_FONT_OUTLINE_SIZE,
+        NOTE_ACCURACY_HEIGHT, NOTE_HEIGHT,
+    },
+    game::util::create_outlined_font_texture::create_font_texture,
+};
 
 use bidrum_data_struct_lib::janggu::{JangguFace, JangguStick};
 
@@ -26,7 +32,8 @@ use super::timing_judge::NoteAccuracy;
 pub struct ChartPlayerUI<'a> {
     pub notes: Vec<DisplayedSongNote>,
     pub accuracy: Option<NoteAccuracy>,
-    pub accuracy_time_progress: Option<f32>,
+    pub combo: Option<u64>,
+    pub accuracy_and_combo_time_progress: Option<f32>,
     pub input_effect: InputEffect,
     pub overall_effect_tick: u128,
     pub disappearing_note_effects: DisapearingNoteEffect,
@@ -44,7 +51,8 @@ impl ChartPlayerUI<'_> {
         return ChartPlayerUI {
             notes: vec![],
             accuracy: None,
-            accuracy_time_progress: None,
+            combo: None,
+            accuracy_and_combo_time_progress: None,
             input_effect: InputEffect::new(),
             overall_effect_tick: 0,
             disappearing_note_effects: DisapearingNoteEffect::new(),
@@ -361,22 +369,24 @@ impl ChartPlayerUI<'_> {
                 NoteAccuracy::Miss => &mut accuracy_textures.miss,
             };
 
-            let width = NOTE_ACCURACY_WIDTH;
-            let height = (Rational32::new(
-                accuracy_texture.query().height as i32 * width as i32,
-                accuracy_texture.query().width as i32,
+            let height = NOTE_ACCURACY_HEIGHT as i32;
+            let width = (Rational32::new(
+                accuracy_texture.query().width as i32 * height as i32,
+                accuracy_texture.query().height as i32,
             ))
-            .to_integer();
+            .to_integer() as u32;
             let x = (viewport.width() - width) as i32 / 2;
             let y_start =
                 (viewport.height() - background_height_with_border) as i32 / 2 - (height / 2);
             let y_end = y_start - height as i32 - 10;
             let y = y_start
-                + ((y_end - y_start) as f32 * expo_out(self.accuracy_time_progress.unwrap()))
+                + ((y_end - y_start) as f32
+                    * expo_out(self.accuracy_and_combo_time_progress.unwrap()))
                     as i32;
 
-            accuracy_texture
-                .set_alpha_mod((expo_out(self.accuracy_time_progress.unwrap()) * 255.0) as u8);
+            accuracy_texture.set_alpha_mod(
+                (expo_out(self.accuracy_and_combo_time_progress.unwrap()) * 255.0) as u8,
+            );
 
             canvas
                 .copy(
@@ -384,6 +394,39 @@ impl ChartPlayerUI<'_> {
                     None,
                     Rect::new(x, y, width as u32, height as u32),
                 )
+                .unwrap();
+        }
+
+        // draw combo
+        if let Some(combo) = self.combo {
+            let texture_creator = &canvas.texture_creator();
+            let mut combo_texture = create_font_texture(
+                texture_creator,
+                &self.resources.combo_font,
+                &format!("COMBO: {}", combo),
+                COMBO_FONT_SIZE,
+                DEFAULT_FONT_OUTLINE_SIZE,
+                DEFAULT_FONT_COLOR,
+                Some(DEFAULT_FONT_OUTLINE_COLOR),
+            )
+            .unwrap();
+
+            let TextureQuery { width, height, .. } = combo_texture.query();
+            let x = (viewport.width() - width) as i32 / 2;
+            let y_start = (viewport.height() - background_height_with_border) as i32 / 2
+                - (height as i32 / 2);
+            let y_end = y_start - height as i32 + 300;
+            let y = y_start
+                + ((y_end - y_start) as f32
+                    * expo_out(self.accuracy_and_combo_time_progress.unwrap()))
+                    as i32;
+
+            combo_texture.set_alpha_mod(
+                (expo_out(self.accuracy_and_combo_time_progress.unwrap()) * 255.0) as u8,
+            );
+
+            canvas
+                .copy(&combo_texture, None, Rect::new(x, y, width, height))
                 .unwrap();
         }
     }

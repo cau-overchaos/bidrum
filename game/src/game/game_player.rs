@@ -53,7 +53,7 @@ pub(crate) fn play_song(
     let song_path_string = song.audio_filename.clone();
 
     // Load hit sound data
-    let mut effect_sounds = EffectSoundPlayer::new();
+    let mut effect_sounds: EffectSoundPlayer = EffectSoundPlayer::new();
 
     // to receive coin input while loading the audio file,
     // loading should be done in separated thread.
@@ -194,7 +194,10 @@ pub(crate) fn play_song(
         janggu_state_with_tick.update(input_now, tick_now);
 
         effect_sounds.play_janggu_sound(&janggu_state_with_tick, &mut common_context.audio_manager);
-
+        effect_sounds.play_combo_sound(
+            &chart_player.game_result(),
+            &mut common_context.audio_manager,
+        );
         // display notes and accuracy
         if tick_now >= 0 {
             chart_player.judge(
