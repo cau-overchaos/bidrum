@@ -32,6 +32,7 @@ use super::timing_judge::NoteAccuracy;
 pub struct BeatGuideline {
     pub position: f64,
     pub length: f64,
+    pub even_beat: bool,
 }
 
 pub struct ChartPlayerUI<'a> {
@@ -230,9 +231,17 @@ impl ChartPlayerUI<'_> {
             while position < 0.0 {
                 position += beat_guideline.length;
             }
-            let thickness: u32 = 2;
+            let thicknesses: [u32; 2] = [4, 4];
+            let mut white = beat_guideline.even_beat;
             loop {
                 let distance_between_centers = (position * note_width_max as f64) as i32;
+                let thickness = thicknesses[if white { 0 } else { 1 }];
+                let color = if white {
+                    Color::RGBA(255, 255, 255, 60)
+                } else {
+                    Color::RGBA(255, 255, 255, 30)
+                };
+
                 if distance_between_centers
                     > (background_width + (judgement_line_width + thickness) / 2) as i32
                 {
@@ -245,7 +254,7 @@ impl ChartPlayerUI<'_> {
                         + distance_between_centers
                         + (judgement_line_width / 2 - thickness / 2) as i32,
                 ] {
-                    canvas.set_draw_color(Color::RGBA(255, 255, 255, 220));
+                    canvas.set_draw_color(color);
                     canvas
                         .fill_rect(Rect::new(
                             line_x,
@@ -257,6 +266,7 @@ impl ChartPlayerUI<'_> {
                 }
 
                 position += beat_guideline.length;
+                white = !white;
             }
         }
 

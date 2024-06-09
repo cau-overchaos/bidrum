@@ -175,6 +175,9 @@ impl ChartPlayer<'_> {
         let length_ratio = timing_of_one_beat * speed_ratio;
         let length = *length_ratio.numer() as f64 / *length_ratio.denom() as f64;
 
+        let even_beat =
+            ((*timing_of_one_beat.denom() * tick as i64) / *timing_of_one_beat.numer()) % 2 == 0;
+
         let position = {
             //position_ratio = tick % timing_of_one_beat as i128;
             let mut position_ratio = Rational64::new(
@@ -188,7 +191,11 @@ impl ChartPlayer<'_> {
             *position_ratio.numer() as f64 / *position_ratio.denom() as f64
         };
 
-        Some(BeatGuideline { length, position })
+        Some(BeatGuideline {
+            length,
+            position,
+            even_beat,
+        })
     }
 
     pub fn draw(
