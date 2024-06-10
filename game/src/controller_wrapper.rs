@@ -1,21 +1,55 @@
 use std::{
     sync::{
-        atomic::{AtomicBool, AtomicU32, Ordering},
+        atomic::{AtomicBool, AtomicU32, AtomicU8, Ordering},
         Arc, RwLock,
     },
     thread,
 };
 
 use bidrum_controller_lib::{keyboard, serial, CoinInputDevice, JangguDevice};
-use bidrum_data_struct_lib::janggu::JangguInputState;
+use bidrum_data_struct_lib::janggu::{JangguFace, JangguInputState};
 
 /// Wrapper of Coin/Janggu controller
 /// to avoid cumbersome ownership/borrow/lifetime problems
 pub struct ControllerWrapper {
-    janggu_state: Arc<RwLock<JangguInputState>>,
+    janggu_state: Arc<AtomicU8>,
     coins: Arc<AtomicU32>,
     coins_to_consume: Arc<AtomicU32>,
     stopping: Arc<AtomicBool>,
+}
+
+fn janggu_state_to_u8(state: JangguInputState) -> u8 {
+    let mut result: u8 = 0;
+    result |= match state.궁채 {
+        Some(JangguFace::궁편) => 1,
+        Some(JangguFace::열편) => 2,
+        _ => 0,
+    };
+    result |= match state.열채 {
+        Some(JangguFace::궁편) => 4,
+        Some(JangguFace::열편) => 8,
+        _ => 0,
+    };
+    return result;
+}
+
+fn u8_to_janggu_state(bits: u8) -> JangguInputState {
+    JangguInputState {
+        궁채: if (bits & 1) != 0 {
+            Some(JangguFace::궁편)
+        } else if (bits & 2) != 0 {
+            Some(JangguFace::열편)
+        } else {
+            None
+        },
+        열채: if (bits & 4) != 0 {
+            Some(JangguFace::궁편)
+        } else if (bits & 8) != 0 {
+            Some(JangguFace::열편)
+        } else {
+            None
+        },
+    }
 }
 
 impl Drop for ControllerWrapper {
@@ -26,7 +60,7 @@ impl Drop for ControllerWrapper {
 
 impl ControllerWrapper {
     pub fn read_janggu_state(&self) -> JangguInputState {
-        *self.janggu_state.read().expect("Failed to get lock")
+        u8_to_janggu_state(self.janggu_state.load(Ordering::Relaxed))
     }
     pub fn get_coins(&self) -> u32 {
         self.coins.load(Ordering::Relaxed)
@@ -38,10 +72,7 @@ impl ControllerWrapper {
         let coins = Arc::new(AtomicU32::new(0));
         let coins_to_consume = Arc::new(AtomicU32::new(0));
         let stopping = Arc::new(AtomicBool::new(false));
-        let janggu_state = Arc::new(RwLock::new(JangguInputState {
-            궁채: None,
-            열채: None,
-        }));
+        let janggu_state = Arc::new(AtomicU8::new(0));
         {
             let coins = coins.clone();
             let coins_to_consume = coins_to_consume.clone();
@@ -64,8 +95,10 @@ impl ControllerWrapper {
                     }
 
                     coins.store(coin_device.get_unconsumed_coins(), Ordering::Relaxed);
-                    let mut janggu_state = janggu_state.write().expect("Failed to get lock");
-                    *janggu_state = janggu_device.read_janggu_input_state();
+                    janggu_state.store(
+                        janggu_state_to_u8(janggu_device.read_janggu_input_state()),
+                        Ordering::Relaxed,
+                    );
                 }
             });
         }
@@ -82,10 +115,7 @@ impl ControllerWrapper {
         let coins = Arc::new(AtomicU32::new(0));
         let coins_to_consume = Arc::new(AtomicU32::new(0));
         let stopping = Arc::new(AtomicBool::new(false));
-        let janggu_state = Arc::new(RwLock::new(JangguInputState {
-            궁채: None,
-            열채: None,
-        }));
+        let janggu_state = Arc::new(AtomicU8::new(0));
         {
             let coins = coins.clone();
             let coins_to_consume = coins_to_consume.clone();
@@ -107,8 +137,10 @@ impl ControllerWrapper {
                     }
 
                     coins.store(coin_device.get_unconsumed_coins(), Ordering::Relaxed);
-                    let mut janggu_state = janggu_state.write().expect("Failed to get lock");
-                    *janggu_state = janggu_device.read_janggu_input_state();
+                    janggu_state.store(
+                        janggu_state_to_u8(janggu_device.read_janggu_input_state()),
+                        Ordering::Relaxed,
+                    );
                 }
             });
         }
