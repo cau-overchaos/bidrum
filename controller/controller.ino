@@ -1,10 +1,10 @@
 #define BILL_PIN 2      // 지폐기
 #define COIN_PIN 3      // 코인기
-#define INPUT_PIN_2 4   // 열편
-#define OUTPUT_PIN_2 5  // 열채
-#define INPUT_PIN_1 6   // 궁편
-#define OUTPUT_PIN_1 7  // 궁채
-#define RELAY_DELAY 50  // 딜레이 50ms
+#define INPUT_PIN_1 4   // 열편
+#define OUTPUT_PIN_1 5  // 열채
+#define INPUT_PIN_2 6   // 궁편
+#define OUTPUT_PIN_2 7  // 궁채
+#define RELAY_DELAY 50  // 딜레이 50μs
 
 int step;
 int pin1ConnectedTo, pin2ConnectedTo;
@@ -58,9 +58,9 @@ void loop()
     	digitalWrite(OUTPUT_PIN_1, LOW);
     	digitalWrite(OUTPUT_PIN_2, HIGH);
       delayMicroseconds(RELAY_DELAY);
-        if(digitalRead(INPUT_PIN_1) == LOW) {
+        if(digitalRead(INPUT_PIN_1) == HIGH) {
 			pin2ConnectedTo = INPUT_PIN_1;
-        } else if (digitalRead(INPUT_PIN_2) == LOW) {
+        } else if (digitalRead(INPUT_PIN_2) == HIGH) {
 			pin2ConnectedTo = INPUT_PIN_2;
         } else {
 			pin2ConnectedTo = 0;
@@ -70,9 +70,9 @@ void loop()
     	digitalWrite(OUTPUT_PIN_2, LOW);
     	digitalWrite(OUTPUT_PIN_1, HIGH);
       delayMicroseconds(RELAY_DELAY);
-        if(digitalRead(INPUT_PIN_1) == LOW) {
+        if(digitalRead(INPUT_PIN_1) == HIGH) {
 			pin1ConnectedTo = INPUT_PIN_1;
-        } else if (digitalRead(INPUT_PIN_2) == LOW) {
+        } else if (digitalRead(INPUT_PIN_2) == HIGH) {
 			pin1ConnectedTo = INPUT_PIN_2;
         } else {
 			pin1ConnectedTo = 0;
