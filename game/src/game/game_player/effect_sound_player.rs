@@ -127,7 +127,11 @@ impl EffectSoundPlayer {
             };
             if play_sound {
                 let new_handle = audio_manager
-                    .play(kung_sound_data.clone())
+                    .play(
+                        kung_sound_data
+                            .clone()
+                            .with_settings(StaticSoundSettings::default().volume(5.0)),
+                    )
                     .expect("Failed to play kung sound");
                 self.effect_sound_play_handles.left_stick = Some(new_handle);
             }
@@ -141,7 +145,11 @@ impl EffectSoundPlayer {
 
             if play_sound {
                 let new_handle = audio_manager
-                    .play(deok_sound_data.clone())
+                    .play(
+                        deok_sound_data
+                            .clone()
+                            .with_settings(StaticSoundSettings::default().volume(5.0)),
+                    )
                     .expect("Failed to play deok sound");
                 self.effect_sound_play_handles.right_stick = Some(new_handle);
             }
@@ -156,7 +164,7 @@ impl EffectSoundPlayer {
                         .play(
                             combo_sound
                                 .clone()
-                                .with_settings(StaticSoundSettings::default().volume(20.0)),
+                                .with_settings(StaticSoundSettings::default().volume(0.0)),
                         )
                         .expect("Failed to play combo sound");
                     self.combo_sound_played = true;
