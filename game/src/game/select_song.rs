@@ -142,9 +142,9 @@ pub(crate) fn select_song(
                 break 'running;
             }
         } else if (janggu_state.궁채.is_keydown_now
-            && matches!(janggu_state.궁채.face, Some(JangguFace::궁편)))
+            && matches!(janggu_state.궁채.face, Some(JangguFace::열편)))
             || (janggu_state.열채.is_keydown_now
-                && matches!(janggu_state.열채.face, Some(JangguFace::궁편)))
+                && matches!(janggu_state.열채.face, Some(JangguFace::열편)))
         {
             // to prevent changing direction when moving
             if moving_direction == MovingDirection::Stop {
@@ -155,9 +155,9 @@ pub(crate) fn select_song(
                 }
             }
         } else if (janggu_state.궁채.is_keydown_now
-            && matches!(janggu_state.궁채.face, Some(JangguFace::열편)))
+            && matches!(janggu_state.궁채.face, Some(JangguFace::궁편)))
             || (janggu_state.열채.is_keydown_now
-                && matches!(janggu_state.열채.face, Some(JangguFace::열편)))
+                && matches!(janggu_state.열채.face, Some(JangguFace::궁편)))
         {
             // to prevent changing direction when moving
             if moving_direction == MovingDirection::Stop {
