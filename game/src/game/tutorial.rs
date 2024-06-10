@@ -56,7 +56,7 @@ fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
         }
 
         for i in common_context.event_pump.poll_iter() {
-            if event_loop_common(&i, &mut common_context.coins) {
+            if event_loop_common(&i) {
                 background_video.stop_decoding();
                 return false;
             }
@@ -93,7 +93,7 @@ fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
         }
 
         for i in common_context.event_pump.poll_iter() {
-            if event_loop_common(&i, &mut common_context.coins) {
+            if event_loop_common(&i) {
                 background_video.stop_decoding();
                 return false;
             }
@@ -134,7 +134,7 @@ fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
         let tick = dialog_started_at.elapsed().as_millis();
 
         for i in common_context.event_pump.poll_iter() {
-            if event_loop_common(&i, &mut common_context.coins) {
+            if event_loop_common(&i) {
                 selected = Some(false);
                 break 'running;
             }
@@ -207,7 +207,7 @@ fn ask_for_tutorial(common_context: &mut GameCommonContext) -> bool {
         }
 
         for i in common_context.event_pump.poll_iter() {
-            if event_loop_common(&i, &mut common_context.coins) {
+            if event_loop_common(&i) {
                 background_video.stop_decoding();
                 return false;
             }
@@ -299,7 +299,7 @@ pub(self) fn display_tutorial_messages(
     loop {
         let tick = janggu_state_and_tutorial_start_time.1.elapsed().as_millis() as i128;
         for event in common_context.event_pump.poll_iter() {
-            event_loop_common(&event, &mut common_context.coins);
+            event_loop_common(&event);
         }
 
         janggu_state_and_tutorial_start_time

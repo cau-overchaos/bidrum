@@ -7,6 +7,10 @@ description = "Rhythm game with korean traditional drum(janggu)-like controller"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = []
+uncommercial = []
+
 [dependencies]
 clap = { version = "4.4.13", features = ["derive"] }
 ffmpeg-next = "7.0.0"
@@ -15,8 +19,8 @@ num-rational = "0.4.1"
 sdl2 = { version = "0.36.0", features = ["image"] }
 serde = { version = "1.0.195", features = ["derive"] }
 serde_json = "1.0.111"
-serialport = "4.3.0"
 bidrum-data-struct-lib = { path = "../data-struct-lib" }
+bidrum-controller-lib = { path = "../controller-lib" }
 device_query = "2.0.0"
 ezing = "0.2.1"
 const_format = "0.2.32"

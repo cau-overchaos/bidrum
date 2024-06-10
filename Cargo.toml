@@ -3,7 +3,8 @@
 members = [
     "game",
     "data-struct-lib", 
-    "chart-recorder"
+    "chart-recorder",
+    "controller-lib"
 ]
 
 [profile.dev.package.kira]

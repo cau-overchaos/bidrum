@@ -71,7 +71,7 @@ fn render_text(common_context: &mut GameCommonContext) {
     let mut texture = create_font_texture(
         &texture_creator,
         &mut font,
-        if common_context.coins >= common_context.price {
+        if common_context.coin_and_janggu.get_coins() >= common_context.price {
             "장구를 쳐서 시작하세요!"
         } else {
             "동전을 넣어주세요"
@@ -138,7 +138,7 @@ pub(crate) fn render_title(common_context: &mut GameCommonContext) -> TitleResul
     );
     loop {
         for event in common_context.event_pump.poll_iter() {
-            if event_loop_common(&event, &mut common_context.coins) {
+            if event_loop_common(&event) {
                 return TitleResult::Exit;
             }
         }
@@ -148,8 +148,10 @@ pub(crate) fn render_title(common_context: &mut GameCommonContext) -> TitleResul
             title_started_at.elapsed().as_millis() as i128,
         );
         if janggu_state.궁채.is_keydown_now || janggu_state.열채.is_keydown_now {
-            if common_context.coins >= common_context.price {
-                common_context.coins -= common_context.price;
+            if common_context.coin_and_janggu.get_coins() >= common_context.price {
+                common_context
+                    .coin_and_janggu
+                    .consume_coins(common_context.price);
                 return TitleResult::StartGame;
             }
         }

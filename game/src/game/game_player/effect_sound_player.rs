@@ -7,7 +7,7 @@ use kira::{
 };
 use rand::seq::SliceRandom;
 
-use crate::{constants::DEFAULT_SOUND_PATH as SOUND_PATH};
+use crate::constants::DEFAULT_SOUND_PATH as SOUND_PATH;
 
 use super::{game_result::GameResult, janggu_state_with_tick::JangguStateWithTick};
 

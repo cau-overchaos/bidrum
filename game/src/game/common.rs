@@ -8,19 +8,13 @@ use crate::constants::{
     DEFAULT_FONT_COLOR, DEFAULT_FONT_OUTLINE_COLOR, DEFAULT_FONT_PATH as FONT_PATH,
 };
 
-pub(crate) fn event_loop_common(event: &Event, coins: &mut u32) -> bool {
+pub(crate) fn event_loop_common(event: &Event) -> bool {
     match event {
         Event::Quit { .. }
         | Event::KeyDown {
             keycode: Some(Keycode::Escape),
             ..
         } => return true,
-        Event::KeyDown {
-            keycode: Some(Keycode::C),
-            ..
-        } => {
-            *coins += 1;
-        }
         _ => {}
     }
 
@@ -39,13 +33,19 @@ pub(crate) fn render_common(context: &mut GameCommonContext) {
         .expect("Unable to load font");
 
     // render a surface, and convert it to a texture bound to the canvas
-    let text = if context.price == 1 {
-        format!("CREDIT: {}", context.coins)
+    let text = if context.price == 0 {
+        if cfg!(feature = "uncommercial") {
+            "FREE PLAY (UNCOMMERCIAL)".to_string()
+        } else {
+            "FREE PLAY".to_string()
+        }
+    } else if context.price == 1 {
+        format!("CREDIT: {}", context.coin_and_janggu.get_coins())
     } else {
         format!(
             "CREDIT: {} ({}/{})",
-            context.coins / context.price,
-            context.coins % context.price,
+            context.coin_and_janggu.get_coins() / context.price,
+            context.coin_and_janggu.get_coins() % context.price,
             context.price
         )
     };

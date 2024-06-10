@@ -71,7 +71,7 @@ pub(crate) fn play_song(
     let sound_data = loop {
         // process input events
         for event in common_context.event_pump.poll_iter() {
-            if event_loop_common(&event, &mut common_context.coins) {
+            if event_loop_common(&event) {
                 return None;
             }
         }
@@ -151,7 +151,7 @@ pub(crate) fn play_song(
     'running: loop {
         let tick_now = clock.time().ticks as i128 - start_tick.ticks as i128;
         for event in common_context.event_pump.poll_iter() {
-            if event_loop_common(&event, &mut common_context.coins) {
+            if event_loop_common(&event) {
                 handle.stop(Tween::default()).expect("Failed to stop song");
                 break 'running;
             }
