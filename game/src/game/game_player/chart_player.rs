@@ -182,6 +182,15 @@ impl ChartPlayer<'_> {
             self.ui.notes = self.get_display_notes(tick as u64);
         }
         self.ui.overall_effect_tick = overall_tick;
+        self.ui.remaining_hat_ticks = self
+            .chart
+            .hats
+            .iter()
+            .map(|x| x.timing_in_ms(self.chart.bpm, self.chart.delay))
+            .map(|x| x as i128 - tick)
+            .filter(|x| *x >= -3000)
+            .map(|x| x as i64)
+            .collect();
         self.ui.draw(canvas);
     }
 
