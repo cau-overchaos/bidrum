@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{path::Path, time::Instant};
 
 use sdl2::{
     event::Event,
@@ -16,9 +16,11 @@ use crate::constants::{DEFAULT_FONT_OUTLINE_SIZE, GAME_RESULT_FONT_SIZE};
 use super::{
     common::{event_loop_common, render_common},
     game_common_context::GameCommonContext,
-    game_player::game_result::GameResult,
-    util::create_outlined_font_texture::create_font_texture,
-    util::render_game_assets::{render_cover_image_at, render_level_image_at},
+    game_player::{game_result::GameResult, janggu_state_with_tick::JangguStateWithTick},
+    util::{
+        create_outlined_font_texture::create_font_texture,
+        render_game_assets::{render_cover_image_at, render_level_image_at},
+    },
 };
 
 use bidrum_data_struct_lib::song::GameSong;
@@ -78,6 +80,12 @@ pub(crate) fn display_result(
         .freetype_library
         .new_face(FONT_PATH.to_owned() + "/coin.ttf", 0)
         .unwrap();
+    let mut janggu_state = JangguStateWithTick::new();
+    let started_at = Instant::now();
+    janggu_state.update(
+        common_context.read_janggu_state(),
+        started_at.elapsed().as_millis() as i128,
+    );
     loop {
         for event in common_context.event_pump.poll_iter() {
             if event_loop_common(&event) {
@@ -92,6 +100,14 @@ pub(crate) fn display_result(
                 }
                 _ => {}
             }
+        }
+
+        janggu_state.update(
+            common_context.read_janggu_state(),
+            started_at.elapsed().as_millis() as i128,
+        );
+        if janggu_state.궁채.is_keydown_now || janggu_state.열채.is_keydown_now {
+            return;
         }
 
         let canvas = &mut common_context.canvas;
