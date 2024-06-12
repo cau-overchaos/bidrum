@@ -2,6 +2,7 @@ use bidrum_data_struct_lib::{
     janggu::JangguFace,
     song::{GameChart, GameNote},
 };
+use num_rational::Rational64;
 use sdl2::{render::Canvas, video::Window};
 
 use crate::constants::{ACCURACY_DISPLAY_DURATION, DEFAULT_BPM};
@@ -11,7 +12,9 @@ use crate::game::game_player::{
 };
 
 use super::{
-    chart_player_ui::{disappearing_note_effect::DisapearingNoteEffect, ChartPlayerUI},
+    chart_player_ui::{
+        disappearing_note_effect::DisapearingNoteEffect, BeatGuideline, ChartPlayerUI,
+    },
     game_result::GameResult,
     janggu_state_with_tick::JangguStateWithTick,
     timing_judge::TimingJudge,
@@ -152,6 +155,49 @@ impl ChartPlayer<'_> {
         display_notes
     }
 
+    fn beat_guideline(&self, tick: i128) -> Option<BeatGuideline> {
+        if tick < 0 {
+            return None;
+        }
+
+        // bpm = beat / minute
+        // minute-per-beat = 1 / bpm
+        // timing-in-minute = beat * minute-per-beat
+        // timing-in-millisecond = timing-in-minute (minute) * ( 60000(millisecond) / 1(minute) )
+        // timing = timing-in-millisecond
+        let timing_of_one_beat = Rational64::new(60000, self.chart.bpm as i64);
+
+        // beat_per_millisecond = (display_bpm / 60000)
+        // millisecond_per_beat = 1/ beat_per_millisecond
+        // speed = 1 / millisecond_per_beat
+        let speed_ratio = Rational64::new((self.chart.bpm * DEFAULT_BPM) as i64, 60000);
+
+        let length_ratio = timing_of_one_beat * speed_ratio;
+        let length = *length_ratio.numer() as f64 / *length_ratio.denom() as f64;
+
+        let even_beat =
+            ((*timing_of_one_beat.denom() * tick as i64) / *timing_of_one_beat.numer()) % 2 == 0;
+
+        let position = {
+            //position_ratio = tick % timing_of_one_beat as i128;
+            let mut position_ratio = Rational64::new(
+                (*timing_of_one_beat.denom() * tick as i64) % *timing_of_one_beat.numer(),
+                *timing_of_one_beat.denom(),
+            );
+
+            position_ratio = length_ratio - position_ratio;
+            position_ratio = position_ratio / timing_of_one_beat;
+            position_ratio *= length_ratio;
+            *position_ratio.numer() as f64 / *position_ratio.denom() as f64
+        };
+
+        Some(BeatGuideline {
+            length,
+            position,
+            even_beat,
+        })
+    }
+
     pub fn draw(
         &mut self,
         tick: i128,
@@ -180,6 +226,7 @@ impl ChartPlayer<'_> {
             self.ui.disappearing_note_effects.update_base_tick(tick);
             self.ui.input_effect.update(janggu_state_with_tick, tick);
             self.ui.notes = self.get_display_notes(tick as u64);
+            self.ui.beat_guideline = self.beat_guideline(tick);
         }
         self.ui.overall_effect_tick = overall_tick;
         self.ui.remaining_hat_ticks = self

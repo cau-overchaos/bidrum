@@ -4,7 +4,8 @@ members = [
     "game",
     "data-struct-lib", 
     "chart-recorder",
-    "bidrum-hat"
+    "bidrum-hat",
+    "controller-lib"
 ]
 
 [profile.dev.package.kira]

@@ -1,10 +1,9 @@
-use std::{
-    sync::{atomic::AtomicU8, Arc},
-    time::Instant,
-};
+use std::time::Instant;
 
 use bidrum_hat::BidrumHat;
 use kira::manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings};
+
+use crate::controller_wrapper::ControllerWrapper;
 
 use super::{game_common_context::GameCommonContext, start::start_game, title::render_title};
 
@@ -13,9 +12,10 @@ pub struct InitGameOptions {
     pub height: Option<u32>,
     pub fullscreen: bool,
     pub vsync: bool,
+    pub price: u32,
 }
 
-pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
+pub(crate) fn init_game(controller_wrapper: ControllerWrapper, options: InitGameOptions) {
     // init sdl
     let sdl_context = sdl2::init().expect("sdl context initialization Fail");
 
@@ -99,15 +99,14 @@ pub(crate) fn init_game(janggu_bits: Arc<AtomicU8>, options: InitGameOptions) {
 
     // create GameCommonContext object
     let mut context = GameCommonContext {
-        coins: 0,
-        price: 2,
+        coin_and_janggu: controller_wrapper,
+        price: options.price,
         canvas: canvas,
         dpi: dpi,
         sdl_context: sdl_context,
         event_pump: event_pump,
         audio_manager: AudioManager::<DefaultBackend>::new(AudioManagerSettings::default())
             .expect("AudioManager initialization failure"),
-        janggu_bits_ptr: janggu_bits,
         game_initialized_at: Instant::now(),
         hat: hat,
         freetype_library: freetype_library,

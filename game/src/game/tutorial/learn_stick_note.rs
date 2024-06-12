@@ -81,7 +81,7 @@ fn display_animated_example_note(
 
     loop {
         for event in common_context.event_pump.poll_iter() {
-            event_loop_common(&event, &mut common_context.coins);
+            event_loop_common(&event);
         }
 
         if voice_started_at.elapsed() >= std::cmp::max(total_note_duration, message.1.duration()) {
@@ -223,7 +223,7 @@ fn display_tryitout_notes(
 
     loop {
         for event in common_context.event_pump.poll_iter() {
-            event_loop_common(&event, &mut common_context.coins);
+            event_loop_common(&event);
         }
 
         // If tutorial ends, return

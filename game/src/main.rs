@@ -1,19 +1,10 @@
 mod constants;
+mod controller_wrapper;
 mod game;
-mod janggu_keyboard;
-mod serial;
-
-use std::{
-    sync::{atomic::AtomicU8, Arc},
-    thread::{self, sleep},
-    time::Duration,
-};
 
 use clap::Parser;
+use controller_wrapper::ControllerWrapper;
 use game::init::{init_game, InitGameOptions};
-use janggu_keyboard::read_janggu_key_loop;
-
-use crate::serial::read_serial_loop;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -33,52 +24,47 @@ struct Args {
     /// Enables vsync or not? (Default: enabled in macos, disabled otherwise)
     #[arg(long)]
     vsync: Option<bool>,
+    /// Price
+    #[cfg(not(feature = "uncommercial"))]
+    #[arg(long, default_value_t = 2)]
+    price: u32,
+}
+
+#[cfg(feature = "uncommercial")]
+macro_rules! price {
+    ($args: expr) => {
+        0
+    };
+}
+
+#[cfg(not(feature = "uncommercial"))]
+macro_rules! price {
+    ($args: expr) => {
+        $args.price
+    };
 }
 
 fn main() {
-    let args = Args::parse();
-    let bits = AtomicU8::new(0);
-    let bits_arc = Arc::new(bits);
-    match args.controller_port {
-        Some(controller_port) => {
-            println!("Openning serial port {}", controller_port);
-
-            let port = serialport::new(controller_port, 9600)
-                .timeout(Duration::from_millis(20))
-                .open()
-                .expect("Failed to open port");
-
-            println!("Waiting 3 seconds (Arduino needs time for serial initialization)");
-            sleep(Duration::from_millis(3000));
-            println!("Waited 3 seconds!");
-
-            let ptr = bits_arc.clone();
-            thread::spawn(move || {
-                read_serial_loop(port, ptr);
-            });
-        }
-        _ => {
-            println!("Controller port not provided! Reading keyboard....");
-
-            let ptr = bits_arc.clone();
-            thread::spawn(move || {
-                read_janggu_key_loop(ptr);
-            });
-        }
+    if cfg!(feature = "uncommercial") {
+        println!("This is uncommercial version, only free play is available.");
     }
 
-    let ptr = bits_arc.clone();
-    init_game(
-        ptr,
-        InitGameOptions {
-            fullscreen: !args.windowed,
-            height: args.window_height,
-            width: args.window_width,
-            vsync: args.vsync.unwrap_or(if cfg!(target_os = "macos") {
-                true
-            } else {
-                false
-            }),
-        },
-    );
+    let args = Args::parse();
+    let options = InitGameOptions {
+        fullscreen: !args.windowed,
+        height: args.window_height,
+        width: args.window_width,
+        vsync: args.vsync.unwrap_or(if cfg!(target_os = "macos") {
+            true
+        } else {
+            false
+        }),
+        price: price!(args),
+    };
+
+    let controller_wrapper = match args.controller_port {
+        Some(controller_port) => ControllerWrapper::serial(controller_port),
+        _ => ControllerWrapper::keyboard(),
+    };
+    init_game(controller_wrapper, options);
 }

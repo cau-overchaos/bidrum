@@ -13,10 +13,10 @@ pub const DEFAULT_VIDEO_PATH: &str = concatcp!(DEFAULT_ASSET_PATH, "/video");
 
 // judgement_time
 pub const OVERCHAOS_TIMING: i64 = 10;
-pub const PERFECT_TIMING: i64 = 44;
+pub const PERFECT_TIMING: i64 = 40;
 pub const GREAT_TIMING: i64 = 70;
-pub const GOOD_TIMING: i64 = 95;
-pub const BAD_TIMING: i64 = 160;
+pub const GOOD_TIMING: i64 = 200;
+pub const BAD_TIMING: i64 = 600;
 pub const HAT_TIMING: i64 = 1500;
 
 // hat score value

@@ -3,7 +3,6 @@ use std::path::Path;
 use sdl2::{
     event::Event,
     keyboard::Keycode,
-    pixels::Color,
     rect::Rect,
     render::{Canvas, TextureQuery},
     video::Window,
@@ -81,7 +80,7 @@ pub(crate) fn display_result(
         .unwrap();
     loop {
         for event in common_context.event_pump.poll_iter() {
-            if event_loop_common(&event, &mut common_context.coins) {
+            if event_loop_common(&event) {
                 return;
             }
             match event {
