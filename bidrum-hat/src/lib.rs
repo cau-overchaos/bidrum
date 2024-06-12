@@ -1,5 +1,6 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::time::Duration;
 use std::{f32, thread};
 
 use btleplug::api::{Central, CentralEvent, Manager as _, Peripheral, ScanFilter};
@@ -51,13 +52,24 @@ async fn get_data(spinning: Arc<AtomicBool>, dropping: Arc<AtomicBool>) {
 
             if let Some(event) = event_option {
                 match event {
-                    CentralEvent::DeviceDiscovered(id) => {
-                        let peripheral = adapter.peripheral(&id).await.unwrap();
+                    CentralEvent::DeviceDiscovered(id) | CentralEvent::DeviceUpdated(id) => {
+                        let peripheral = {
+                            let peripheral = adapter.peripheral(&id).await;
+                            if let Ok(peripheral) = peripheral {
+                                peripheral
+                            } else {
+                                break;
+                            }
+                        };
+
                         let local_name = peripheral.properties().await.unwrap().unwrap().local_name;
 
                         if local_name.is_some_and(|x| x.contains("bidrum-hat")) {
                             if !peripheral.is_connected().await.unwrap_or(false) {
-                                peripheral.connect().await.expect("Failed to connect");
+                                let connect_result = peripheral.connect().await;
+                                if connect_result.is_err() {
+                                    break;
+                                }
                             }
 
                             peripheral
@@ -81,13 +93,29 @@ async fn get_data(spinning: Arc<AtomicBool>, dropping: Arc<AtomicBool>) {
                                     .expect("Failed to make notification stream");
 
                                 // Process while the BLE connection is not broken or stopped.
-                                while let Some(data) = notification_stream.next().await {
-                                    let norm = std::str::from_utf8(data.value.as_slice())
-                                        .unwrap_or("0.0")
-                                        .parse::<f32>()
-                                        .unwrap();
+                                loop {
+                                    let notification = notification_stream.next();
+                                    let timeouted_notification = tokio::time::timeout(
+                                        Duration::from_millis(100),
+                                        notification,
+                                    )
+                                    .await;
 
-                                    spinning.store(norm > 1.0, Ordering::Relaxed);
+                                    if !peripheral.is_connected().await.unwrap_or(false) {
+                                        break;
+                                    }
+
+                                    if let Ok(unwrapped) = timeouted_notification {
+                                        if let Some(data) = &unwrapped {
+                                            let norm = std::str::from_utf8(data.value.as_slice())
+                                                .unwrap_or("0.0")
+                                                .parse::<f32>()
+                                                .unwrap();
+
+                                            spinning.store(norm > 1.0, Ordering::Relaxed);
+                                            println!("spin norm: {:#}", norm);
+                                        }
+                                    }
                                 }
                             }
                         }
