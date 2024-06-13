@@ -148,7 +148,7 @@ impl EffectSoundPlayer {
                     .play(
                         deok_sound_data
                             .clone()
-                            .with_settings(StaticSoundSettings::default().volume(5.0)),
+                            .with_settings(StaticSoundSettings::default().volume(3.0)),
                     )
                     .expect("Failed to play deok sound");
                 self.effect_sound_play_handles.right_stick = Some(new_handle);
