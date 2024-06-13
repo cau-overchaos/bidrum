@@ -4,6 +4,7 @@ members = [
     "game",
     "data-struct-lib", 
     "chart-recorder",
+    "bidrum-hat",
     "controller-lib"
 ]
 

@@ -225,6 +225,7 @@ fn main() {
         args.bpm.into(),
         left_face,
         right_face,
+        vec![],
     )
     .unwrap();
 

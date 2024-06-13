@@ -1,3 +1,5 @@
+mod beat_and_timing;
+
 use std::{
     fs::{self, File},
     path::Path,
@@ -8,6 +10,8 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use crate::janggu::{JangguFace, JangguStick};
+
+use self::beat_and_timing::{beat, get_position, timing_in_ms};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub enum GameSongCategory {
@@ -41,6 +45,16 @@ pub struct GameNote {
     #[serde(skip, default = "JangguFace::default")]
     pub face: JangguFace,
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct GameHatNote {
+    beat_index: u64,
+    tick_nomiator: i64,
+    tick_denomiator: i64,
+    #[serde(skip)]
+    pub id: u64,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GameChart {
     pub artist: String,
@@ -48,6 +62,8 @@ pub struct GameChart {
     pub bpm: u32,
     pub left_face: Vec<GameNote>,
     pub right_face: Vec<GameNote>,
+    #[serde(default)]
+    pub hats: Vec<GameHatNote>,
 }
 
 impl GameChart {
@@ -58,6 +74,7 @@ impl GameChart {
         bpm: u32,
         left_face: Vec<GameNote>,
         right_face: Vec<GameNote>,
+        hats: Vec<GameHatNote>,
     ) -> Result<String, serde_json::Error> {
         let chart = GameChart {
             artist: artist,
@@ -65,6 +82,7 @@ impl GameChart {
             bpm: bpm,
             left_face: left_face,
             right_face: right_face,
+            hats: hats,
         };
 
         serde_json::to_string(&chart)
@@ -101,9 +119,40 @@ impl GameChart {
             } else {
                 vec![]
             },
+            hats: vec![],
         };
 
         return chart;
+    }
+}
+
+impl GameHatNote {
+    pub fn create_raw_note(
+        beat_index: u64,
+        tick_nomiator: i64,
+        tick_denomiator: i64,
+    ) -> GameHatNote {
+        return GameHatNote {
+            beat_index: beat_index,
+            tick_nomiator: tick_nomiator,
+            tick_denomiator: tick_denomiator,
+            // id is useless
+            id: 0,
+        };
+    }
+
+    /// get the position of the note in unit of beat
+    pub fn beat(&self) -> Rational64 {
+        beat(
+            self.beat_index as i64,
+            self.tick_nomiator,
+            self.tick_denomiator,
+        )
+    }
+
+    /// calculate the timing of the note
+    pub fn timing_in_ms(&self, track_bpm: u32, track_delay: u64) -> u64 {
+        timing_in_ms(self.beat(), track_bpm, track_delay)
     }
 }
 
@@ -127,24 +176,18 @@ impl GameNote {
 
     /// get the position of the note in unit of beat
     pub fn beat(&self) -> Rational64 {
-        return Rational64::new(self.beat_index as i64, 1)
-            + if self.tick_denomiator == 0 {
-                Rational64::new(0, 1)
-            } else {
-                Rational64::new(self.tick_nomiator, self.tick_denomiator)
-            };
+        beat(
+            self.beat_index as i64,
+            self.tick_nomiator,
+            self.tick_denomiator,
+        )
     }
+
     /// calculate the timing of the note
     pub fn timing_in_ms(&self, track_bpm: u32, track_delay: u64) -> u64 {
-        // bpm = beat / minute
-        // minute-per-beat = 1 / bpm
-        // timing-in-minute = beat * minute-per-beat
-        // timing-in-millisecond = timing-in-minute (minute) * ( 60000(millisecond) / 1(minute) )
-        // timing = timing-in-millisecond
-        let timing = self.beat() * Rational64::new(60000, track_bpm as i64);
-
-        (timing.numer() / timing.denom()) as u64 + track_delay
+        timing_in_ms(self.beat(), track_bpm, track_delay)
     }
+
     /// Get the position of the note in the display.
     /// In other words, get the note should be how far from the judgement line
     /// in unit of the note width.
@@ -161,17 +204,11 @@ impl GameNote {
         display_bpm: u32,
         current_time_in_ms: u64,
     ) -> f64 {
-        let end_time = self.timing_in_ms(track_bpm, track_delay);
-        // beat_per_millisecond = (display_bpm / 60000)
-        // millisecond_per_beat = 1/ beat_per_millisecond
-        // speed = 1 / millisecond_per_beat
-        let speed_ratio = Rational64::new(display_bpm as i64, 60000);
-
-        // convert the ratio into floating value
-        let speed = *speed_ratio.numer() as f64 / *speed_ratio.denom() as f64;
-
-        // return the note should be how far from the judgement line
-        (end_time as f64 - current_time_in_ms as f64) * speed
+        get_position(
+            self.timing_in_ms(track_bpm, track_delay),
+            display_bpm,
+            current_time_in_ms,
+        )
     }
 }
 
@@ -193,6 +230,10 @@ impl GameSong {
             }
             for note in &mut result_unwrapped.right_face {
                 note.face = JangguFace::열편;
+                note.id = note_index;
+                note_index += 1;
+            }
+            for note in &mut result_unwrapped.hats {
                 note.id = note_index;
                 note_index += 1;
             }

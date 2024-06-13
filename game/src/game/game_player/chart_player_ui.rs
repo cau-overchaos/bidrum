@@ -37,6 +37,7 @@ pub struct BeatGuideline {
 
 pub struct ChartPlayerUI<'a> {
     pub notes: Vec<DisplayedSongNote>,
+    pub remaining_hat_ticks: Vec<i64>,
     pub accuracy: Option<NoteAccuracy>,
     pub combo: Option<u64>,
     pub accuracy_and_combo_time_progress: Option<f32>,
@@ -57,6 +58,7 @@ impl ChartPlayerUI<'_> {
     pub fn with_resources(resources: ChartPlayerUIResources) -> ChartPlayerUI {
         return ChartPlayerUI {
             notes: vec![],
+            remaining_hat_ticks: vec![],
             accuracy: None,
             combo: None,
             accuracy_and_combo_time_progress: None,
@@ -399,18 +401,40 @@ impl ChartPlayerUI<'_> {
         }
 
         // draw janggu icon on center
-        canvas
-            .copy(
-                &janggu_texture,
-                None,
-                Rect::new(
-                    (viewport.width() - janggu_width) as i32 / 2,
-                    (viewport.height() - janggu_height) as i32 / 2,
-                    janggu_width,
-                    janggu_height,
-                ),
-            )
-            .expect("Failed to draw janggu icon");
+        let janggu_hidden = if self.remaining_hat_ticks.is_empty()
+            || self
+                .remaining_hat_ticks
+                .iter()
+                .map(|i| i.abs())
+                .all(|i| i > 3000)
+        {
+            false
+        } else {
+            (self
+                .remaining_hat_ticks
+                .iter()
+                .map(|i| i.abs())
+                .min()
+                .unwrap()
+                / 100)
+                % 2
+                == 0
+        };
+
+        if !janggu_hidden {
+            canvas
+                .copy(
+                    &janggu_texture,
+                    None,
+                    Rect::new(
+                        (viewport.width() - janggu_width) as i32 / 2,
+                        (viewport.height() - janggu_height) as i32 / 2,
+                        janggu_width,
+                        janggu_height,
+                    ),
+                )
+                .expect("Failed to draw janggu icon");
+        }
 
         // draw note accuracy
         if let Some(accuracy) = self.accuracy {

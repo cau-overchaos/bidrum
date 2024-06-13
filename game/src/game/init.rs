@@ -1,5 +1,6 @@
 use std::time::Instant;
 
+use bidrum_hat::BidrumHat;
 use kira::manager::{backend::DefaultBackend, AudioManager, AudioManagerSettings};
 
 use crate::controller_wrapper::ControllerWrapper;
@@ -93,6 +94,9 @@ pub(crate) fn init_game(controller_wrapper: ControllerWrapper, options: InitGame
     // create freetype library
     let freetype_library = cairo::freetype::Library::init().expect("Failed to init FreeType");
 
+    // create hat
+    let hat = BidrumHat::new();
+
     // create GameCommonContext object
     let mut context = GameCommonContext {
         coin_and_janggu: controller_wrapper,
@@ -104,6 +108,7 @@ pub(crate) fn init_game(controller_wrapper: ControllerWrapper, options: InitGame
         audio_manager: AudioManager::<DefaultBackend>::new(AudioManagerSettings::default())
             .expect("AudioManager initialization failure"),
         game_initialized_at: Instant::now(),
+        hat: hat,
         freetype_library: freetype_library,
     };
 

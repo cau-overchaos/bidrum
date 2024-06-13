@@ -1,5 +1,6 @@
 use std::time::Instant;
 
+use bidrum_hat::BidrumHat;
 use kira::manager::AudioManager;
 use sdl2::{render::Canvas, video::Window, EventPump};
 
@@ -17,6 +18,7 @@ pub(crate) struct GameCommonContext {
     /// ddpi, hdpi, vdpi
     pub(crate) dpi: (f32, f32, f32),
     pub(crate) game_initialized_at: Instant,
+    pub(crate) hat: BidrumHat,
     pub(crate) freetype_library: cairo::freetype::Library,
 }
 

@@ -70,8 +70,8 @@ impl ChartPlayer<'_> {
         }
     }
 
-    pub fn judge(&mut self, janggu: &JangguStateWithTick, tick: i128) {
-        let new_accuracies = self.timing_judge.judge(janggu, tick as u64);
+    pub fn judge(&mut self, janggu: &JangguStateWithTick, spinning: bool, tick: i128) {
+        let new_accuracies = self.timing_judge.judge(janggu, spinning, tick as u64);
 
         if !new_accuracies.is_empty() {
             self.accuracy = Some((
@@ -229,6 +229,15 @@ impl ChartPlayer<'_> {
             self.ui.beat_guideline = self.beat_guideline(tick);
         }
         self.ui.overall_effect_tick = overall_tick;
+        self.ui.remaining_hat_ticks = self
+            .chart
+            .hats
+            .iter()
+            .map(|x| x.timing_in_ms(self.chart.bpm, self.chart.delay))
+            .map(|x| x as i128 - tick)
+            .filter(|x| *x >= -3000)
+            .map(|x| x as i64)
+            .collect();
         self.ui.draw(canvas);
     }
 
