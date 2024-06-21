@@ -18,6 +18,7 @@
 -   For Gungchae Notes, if you are using the Janggu controller, strike each side with the gungchae. If you are not using the Janggu controller, press the "D" key when the note appears on the gungpyeon and the "F" key when it appears on the yeolpyeon.
 -   For Yeolchae Notes, if you are using the Janggu controller, strike each side with the yeolchae. If you are not using the Janggu controller, press the "K" key when the note appears on the yeolpyeon and the "J" key when it appears on the gungpyeon.
 -   The game will automatically display your score and end once the song finishes.
+-   If you want to learn more, try playing the tutorial in the game.
 
 ## Judgement System
 
