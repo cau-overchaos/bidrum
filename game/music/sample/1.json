@@ -1,0 +1,20 @@
+{
+    "artist":"Team Overchaos",
+    "delay":0,"bpm":80,
+    "left_face":[
+        {"stick":"궁채","beat_index":10,"tick_nomiator":0,"tick_denomiator":4},
+        {"stick":"열채","beat_index":20,"tick_nomiator":0,"tick_denomiator":4},
+        {"stick":"궁채","beat_index":30,"tick_nomiator":0,"tick_denomiator":4},
+        {"stick":"열채","beat_index":35,"tick_nomiator":0,"tick_denomiator":4},
+        {"stick":"궁채","beat_index":40,"tick_nomiator":0,"tick_denomiator":4},
+        {"stick":"열채","beat_index":40,"tick_nomiator":0,"tick_denomiator":4}
+    ],
+    "right_face":[
+        {"stick":"열채","beat_index":15,"tick_nomiator":0,"tick_denomiator":4},
+        {"stick":"궁채","beat_index":25,"tick_nomiator":0,"tick_denomiator":4},
+        {"stick":"열채","beat_index":30,"tick_nomiator":0,"tick_denomiator":4},
+        {"stick":"궁채","beat_index":35,"tick_nomiator":0,"tick_denomiator":4},
+        {"stick":"열채","beat_index":45,"tick_nomiator":0,"tick_denomiator":4},
+        {"stick":"궁채","beat_index":45,"tick_nomiator":0,"tick_denomiator":4}
+    ]
+}
