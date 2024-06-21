@@ -65,6 +65,7 @@ Due to difficulties on building Rust FFmpeg library on Windows, The GNU toolchai
 
 ## Docs
 - [Glossary](docs/glossary.md)
+- [Tutorial](docs/tutorial.md)
 
 ## Copyright
 Copyright (C) 2024 Yeonjin Shin, Homin Lee, Habin Song. All rights reserved.
