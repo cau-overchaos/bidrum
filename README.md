@@ -1,5 +1,5 @@
 # 바이드럼(Bidrum)
-**바이드럼**(**Bidrum** in english) is a rhythm game with janggu(korean traditional drum)-style controller.
+**바이드럼**(**Bidrum** in korean) is a rhythm game with janggu(korean traditional drum)-style controller.
 
 ## How to build?
 ### Linux
