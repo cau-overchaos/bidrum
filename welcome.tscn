@@ -1,0 +1,63 @@
+[gd_scene load_steps=6 format=3 uid="uid://d3roue475it7h"]
+
+[ext_resource type="VideoStream" path="res://assets/video/title_bga.ogv" id="1_0lvic"]
+[ext_resource type="Script" path="res://welcome.cs" id="1_yrxfw"]
+[ext_resource type="Texture2D" uid="uid://d2l4wnqqxmcgo" path="res://assets/img/logo.png" id="2_apef3"]
+[ext_resource type="FontFile" uid="uid://ctdeg8iukgy66" path="res://assets/font/sans.ttf" id="4_b67tn"]
+
+[sub_resource type="FontVariation" id="FontVariation_u8xib"]
+base_font = ExtResource("4_b67tn")
+variation_opentype = {
+2003265652: 600
+}
+
+[node name="Welcome" type="Node"]
+script = ExtResource("1_yrxfw")
+
+[node name="BackgroundVideo" type="VideoStreamPlayer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stream = ExtResource("1_0lvic")
+autoplay = true
+expand = true
+loop = true
+buffering_msec = 1000
+
+[node name="ColorRect" type="ColorRect" parent="."]
+anchors_preset = -1
+anchor_left = 0.25
+anchor_right = 0.75
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 1, 1, 0.317647)
+
+[node name="Title" type="VBoxContainer" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -209.5
+offset_top = -94.5
+offset_right = 209.5
+offset_bottom = 94.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Logo" type="TextureRect" parent="Title"]
+layout_mode = 2
+texture = ExtResource("2_apef3")
+
+[node name="Message" type="Label" parent="Title"]
+layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_fonts/font = SubResource("FontVariation_u8xib")
+theme_override_font_sizes/font_size = 24
+text = "장구를 치세요!"
+horizontal_alignment = 1
+vertical_alignment = 1
