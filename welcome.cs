@@ -5,7 +5,7 @@ public partial class welcome : Node
 {
     private Label messageLabel;
     private bool inverted = false;
-    public void _ready()
+    public override void _Ready()
     {
         messageLabel = GetNode("Title/Message") as Label;
         startTween();

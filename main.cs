@@ -7,13 +7,13 @@ public partial class main : Node
     private IBillAccepter _billAccepter;
     private IJangguController _jangguController;
     private int _coins = 0;
-    private void _ready()
+    public override void _Ready()
     {
         _billAccepter = GlobalContext.Instance.BillAccepter;
         _jangguController = GlobalContext.Instance.JangguController;
     }
 
-    private void _process(float delta)
+    public override void _Process(double delta)
     {
         if (_billAccepter.GetCoins() > 0)
         {
