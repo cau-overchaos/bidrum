@@ -9,9 +9,8 @@ public partial class main : Node
     private int _coins = 0;
     private void _ready()
     {
-        KeyboardController keyboardController = new KeyboardController();
-        _billAccepter = keyboardController;
-        _jangguController = keyboardController;
+        _billAccepter = GlobalContext.Instance.BillAccepter;
+        _jangguController = GlobalContext.Instance.JangguController;
     }
 
     private void _process(float delta)

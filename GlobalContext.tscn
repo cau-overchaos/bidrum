@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://d258bnlp2ppvu"]
+
+[ext_resource type="Script" path="res://GlobalContext.cs" id="1_xlafq"]
+
+[node name="GlobalContext" type="Node"]
+script = ExtResource("1_xlafq")
