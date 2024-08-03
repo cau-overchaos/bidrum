@@ -1,10 +1,10 @@
 using Godot;
-using System;
 
-public partial class welcome : Node
+public partial class title : Node
 {
-    private Label messageLabel;
     private bool inverted = false;
+    private Label messageLabel;
+
     public override void _Ready()
     {
         messageLabel = GetNode("Title/Message") as Label;
@@ -12,9 +12,10 @@ public partial class welcome : Node
     }
 
     private void startTween()
-    { 
+    {
         Tween messageTween = GetTree().CreateTween();
-        messageTween.TweenProperty(messageLabel, "modulate:a", inverted ? 1.0f : 0.0f, 1.0f).SetTrans(Tween.TransitionType.Quad).SetDelay(0.1);
+        messageTween.TweenProperty(messageLabel, "modulate:a", inverted ? 1.0f : 0.0f, 1.0f)
+            .SetTrans(Tween.TransitionType.Quad).SetDelay(0.1);
         messageTween.Finished += invertTweenValue;
     }
 

@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://d3roue475it7h"]
 
 [ext_resource type="VideoStream" path="res://assets/video/title_bga.ogv" id="1_0lvic"]
-[ext_resource type="Script" path="res://welcome.cs" id="1_yrxfw"]
+[ext_resource type="Script" path="res://title/title.cs" id="1_o3dwn"]
 [ext_resource type="Texture2D" uid="uid://d2l4wnqqxmcgo" path="res://assets/img/logo.png" id="2_apef3"]
 [ext_resource type="FontFile" uid="uid://ctdeg8iukgy66" path="res://assets/font/sans.ttf" id="4_b67tn"]
 
@@ -11,8 +11,8 @@ variation_opentype = {
 2003265652: 600
 }
 
-[node name="Welcome" type="Node"]
-script = ExtResource("1_yrxfw")
+[node name="Title" type="Node"]
+script = ExtResource("1_o3dwn")
 
 [node name="BackgroundVideo" type="VideoStreamPlayer" parent="."]
 anchors_preset = 15

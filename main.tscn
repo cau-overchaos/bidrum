@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://bwramd3tfdgl1"]
 
 [ext_resource type="Script" path="res://main.cs" id="1_c54xp"]
-[ext_resource type="PackedScene" uid="uid://d3roue475it7h" path="res://welcome.tscn" id="1_oksg1"]
+[ext_resource type="PackedScene" uid="uid://d3roue475it7h" path="res://title/title.tscn" id="1_oksg1"]
 [ext_resource type="FontFile" uid="uid://c7frv34qow3x7" path="res://assets/font/coin.ttf" id="3_a7tih"]
 
 [node name="Main" type="Node"]
