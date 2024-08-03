@@ -4,20 +4,20 @@ using Godot;
 
 namespace bidrumgodot.controller;
 
-public class KeyboardController: IBillAccepter, IJangguController, IDisposable
+public class KeyboardHardware: IBillAccepter, IJangguHardware, IDisposable
 {
     private readonly Thread _thread;
     private bool _stopping = false;
     private bool[] _jangguKeyPresses = { false, false, false, false };
     private int _coins = 0;
     
-    public KeyboardController()
+    public KeyboardHardware()
     {
         _thread = new Thread(ReadKeyboardActionLoop);
         _thread.Start();
     }
     
-    public JangguControllerState GetState()
+    public JangguState GetState()
     {
         bool[] currentJangguKeyPresses = { false, false, false, false };
         _jangguKeyPresses.CopyTo(currentJangguKeyPresses,0);
@@ -40,7 +40,7 @@ public class KeyboardController: IBillAccepter, IJangguController, IDisposable
             rightStick = JangguFace.Right;
         }
 
-        return new JangguControllerState(leftStick, rightStick);
+        return new JangguState(leftStick, rightStick);
     }
 
     public void Dispose()
@@ -51,7 +51,7 @@ public class KeyboardController: IBillAccepter, IJangguController, IDisposable
 
     private bool[] ReadJangguActionKeyPresses()
     {
-        return new bool[]{
+        return new []{
             Input.IsActionPressed("janggu_left_stick_to_left_face"),
             Input.IsActionPressed("janggu_left_stick_to_right_face"),
             Input.IsActionPressed("janggu_right_stick_to_left_face"),
