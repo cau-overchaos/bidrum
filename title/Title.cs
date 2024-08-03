@@ -1,6 +1,6 @@
 using Godot;
 
-public partial class title : Node
+public partial class Title : Node
 {
     private bool inverted = false;
     private Label messageLabel;

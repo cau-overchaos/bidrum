@@ -1,25 +1,30 @@
-using Godot;
 using System;
 using bidrumgodot;
 using bidrumgodot.controller;
+using Godot;
 
-public partial class main : Node
+public partial class Main : Node
 {
     private IBillAccepter _billAccepter;
+    private Credits _credits;
+    private bool _gameInProgress;
+    private PackedScene _gameScene;
     private Janggu _janggu;
     private DateTime _startedAt;
-    private Credits _credits;
+    private PackedScene _titleScene;
+
     public override void _Ready()
     {
         _billAccepter = GlobalContext.Instance.BillAccepter;
         _janggu = new Janggu(GlobalContext.Instance.JangguHardware);
         _startedAt = DateTime.Now;
         _credits = new Credits();
+        _gameScene = GD.Load<PackedScene>("res://game/Game.tscn");
+        _titleScene = GD.Load<PackedScene>("res://title/Title.tscn");
     }
-    
+
     private void UpdateCoinText()
     {
-        
         if (_billAccepter.GetCoins() > 0)
         {
             _billAccepter.ConsumeCoins(1);
@@ -34,16 +39,37 @@ public partial class main : Node
         return _janggu.State.LeftStick.IsKeydownNow || _janggu.State.RightStick.IsKeydownNow;
     }
 
+    private void OnGameEnded()
+    {
+        var titleSceneInstance = _titleScene.Instantiate();
+        titleSceneInstance.Name = "Welcome";
+
+        GetNode("Game").QueueFree();
+        AddChild(titleSceneInstance);
+        _gameInProgress = false;
+    }
+
+    private void StartGame()
+    {
+        var gameSceneInstance = _gameScene.Instantiate() as Game;
+        gameSceneInstance.GameEnded += OnGameEnded;
+        gameSceneInstance.Name = "Game";
+
+        GetNode("Welcome").QueueFree();
+        AddChild(gameSceneInstance);
+        _gameInProgress = true;
+    }
+
     public override void _Process(double delta)
     {
         _janggu.Update(DateTime.Now.Subtract(_startedAt).Milliseconds);
-        
+
         UpdateCoinText();
 
-        if (IsGameStartKeyInputPressed() && _credits.AvailableCredits > 0)
+        if (IsGameStartKeyInputPressed() && _credits.AvailableCredits > 0 && !_gameInProgress)
         {
             _credits.ConsumeCredit();
-            // TO-DO: impl game start logic here
+            StartGame();
         }
     }
 }

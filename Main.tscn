@@ -1,13 +1,13 @@
 [gd_scene load_steps=4 format=3 uid="uid://bwramd3tfdgl1"]
 
-[ext_resource type="Script" path="res://main.cs" id="1_c54xp"]
-[ext_resource type="PackedScene" uid="uid://d3roue475it7h" path="res://title/title.tscn" id="1_oksg1"]
-[ext_resource type="FontFile" uid="uid://c7frv34qow3x7" path="res://assets/font/coin.ttf" id="3_a7tih"]
+[ext_resource type="Script" path="res://Main.cs" id="1_sqf7o"]
+[ext_resource type="PackedScene" uid="uid://d3roue475it7h" path="res://title/Title.tscn" id="2_bf3o4"]
+[ext_resource type="FontFile" uid="uid://c7frv34qow3x7" path="res://assets/font/coin.ttf" id="3_jq0pk"]
 
 [node name="Main" type="Node"]
-script = ExtResource("1_c54xp")
+script = ExtResource("1_sqf7o")
 
-[node name="Welcome" parent="." instance=ExtResource("1_oksg1")]
+[node name="Welcome" parent="." instance=ExtResource("2_bf3o4")]
 
 [node name="Coin" type="Label" parent="."]
 anchors_preset = 12
@@ -20,7 +20,7 @@ grow_vertical = 0
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
-theme_override_fonts/font = ExtResource("3_a7tih")
+theme_override_fonts/font = ExtResource("3_jq0pk")
 theme_override_font_sizes/font_size = 20
 text = "COIN: 0"
 horizontal_alignment = 1
