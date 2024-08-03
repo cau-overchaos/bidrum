@@ -1,23 +1,24 @@
-namespace bidrumgodot.controller;
+namespace bidrum.controller;
 
 public class Janggu
 {
     private IJangguHardware _controller;
     private JangguState _previousHardwareState;
-    
-    public JangguStateWithTick State { get; private set; } = new JangguStateWithTick();
-    public long Tick { get; private set; }
-    public Janggu (IJangguHardware hardware)
+
+    public Janggu(IJangguHardware hardware)
     {
         _controller = hardware;
     }
+
+    public JangguStateWithTick State { get; private set; } = new JangguStateWithTick();
+    public long Tick { get; private set; }
 
     public void Update(long tick)
     {
         JangguState currentState = _controller.GetState();
         JangguState previousState = new JangguState(_previousHardwareState);
-        
-        foreach (JangguStick stick in new [] { JangguStick.Left , JangguStick.Right})
+
+        foreach (JangguStick stick in new[] { JangguStick.Left, JangguStick.Right })
         {
             if (previousState.GetByStick(stick).Equals(currentState.GetByStick(stick)))
             {

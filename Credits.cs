@@ -1,6 +1,6 @@
 using System;
 
-namespace bidrumgodot;
+namespace bidrum;
 
 public class Credits
 {
@@ -38,14 +38,17 @@ public class Credits
         {
             return "FREE PLAY (UNCOMMERCIAL)";
         }
+
         if (Price == 0)
         {
             return "FREE PLAY";
         }
+
         if (Price == 1)
         {
             return $"CREDIT: {Coins}";
         }
+
         return $"CREDIT: {AvailableCredits} ({LeftoverCoins()}/{Price})";
     }
 }

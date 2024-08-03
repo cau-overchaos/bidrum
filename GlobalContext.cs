@@ -1,4 +1,4 @@
-using bidrumgodot.controller;
+using bidrum.controller;
 using Godot;
 
 public partial class GlobalContext : Node

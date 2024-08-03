@@ -1,31 +1,16 @@
 using System;
 
-namespace bidrumgodot.controller;
+namespace bidrum.controller;
 
 public class JangguStickStateWithTick
 {
-    /// <summary>
-    /// Timing when the stick started to touch the face
-    /// </summary>
-    public long KeydownTimingTick { get; private set; }
-    /// <summary>
-    /// Face which the stick is touching
-    ///
-    /// If the stick is touching nothing, the value is null.
-    /// </summary>
-    public Nullable<JangguFace> Face { get; private set; }
-    /// <summary>
-    /// Whether it's the EXACT time the stick started to touch the face right now
-    /// </summary>
-    public bool IsKeydownNow { get; private set; }
-
     public JangguStickStateWithTick()
     {
         KeydownTimingTick = 0;
         Face = null;
         IsKeydownNow = false;
     }
-    
+
     public JangguStickStateWithTick(long keydownTimingTick, JangguFace? face, bool isKeydownNow)
     {
         KeydownTimingTick = keydownTimingTick;
@@ -36,21 +21,37 @@ public class JangguStickStateWithTick
     public JangguStickStateWithTick(JangguStickStateWithTick original) : this(original.KeydownTimingTick, original.Face,
         original.IsKeydownNow)
     {
-        
     }
+
+    /// <summary>
+    /// Timing when the stick started to touch the face
+    /// </summary>
+    public long KeydownTimingTick { get; private set; }
+
+    /// <summary>
+    /// Face which the stick is touching
+    ///
+    /// If the stick is touching nothing, the value is null.
+    /// </summary>
+    public Nullable<JangguFace> Face { get; private set; }
+
+    /// <summary>
+    /// Whether it's the EXACT time the stick started to touch the face right now
+    /// </summary>
+    public bool IsKeydownNow { get; private set; }
 
     public JangguStickStateWithTick ToggleKeydown(bool newKeydown)
     {
         IsKeydownNow = newKeydown;
         return this;
     }
-    
+
     public JangguStickStateWithTick SetKeydownTiming(long newTiming)
     {
         KeydownTimingTick = newTiming;
         return this;
     }
-    
+
     public JangguStickStateWithTick SetFace(Nullable<JangguFace> newFace)
     {
         Face = newFace;

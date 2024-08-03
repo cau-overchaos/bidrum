@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="bidrum-godot"
+config/name="bidrum"
 run/main_scene="res://Main.tscn"
 config/features=PackedStringArray("4.2", "C#", "GL Compatibility")
 config/icon="res://icon.svg"
@@ -21,7 +21,7 @@ GlobalContext="*res://GlobalContext.tscn"
 
 [dotnet]
 
-project/assembly_name="bidrum-godot"
+project/assembly_name="bidrum"
 
 [input]
 

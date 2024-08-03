@@ -1,6 +1,6 @@
 using System;
-using bidrumgodot;
-using bidrumgodot.controller;
+using bidrum;
+using bidrum.controller;
 using Godot;
 
 public partial class Main : Node

@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using Godot;
 
-namespace bidrumgodot.controller;
+namespace bidrum.controller;
 
 public class KeyboardHardware : IBillAcceptor, IJangguHardware, IDisposable
 {

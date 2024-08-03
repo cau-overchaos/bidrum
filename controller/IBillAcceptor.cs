@@ -1,4 +1,4 @@
-namespace bidrumgodot.controller;
+namespace bidrum.controller;
 
 public delegate void NewCoinEventListener(int coins);
 

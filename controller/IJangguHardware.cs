@@ -1,22 +1,21 @@
 using System;
 
-namespace bidrumgodot.controller;
+namespace bidrum.controller;
 
 public enum JangguFace
 {
-    Left, Right
+    Left,
+    Right
 }
 
 public enum JangguStick
 {
-    Left, Right
+    Left,
+    Right
 }
 
 public class JangguState
 {
-    public Nullable<JangguFace> LeftStick { get; private set; }
-    public Nullable<JangguFace> RightStick { get; private set; }
-
     public JangguState(Nullable<JangguFace> leftStick, Nullable<JangguFace> rightStick)
     {
         this.LeftStick = leftStick;
@@ -27,11 +26,13 @@ public class JangguState
     {
         if (original != null)
         {
-
             this.LeftStick = original.LeftStick;
             this.RightStick = original.RightStick;
         }
     }
+
+    public Nullable<JangguFace> LeftStick { get; private set; }
+    public Nullable<JangguFace> RightStick { get; private set; }
 
     public Nullable<JangguFace> GetByStick(JangguStick stick)
     {
