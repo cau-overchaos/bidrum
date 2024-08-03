@@ -4,43 +4,27 @@ using Godot;
 
 namespace bidrumgodot.controller;
 
-public class KeyboardHardware: IBillAccepter, IJangguHardware, IDisposable
+public class KeyboardHardware : IBillAcceptor, IJangguHardware, IDisposable
 {
     private readonly Thread _thread;
-    private bool _stopping = false;
-    private bool[] _jangguKeyPresses = { false, false, false, false };
     private int _coins = 0;
-    
+    private bool[] _jangguKeyPresses = { false, false, false, false };
+    private bool _stopping = false;
+
     public KeyboardHardware()
     {
         _thread = new Thread(ReadKeyboardActionLoop);
         _thread.Start();
     }
-    
-    public JangguState GetState()
+
+    public int GetCoins()
     {
-        bool[] currentJangguKeyPresses = { false, false, false, false };
-        _jangguKeyPresses.CopyTo(currentJangguKeyPresses,0);
-        Nullable<JangguFace> leftStick = null;
-        Nullable<JangguFace> rightStick = null;
+        return _coins;
+    }
 
-        if (currentJangguKeyPresses[0])
-        {
-            leftStick = JangguFace.Left;
-        } else if (currentJangguKeyPresses[1])
-        {
-            leftStick = JangguFace.Right;
-        }
-
-        if (currentJangguKeyPresses[2])
-        {
-            rightStick = JangguFace.Left;
-        }else if (currentJangguKeyPresses[3])
-        {
-            rightStick = JangguFace.Right;
-        }
-
-        return new JangguState(leftStick, rightStick);
+    public void ConsumeCoins(int coins)
+    {
+        Interlocked.Add(ref _coins, -coins);
     }
 
     public void Dispose()
@@ -49,9 +33,38 @@ public class KeyboardHardware: IBillAccepter, IJangguHardware, IDisposable
         _thread.Join();
     }
 
+    public JangguState GetState()
+    {
+        bool[] currentJangguKeyPresses = { false, false, false, false };
+        _jangguKeyPresses.CopyTo(currentJangguKeyPresses, 0);
+        Nullable<JangguFace> leftStick = null;
+        Nullable<JangguFace> rightStick = null;
+
+        if (currentJangguKeyPresses[0])
+        {
+            leftStick = JangguFace.Left;
+        }
+        else if (currentJangguKeyPresses[1])
+        {
+            leftStick = JangguFace.Right;
+        }
+
+        if (currentJangguKeyPresses[2])
+        {
+            rightStick = JangguFace.Left;
+        }
+        else if (currentJangguKeyPresses[3])
+        {
+            rightStick = JangguFace.Right;
+        }
+
+        return new JangguState(leftStick, rightStick);
+    }
+
     private bool[] ReadJangguActionKeyPresses()
     {
-        return new []{
+        return new[]
+        {
             Input.IsActionPressed("janggu_left_stick_to_left_face"),
             Input.IsActionPressed("janggu_left_stick_to_right_face"),
             Input.IsActionPressed("janggu_right_stick_to_left_face"),
@@ -63,7 +76,7 @@ public class KeyboardHardware: IBillAccepter, IJangguHardware, IDisposable
     {
         return Input.IsActionPressed("new_coin");
     }
-    
+
     private void ReadKeyboardActionLoop()
     {
         bool previousCoinKeyPress = false;
@@ -78,15 +91,5 @@ public class KeyboardHardware: IBillAccepter, IJangguHardware, IDisposable
 
             previousCoinKeyPress = currentCoinKeyPress;
         }
-    }
-
-    public int GetCoins()
-    {
-        return _coins;
-    }
-
-    public void ConsumeCoins(int coins)
-    {
-        Interlocked.Add(ref _coins, -coins);
     }
 }

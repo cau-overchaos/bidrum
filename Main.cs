@@ -5,7 +5,7 @@ using Godot;
 
 public partial class Main : Node
 {
-    private IBillAccepter _billAccepter;
+    private IBillAcceptor _billAcceptor;
     private Credits _credits;
     private bool _gameInProgress;
     private PackedScene _gameScene;
@@ -15,7 +15,7 @@ public partial class Main : Node
 
     public override void _Ready()
     {
-        _billAccepter = GlobalContext.Instance.BillAccepter;
+        _billAcceptor = GlobalContext.Instance.BillAcceptor;
         _janggu = new Janggu(GlobalContext.Instance.JangguHardware);
         _startedAt = DateTime.Now;
         _credits = new Credits();
@@ -25,9 +25,9 @@ public partial class Main : Node
 
     private void UpdateCoinText()
     {
-        if (_billAccepter.GetCoins() > 0)
+        if (_billAcceptor.GetCoins() > 0)
         {
-            _billAccepter.ConsumeCoins(1);
+            _billAcceptor.ConsumeCoins(1);
             _credits.Coins += 1;
         }
 

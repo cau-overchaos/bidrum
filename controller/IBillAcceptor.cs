@@ -1,7 +1,8 @@
 namespace bidrumgodot.controller;
 
 public delegate void NewCoinEventListener(int coins);
-public interface IBillAccepter
+
+public interface IBillAcceptor
 {
     public int GetCoins();
     public void ConsumeCoins(int coins);
