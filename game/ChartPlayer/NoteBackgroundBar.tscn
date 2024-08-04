@@ -54,7 +54,7 @@ theme_override_constants/margin_right = 3
 theme_override_constants/margin_bottom = 3
 
 [node name="Guideline" type="TextureRect" parent="NodeBackground/HBoxContainer/MarginContainer"]
-modulate = Color(1, 1, 1, 0.588235)
+self_modulate = Color(1, 1, 1, 0.588235)
 layout_mode = 2
 texture = ExtResource("1_wrni2")
 expand_mode = 3
