@@ -1,0 +1,65 @@
+[gd_scene load_steps=9 format=3 uid="uid://q57c3hm0krt8"]
+
+[ext_resource type="Script" path="res://game/ChartPlayer/NoteBackgroundBar.cs" id="1_75f6m"]
+[ext_resource type="Texture2D" uid="uid://rrkujsvbhcr4" path="res://assets/img/chart_player_ui/note_guideline.png" id="1_wrni2"]
+
+[sub_resource type="Gradient" id="Gradient_wmcsx"]
+offsets = PackedFloat32Array(0)
+colors = PackedColorArray(0, 0, 0, 0.470588)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_n87tf"]
+gradient = SubResource("Gradient_wmcsx")
+
+[sub_resource type="Gradient" id="Gradient_gxopm"]
+colors = PackedColorArray(0, 0, 0, 0.313726, 0, 0, 0, 0.235294)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_tdf2r"]
+gradient = SubResource("Gradient_gxopm")
+
+[sub_resource type="Gradient" id="Gradient_rxy5g"]
+offsets = PackedFloat32Array(0)
+colors = PackedColorArray(0, 0, 0, 0.470588)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_obnbb"]
+gradient = SubResource("Gradient_rxy5g")
+
+[node name="NoteBackgroundBar" type="VBoxContainer"]
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+script = ExtResource("1_75f6m")
+
+[node name="TopBorder" type="TextureRect" parent="."]
+custom_minimum_size = Vector2(0, 5)
+layout_mode = 2
+texture = SubResource("GradientTexture1D_n87tf")
+
+[node name="NodeBackground" type="TextureRect" parent="."]
+layout_mode = 2
+size_flags_vertical = 3
+texture = SubResource("GradientTexture1D_tdf2r")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="NodeBackground"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="NodeBackground/HBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="Guideline" type="TextureRect" parent="NodeBackground/HBoxContainer/MarginContainer"]
+modulate = Color(1, 1, 1, 0.588235)
+layout_mode = 2
+texture = ExtResource("1_wrni2")
+expand_mode = 3
+
+[node name="BottomBorder" type="TextureRect" parent="."]
+custom_minimum_size = Vector2(0, 5)
+layout_mode = 2
+texture = SubResource("GradientTexture1D_obnbb")
