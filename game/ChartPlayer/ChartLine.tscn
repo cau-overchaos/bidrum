@@ -1,0 +1,38 @@
+[gd_scene load_steps=4 format=3 uid="uid://b4f31p21wsuup"]
+
+[ext_resource type="Script" path="res://game/ChartPlayer/ChartLine.cs" id="1_fa7lq"]
+[ext_resource type="Texture2D" uid="uid://elufwq41wm1t" path="res://assets/img/chart_player_ui/janggu.png" id="1_g8lg1"]
+[ext_resource type="PackedScene" uid="uid://q57c3hm0krt8" path="res://game/ChartPlayer/NoteBackgroundBar.tscn" id="2_qt5up"]
+
+[node name="ChartLine" type="Control"]
+layout_mode = 3
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_fa7lq")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 14
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Left" parent="HBoxContainer" instance=ExtResource("2_qt5up")]
+layout_mode = 2
+
+[node name="Janggu" type="TextureRect" parent="HBoxContainer"]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+texture = ExtResource("1_g8lg1")
+expand_mode = 5
+
+[node name="Right" parent="HBoxContainer" instance=ExtResource("2_qt5up")]
+layout_mode = 2
+Direction = 1
