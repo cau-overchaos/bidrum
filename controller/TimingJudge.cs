@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using bidrum.controller;
 using Bidrum.DataStructLib;
 
@@ -33,18 +32,18 @@ namespace Bidrum.Controller
 
     public class TimingJudge
     {
+        private ulong _badCount;
+        private ulong _combo;
+        private ulong _goodCount;
+        private ulong _greatCount;
+        private long _health;
+        private ulong _maxCombo;
+        private ulong _maxHealth;
+        private ulong _missCount;
         private List<NoteForProcessing> _notes;
         private ulong _overchaosCount;
         private ulong _perfectCount;
-        private ulong _greatCount;
-        private ulong _goodCount;
-        private ulong _badCount;
-        private ulong _missCount;
-        private ulong _combo;
-        private ulong _maxCombo;
         private ulong _score;
-        private long _health;
-        private ulong _maxHealth;
 
         public TimingJudge(GameChart chart)
         {
@@ -91,6 +90,7 @@ namespace Bidrum.Controller
 
         public List<JudgeResult> Judge(JangguStateWithTick keydown, ulong tickInMilliseconds)
         {
+            throw new NotImplementedException();
             var judgedNotes = new List<JudgeResult>();
 
             bool processedLeftStick = false;
@@ -134,13 +134,13 @@ namespace Bidrum.Controller
                     else
                         processedRightStick = true;
 
-                    note.HitTiming = (ulong)keydownData.KeydownTimingTick;
+                    // note.HitTiming = (ulong)keydownData.KeydownTimingTick;
                 }
 
                 if (note.HitTiming.HasValue)
                 {
                     var differenceAbs = Math.Abs((long)note.HitTiming.Value - (long)preciseTiming);
-                    _score += (ulong)((Math.Abs((Constants.BAD_TIMING - (double)differenceAbs).Clamp(Constants.OVERCHAOS_TIMING, Constants.BAD_TIMING)) / (Constants.BAD_TIMING - Constants.OVERCHAOS_TIMING)) * 1000.0);
+                    // _score += (ulong)((Math.Abs((Constants.BAD_TIMING - (double)differenceAbs).Clamp(Constants.OVERCHAOS_TIMING, Constants.BAD_TIMING)) / (Constants.BAD_TIMING - Constants.OVERCHAOS_TIMING)) * 1000.0);
                     var noteAccuracy = NoteAccuracyFromTimeDifference(differenceAbs);
 
                     judgedNotes.Add(new JudgeResult
@@ -169,6 +169,7 @@ namespace Bidrum.Controller
                         {
                             _combo += Constants.OVERCHAOS_COMBO;
                         }
+
                         _health += Constants.OVERCHAOS_HEALTH;
                         _overchaosCount++;
                         break;
@@ -182,6 +183,7 @@ namespace Bidrum.Controller
                         {
                             _combo += Constants.PERFECT_COMBO;
                         }
+
                         _health += Constants.PERFECT_HEALTH;
                         _perfectCount++;
                         break;
@@ -195,6 +197,7 @@ namespace Bidrum.Controller
                         {
                             _combo += Constants.GREAT_COMBO;
                         }
+
                         _health += Constants.GREAT_HEALTH;
                         _greatCount++;
                         break;
@@ -208,6 +211,7 @@ namespace Bidrum.Controller
                         {
                             _combo += Constants.GOOD_COMBO;
                         }
+
                         _health += Constants.GOOD_HEALTH;
                         _goodCount++;
                         break;
@@ -221,6 +225,7 @@ namespace Bidrum.Controller
                         {
                             _combo += Constants.BAD_COMBO;
                         }
+
                         _health += Constants.BAD_HEALTH;
                         _badCount++;
                         break;
@@ -234,6 +239,7 @@ namespace Bidrum.Controller
                         {
                             _combo += Constants.MISS_COMBO;
                         }
+
                         _health += Constants.MISS_HEALTH;
                         _missCount++;
                         break;
