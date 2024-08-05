@@ -39,6 +39,9 @@ public partial class NoteBackgroundBar : VBoxContainer
 
             foreach (ChartLineNote note in filteredNotes)
             {
+                if (note.distance < -2.0F)
+                    continue;
+
                 ChartNoteSprite sprite;
                 if (previousSprites.Count > 0)
                 {
