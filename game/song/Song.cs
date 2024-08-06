@@ -1,6 +1,6 @@
-﻿using bidrum.controller;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Text.Json.Serialization;
+using bidrum.controller;
 
 namespace Bidrum.DataStructLib
 {
@@ -26,25 +26,23 @@ namespace Bidrum.DataStructLib
 
     public class GameNote
     {
+        [JsonIgnore] public ulong Id { get; set; }
+
+        public Fraction Beat { get; set; }
         public JangguStick Stick { get; set; }
-        public ulong BeatIndex { get; set; }
-        public long TickNomiator { get; set; }
-        public long TickDenomiator { get; set; }
-        public ulong Id { get; set; }
         public JangguFace Face { get; set; }
 
-        public double TimingInMs(uint bpm, ulong delay)
+        public long TimingInMs(uint bpm, int delay)
         {
-            return (double)BeatIndex + ((double)TickNomiator / TickDenomiator) * (60000.0 / bpm) + delay;
+            return (long)((Beat) * (60000.0 / bpm) + delay);
         }
     }
 
     public class GameChart
     {
         public string Artist { get; set; }
-        public ulong Delay { get; set; }
+        public int Delay { get; set; }
         public uint Bpm { get; set; }
-        public List<GameNote> LeftFace { get; set; }
-        public List<GameNote> RightFace { get; set; }
+        public GameNote[] Notes { get; set; }
     }
 }
