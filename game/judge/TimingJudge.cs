@@ -1,146 +1,81 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using bidrum.controller;
 using Bidrum.DataStructLib;
 
-namespace Bidrum.Controller
+/// <summary>
+/// Judges accuracy of notes
+/// </summary>
+public class TimingJudge
 {
-    public enum NoteAccuracy
+    private uint _bpm;
+    private int _delay;
+    private List<GameNote> _unprocessedNotes;
+
+    public TimingJudge(IEnumerable<GameNote> notes, uint bpm, int delay)
     {
-        PPPPerfect,
-        Perfect,
-        Great,
-        Good,
-        Bad,
-        Miss
+        _unprocessedNotes = new List<GameNote>(notes.OrderBy(note => note.TimingInMs(bpm, delay)));
+        _bpm = bpm;
+        _delay = delay;
     }
 
-    public class NoteJudgement
+    public List<NoteJudgement> Judge(JangguStateWithTick jangguState, long tick)
     {
-        public NoteJudgement(GameNote note, NoteAccuracy accuracy)
+        List<NoteJudgement> noteJudgements = new List<NoteJudgement>();
+        bool processedLeftStick = false, processedRightStick = false;
+
+        foreach (GameNote note in _unprocessedNotes)
         {
-            Accuracy = accuracy;
-            Note = note;
-        }
+            if (processedLeftStick && processedRightStick)
+                break;
 
-        public NoteAccuracy Accuracy { get; private set; }
-        public GameNote Note { get; private set; }
-    }
+            long preciseTiming = note.TimingInMs(_bpm, _delay);
+            long differenceWithNoteTiming = tick - preciseTiming;
 
-    /// <summary>
-    /// Judges accuracy of notes
-    /// </summary>
-    public class TimingJudge
-    {
-        private uint _bpm;
-        private int _delay;
-        private List<GameNote> _unprocessedNotes;
-
-        public TimingJudge(IEnumerable<GameNote> notes, uint bpm, int delay)
-        {
-            _unprocessedNotes = new List<GameNote>(notes.OrderBy(note => note.TimingInMs(bpm, delay)));
-            _bpm = bpm;
-            _delay = delay;
-        }
-
-        private int GetJudgementTimingWindowOf(NoteAccuracy accuracy)
-        {
-            switch (accuracy)
+            // Judge the missed notes
+            if (differenceWithNoteTiming > new TimingWindow(NoteAccuracy.Miss).Value)
             {
-                case NoteAccuracy.PPPPerfect:
-                    return 10;
-                case NoteAccuracy.Perfect:
-                    return 40;
-                case NoteAccuracy.Great:
-                    return 80;
-                case NoteAccuracy.Good:
-                    return 160;
-                case NoteAccuracy.Bad:
-                    return 320;
-                case NoteAccuracy.Miss:
-                    return 1500;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(accuracy), accuracy, null);
-            }
-        }
-
-        private NoteAccuracy CalculateNoteAccuracyFromTimeDifference(long difference)
-        {
-            long abs = Math.Abs(difference);
-
-            foreach (NoteAccuracy accuracy in new[]
-                     {
-                         NoteAccuracy.PPPPerfect, NoteAccuracy.Perfect, NoteAccuracy.Great, NoteAccuracy.Good,
-                         NoteAccuracy.Bad
-                     })
-            {
-                if (abs <= GetJudgementTimingWindowOf(accuracy))
-                    return accuracy;
+                noteJudgements.Add(new NoteJudgement(note, NoteAccuracy.Miss));
+                continue;
             }
 
-            return NoteAccuracy.Miss;
-        }
-
-        public List<NoteJudgement> Judge(JangguStateWithTick jangguState, long tick)
-        {
-            List<NoteJudgement> noteJudgements = new List<NoteJudgement>();
-            bool processedLeftStick = false, processedRightStick = false;
-
-            foreach (GameNote note in _unprocessedNotes)
+            // Skip not-yet notes
+            if (differenceWithNoteTiming < -new TimingWindow(NoteAccuracy.Miss).Value)
             {
-                if (processedLeftStick && processedRightStick)
-                    break;
+                continue;
+            }
 
-                long preciseTiming = note.TimingInMs(_bpm, _delay);
-                long differenceWithNoteTiming = tick - preciseTiming;
-
-                // Judge the missed notes
-                if (differenceWithNoteTiming > GetJudgementTimingWindowOf(NoteAccuracy.Bad))
+            // Process note
+            JangguStickStateWithTick keydownData = jangguState.GetByStick(note.Stick);
+            if (keydownData.IsKeydownNow &&
+                keydownData.Face == note.Face &&
+                !((note.Stick == JangguStick.Left && processedLeftStick) ||
+                  (note.Stick == JangguStick.Right && processedRightStick)))
+            {
+                if (note.Stick == JangguStick.Left)
                 {
-                    noteJudgements.Add(new NoteJudgement(note, NoteAccuracy.Miss));
-                    continue;
+                    processedLeftStick = true;
+                }
+                else
+                {
+                    processedRightStick = true;
                 }
 
-                // Skip not-yet notes
-                if (differenceWithNoteTiming < -GetJudgementTimingWindowOf(NoteAccuracy.Miss))
-                {
-                    continue;
-                }
+                long hitTiming = keydownData.KeydownTimingTick;
+                NoteAccuracy accuracy = TimingWindow.GetAccuracy(preciseTiming, hitTiming);
+                noteJudgements.Add(new NoteJudgement(note, accuracy));
 
-                // Process note
-                JangguStickStateWithTick keydownData = jangguState.GetByStick(note.Stick);
-                if (keydownData.IsKeydownNow &&
-                    keydownData.Face == note.Face &&
-                    !((note.Stick == JangguStick.Left && processedLeftStick) ||
-                      (note.Stick == JangguStick.Right && processedRightStick)))
-                {
-                    if (note.Stick == JangguStick.Left)
-                    {
-                        processedLeftStick = true;
-                    }
-                    else
-                    {
-                        processedRightStick = true;
-                    }
-
-                    long hitTiming = keydownData.KeydownTimingTick;
-                    long difference = Math.Abs(hitTiming - preciseTiming);
-                    NoteAccuracy accuracy = CalculateNoteAccuracyFromTimeDifference(difference);
-                    noteJudgements.Add(new NoteJudgement(note, accuracy));
-
-                    // TO-DO: calc score here
-                }
+                // TO-DO: calc score here
             }
-
-            foreach (NoteJudgement judgement in noteJudgements)
-            {
-                _unprocessedNotes.Remove(judgement.Note);
-                // TO-DO: process combo here
-                // TO-DO: process health here
-            }
-
-            return noteJudgements;
         }
+
+        foreach (NoteJudgement judgement in noteJudgements)
+        {
+            _unprocessedNotes.Remove(judgement.Note);
+            // TO-DO: process combo here
+            // TO-DO: process health here
+        }
+
+        return noteJudgements;
     }
 }
