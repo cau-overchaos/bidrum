@@ -31,15 +31,17 @@ public class Janggu
                     // When user hit and take stick off the janggu,
                     // currentState.LeftStick is null, and State.LeftStick.Face is not null.
                     // So that state is not hit event. So call ToggleKeydown with false parameter
-                    State.GetByStick(stick).ToggleKeydown(false)
-                        .SetKeydownTiming(tick)
-                        .SetFace(null);
+                    State.SetStickState(stick,
+                        State.GetByStick(stick).ToggleKeydown(false)
+                            .SetKeydownTiming(tick)
+                            .SetFace(null));
                 }
                 else
                 {
-                    State.GetByStick(stick).ToggleKeydown(true)
-                        .SetKeydownTiming(tick)
-                        .SetFace(JangguFace.Left);
+                    State.SetStickState(stick,
+                        State.GetByStick(stick).ToggleKeydown(true)
+                            .SetKeydownTiming(tick)
+                            .SetFace(JangguFace.Left));
                 }
             }
         }

@@ -2,7 +2,7 @@ using System;
 
 namespace bidrum.controller;
 
-public class JangguStickStateWithTick
+public class JangguStickStateWithTick : ICloneable
 {
     public JangguStickStateWithTick()
     {
@@ -40,6 +40,11 @@ public class JangguStickStateWithTick
     /// </summary>
     public bool IsKeydownNow { get; private set; }
 
+    public object Clone()
+    {
+        return new JangguStickStateWithTick(this);
+    }
+
     public JangguStickStateWithTick ToggleKeydown(bool newKeydown)
     {
         IsKeydownNow = newKeydown;
@@ -66,8 +71,12 @@ public class JangguStickStateWithTick
 
 public class JangguStateWithTick
 {
-    public JangguStickStateWithTick LeftStick { get; set; } = new JangguStickStateWithTick();
-    public JangguStickStateWithTick RightStick { get; set; } = new JangguStickStateWithTick();
+    private JangguStickStateWithTick _leftStick = new JangguStickStateWithTick();
+    private JangguStickStateWithTick _rightStick = new JangguStickStateWithTick();
+
+    public JangguStickStateWithTick LeftStick => new(_leftStick);
+
+    public JangguStickStateWithTick RightStick => new(_rightStick);
 
     public JangguStickStateWithTick GetByStick(JangguStick stick)
     {
@@ -82,8 +91,23 @@ public class JangguStateWithTick
         }
     }
 
+    public void SetStickState(JangguStick stick, JangguStickStateWithTick newState)
+    {
+        switch (stick)
+        {
+            case JangguStick.Left:
+                _leftStick = newState;
+                break;
+            case JangguStick.Right:
+                _rightStick = newState;
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(stick), stick, null);
+        }
+    }
+
     public override string ToString()
     {
-        return $"JangguStateWithTick: LeftStick: ({LeftStick}) / RightStick: ({RightStick})";
+        return $"JangguStateWithTick: LeftStick: ({_leftStick}) / RightStick: ({_rightStick})";
     }
 }
