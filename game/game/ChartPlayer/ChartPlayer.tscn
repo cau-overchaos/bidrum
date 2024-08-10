@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3 uid="uid://chx7uslecm86v"]
+
+[ext_resource type="Script" path="res://game/ChartPlayer/ChartPlayer.cs" id="1_mjs1b"]
+[ext_resource type="PackedScene" uid="uid://b4f31p21wsuup" path="res://game/ChartPlayer/ChartLine.tscn" id="2_c8gak"]
+
+[node name="ChartPlayer" type="Node"]
+script = ExtResource("1_mjs1b")
+
+[node name="Music" type="AudioStreamPlayer" parent="."]
+
+[node name="BGA" type="VideoStreamPlayer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ChartLine" parent="." instance=ExtResource("2_c8gak")]
