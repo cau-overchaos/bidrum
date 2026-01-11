@@ -68,9 +68,21 @@ Due to difficulties on building Rust FFmpeg library on Windows, The GNU toolchai
 - [Tutorial](docs/tutorial.md)
 
 ## Copyright
-Copyright (C) 2024 Yeonjin Shin, Homin Lee, Habin Song. All rights reserved.
+Bidrum -- rhythm game with korean-traditional-drum-style controller
+Copyright (C) 2024 Yeonjin Shin, Homin Lee, Hanbin Song
 
-This program, including source code, cannot be used/copied/redistributed/modified without permission.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ### Assets (Image, Font, ...etc)
  - Noto Sans KR: Copyright (C) Google, licensed under SIL Open Font License
